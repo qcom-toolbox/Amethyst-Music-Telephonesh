@@ -37,4 +37,28 @@
     <string name="logout">Déconnexion</string>
     <string name="refresh">Actualiser</string>
     <string name="exit_offline">Quitter hors ligne</string>
+
+    <string name="now_playing">LECTURE EN COURS</string>
+    <string name="close_player">Fermer</string>
+    <string name="options">Options</string>
+    <string name="shuffle">Mélanger</string>
+    <string name="previous">Précédent</string>
+    <string name="next">Suivant</string>
+    <string name="play">Lecture</string>
+    <string name="pause">Pause</string>
+    <string name="loop">Boucle</string>
+    <string name="no_tracks_found">Aucune piste trouvée.</string>
+    <string name="connect_server">Connectez votre serveur Purple Music</string>
+    <string name="server_url">URL du serveur</string>
+    <string name="trust_all_certs_m">Recommandé sur Android 6 (certificats auto-signés).</string>
+    <string name="trust_all_certs_other">Pour serveurs avec certificat auto-signé ou invalide.</string>
+    <string name="connect">Se connecter</string>
+    <string name="error_no_server">Aucun serveur configuré.</string>
+    <string name="error_no_offline">Aucun titre téléchargé.</string>
+    <string name="error_login_required_download">Connexion requise pour télécharger.</string>
+    <string name="error_connection_failed">Connexion impossible : %1$s</string>
+    <string name="error_network">erreur réseau</string>
+    <string name="error_download_failed">Téléchargement impossible : %1$s</string>
+    <string name="error_load_failed">Erreur de chargement</string>
+    <string name="create_account_error">Erreur lors de l\'inscription</string>
 </resources>

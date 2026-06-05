@@ -2,7 +2,7 @@ package com.qualcomm_toolbox.amethyst
 
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -36,7 +36,7 @@ import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystMusicTheme
 import com.qualcomm_toolbox.amethyst.util.NotificationPermissionHelper
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var notificationPermission: NotificationPermissionHelper
 

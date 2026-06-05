@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Track
 import com.qualcomm_toolbox.amethyst.ui.theme.*
 
@@ -78,13 +80,13 @@ fun FullPlayerScreen(
                 IconButton(onClick = onClose) {
                     Icon(
                         Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Fermer",
+                        contentDescription = stringResource(R.string.close_player),
                         tint = AmethystText,
                         modifier = Modifier.size(32.dp)
                     )
                 }
                 Text(
-                    text = "LECTURE EN COURS",
+                    text = stringResource(R.string.now_playing),
                     color = AmethystTextMuted,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -93,7 +95,7 @@ fun FullPlayerScreen(
                 IconButton(onClick = { /* Could add options menu here */ }) {
                     Icon(
                         Icons.Default.MoreVert,
-                        contentDescription = "Options",
+                        contentDescription = stringResource(R.string.options),
                         tint = AmethystText
                     )
                 }
@@ -185,7 +187,7 @@ fun FullPlayerScreen(
                 IconButton(onClick = onToggleShuffle) {
                     Icon(
                         Icons.Default.Shuffle,
-                        contentDescription = "Mélanger",
+                        contentDescription = stringResource(R.string.shuffle),
                         tint = if (shuffle) AmethystAccent else AmethystText.copy(alpha = 0.5f),
                         modifier = Modifier.size(28.dp)
                     )
@@ -198,7 +200,7 @@ fun FullPlayerScreen(
                     IconButton(onClick = onPrevious) {
                         Icon(
                             Icons.Default.SkipPrevious,
-                            contentDescription = "Précédent",
+                            contentDescription = stringResource(R.string.previous),
                             tint = AmethystText,
                             modifier = Modifier.size(48.dp)
                         )
@@ -214,7 +216,7 @@ fun FullPlayerScreen(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Lecture",
+                                contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                                 tint = AmethystBackground,
                                 modifier = Modifier.size(42.dp)
                             )
@@ -224,7 +226,7 @@ fun FullPlayerScreen(
                     IconButton(onClick = onNext) {
                         Icon(
                             Icons.Default.SkipNext,
-                            contentDescription = "Suivant",
+                            contentDescription = stringResource(R.string.next),
                             tint = AmethystText,
                             modifier = Modifier.size(48.dp)
                         )
@@ -234,7 +236,7 @@ fun FullPlayerScreen(
                 IconButton(onClick = onToggleLoop) {
                     Icon(
                         imageVector = if (loopMode == 2) Icons.Default.RepeatOne else Icons.Default.Repeat,
-                        contentDescription = "Boucle",
+                        contentDescription = stringResource(R.string.loop),
                         tint = if (loopMode > 0) AmethystAccent else AmethystText.copy(alpha = 0.5f),
                         modifier = Modifier.size(28.dp)
                     )

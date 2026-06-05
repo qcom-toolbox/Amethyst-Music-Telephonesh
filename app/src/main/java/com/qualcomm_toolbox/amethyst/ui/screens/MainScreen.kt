@@ -168,7 +168,7 @@ fun MainScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = siteName,
+                    text = if (offlineOnlyMode) stringResource(R.string.tab_offline) else siteName,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = AmethystAccent,
@@ -280,7 +280,7 @@ private fun TrackList(
 ) {
     if (tracks.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Aucune piste trouvée.", color = AmethystTextMuted)
+            Text(stringResource(R.string.no_tracks_found), color = AmethystTextMuted)
         }
         return
     }
@@ -404,12 +404,12 @@ private fun TrackRow(
             }
             "remove" -> {
                 IconButton(onClick = onRemoveDownload) {
-                    Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = AmethystTextMuted)
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_download), tint = AmethystTextMuted)
                 }
             }
             "download" -> {
                 IconButton(onClick = onDownload) {
-                    Icon(Icons.Default.Download, contentDescription = "Télécharger", tint = AmethystAccent)
+                    Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download), tint = AmethystAccent)
                 }
             }
             "check" -> {

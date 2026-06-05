@@ -16,6 +16,8 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.ui.components.AuthScreenLayout
 import com.qualcomm_toolbox.amethyst.ui.components.authFieldColors
 import com.qualcomm_toolbox.amethyst.ui.components.authFieldShape
@@ -70,7 +72,7 @@ fun ServerSetupScreen(
             modifier = Modifier.padding(bottom = 8.dp),
         )
         Text(
-            text = "Connectez votre serveur Purple Music",
+            text = stringResource(R.string.connect_server),
             color = AmethystTextMuted,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp),
@@ -79,7 +81,7 @@ fun ServerSetupScreen(
         OutlinedTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text("URL du serveur") },
+            label = { Text(stringResource(R.string.server_url)) },
             placeholder = { Text("https://…/Purple") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -89,7 +91,7 @@ fun ServerSetupScreen(
         )
 
         Text(
-            text = "Ex. https://web.office-works.ch/Purple",
+            text = "Ex. ${stringResource(R.string.server_example)}",
             color = AmethystTextMuted,
             fontSize = 12.sp,
             modifier = Modifier
@@ -114,16 +116,16 @@ fun ServerSetupScreen(
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Ignorer les erreurs HTTPS",
+                    text = stringResource(R.string.trust_all_certs),
                     color = AmethystText,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
                 )
                 Text(
                     text = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-                        "Recommandé sur Android 6 (certificats auto-signés)."
+                        stringResource(R.string.trust_all_certs_m)
                     } else {
-                        "Pour serveurs avec certificat auto-signé ou invalide."
+                        stringResource(R.string.trust_all_certs_other)
                     },
                     color = AmethystTextMuted,
                     fontSize = 12.sp,
@@ -158,7 +160,7 @@ fun ServerSetupScreen(
                     strokeWidth = 2.dp,
                 )
             } else {
-                Text("Se connecter", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.connect), fontWeight = FontWeight.Bold)
             }
         }
     }

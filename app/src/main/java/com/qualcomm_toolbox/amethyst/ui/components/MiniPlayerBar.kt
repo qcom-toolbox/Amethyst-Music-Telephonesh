@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Track
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
@@ -76,7 +78,7 @@ fun MiniPlayerBar(
         IconButton(onClick = onPlayPause) {
             Icon(
                 if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = "Lecture",
+                contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                 tint = AmethystText,
                 modifier = Modifier.size(32.dp),
             )

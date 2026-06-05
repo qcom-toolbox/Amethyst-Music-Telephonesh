@@ -124,6 +124,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun okHttpClient() = client?.okHttpClient
 
+    private fun getString(resId: Int, vararg args: Any): String {
+        return getApplication<Application>().getString(resId, *args)
+    }
+
     private fun currentServerUrl(): String? = prefs.serverUrl
 
     private fun updatePlayerCallbacks() {
@@ -279,7 +283,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: PurpleException) {
                 _error.value = e.message
             } catch (e: Exception) {
-                _error.value = "Connexion impossible : ${e.message ?: "erreur réseau"}"
+                _error.value = getString(
+                    R.string.error_connection_failed,
+                    e.message ?: getString(R.string.error_network)
+                )
             } finally {
                 _isLoading.value = false
             }
@@ -288,7 +295,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun login(username: String, password: String) {
         val purple = client ?: run {
-            _error.value = "Configurez d'abord un serveur."
+            _error.value = getString(R.string.error_no_server)
             return
         }
         viewModelScope.launch {
@@ -305,7 +312,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: PurpleException) {
                 _error.value = e.message
             } catch (e: Exception) {
-                _error.value = "Connexion impossible : ${e.message ?: "erreur réseau"}"
+                _error.value = getString(
+                    R.string.error_connection_failed,
+                    e.message ?: getString(R.string.error_network)
+                )
             } finally {
                 _isLoading.value = false
             }
@@ -329,7 +339,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: PurpleException) {
                 _error.value = e.message
             } catch (e: Exception) {
-                _error.value = e.message ?: "Erreur lors de l'inscription"
+                _error.value = e.message ?: getString(R.string.create_account_error)
             } finally {
                 _isLoading.value = false
             }
@@ -338,16 +348,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openOfflineLibrary() {
         val server = currentServerUrl() ?: run {
-            _error.value = "Aucun serveur configuré."
+            _error.value = getString(R.string.error_no_server)
             return
         }
         if (!offlineLibrary.hasTracksForServer(server)) {
-            _error.value = "Aucun titre téléchargé."
+            _error.value = getString(R.string.error_no_offline)
             return
         }
         _offlineOnlyMode.value = true
         refreshOfflineState()
-        _siteName.value = "Hors ligne"
         _selectedTab.value = 2
         _screen.value = AppScreen.Main
     }
@@ -376,7 +385,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _screen.value = AppScreen.Login
                 }
             } catch (e: Exception) {
-                _error.value = e.message ?: "Erreur de chargement"
+                _error.value = e.message ?: getString(R.string.error_load_failed)
             } finally {
                 _isLoading.value = false
             }
@@ -385,7 +394,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun downloadTrack(track: Track) {
         val purple = client ?: run {
-            _error.value = "Connexion requise pour télécharger."
+            _error.value = getString(R.string.error_login_required_download)
             return
         }
         val server = currentServerUrl() ?: return
@@ -416,7 +425,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: PurpleException) {
                 _error.value = e.message
             } catch (e: Exception) {
-                _error.value = "Téléchargement impossible : ${e.message}"
+                _error.value = getString(R.string.error_download_failed, e.message ?: "")
             } finally {
                 _downloadingIds.update { it - track.id }
                 _downloadProgress.update { it - track.id }
