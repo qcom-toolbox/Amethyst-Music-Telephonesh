@@ -1,5 +1,7 @@
 package com.qualcomm_toolbox.amethyst.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,22 +18,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,6 +48,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +65,7 @@ import com.qualcomm_toolbox.amethyst.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -98,11 +109,26 @@ fun MainScreen(
     onExitOffline: () -> Unit,
     onMiniPlayerClick: () -> Unit,
     onTogglePlay: () -> Unit,
+    onUploadTrack: (String, String, String, ByteArray, String, ByteArray?, String?) -> Unit,
 ) {
     val downloadedIds by vm.downloadedIds.collectAsState()
     val downloadingIds by vm.downloadingIds.collectAsState()
     val downloadProgress by vm.downloadProgress.collectAsState()
     val currentLanguage by vm.language.collectAsState()
+    val genres by vm.genres.collectAsState()
+
+    var showUploadDialog by remember { mutableStateOf(false) }
+
+    if (showUploadDialog) {
+        UploadDialog(
+            genres = genres,
+            onDismiss = { showUploadDialog = false },
+            onUpload = { t, a, g, m, mn, c, cn ->
+                onUploadTrack(t, a, g, m, mn, c, cn)
+                showUploadDialog = false
+            }
+        )
+    }
 
     Scaffold(
         containerColor = AmethystBackground,
@@ -132,7 +158,7 @@ fun MainScreen(
                         NavigationBarItem(
                             selected = selectedTab == 1,
                             onClick = { onTabSelected(1) },
-                            icon = { Icon(Icons.Default.PlaylistPlay, contentDescription = null) },
+                            icon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
                             label = { Text(stringResource(R.string.tab_playlists)) },
                             colors = navColors(),
                         )
@@ -182,6 +208,9 @@ fun MainScreen(
                         Icon(Icons.Default.CloudOff, contentDescription = stringResource(R.string.exit_offline), tint = AmethystTextMuted)
                     }
                 } else {
+                    IconButton(onClick = { showUploadDialog = true }) {
+                        Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.upload), tint = AmethystTextMuted)
+                    }
                     IconButton(onClick = onRefresh) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh), tint = AmethystTextMuted)
                     }
@@ -202,7 +231,7 @@ fun MainScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
                     shape = RoundedCornerShape(50),
-                    colors = fieldColors(),
+                    colors = amethystFieldColors(),
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -459,7 +488,7 @@ private fun PlaylistList(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Default.PlaylistPlay,
+                    Icons.AutoMirrored.Filled.PlaylistPlay,
                     contentDescription = null,
                     tint = AmethystAccent,
                     modifier = Modifier.size(40.dp),
@@ -477,3 +506,211 @@ private fun PlaylistList(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UploadDialog(
+    genres: List<String>,
+    onDismiss: () -> Unit,
+    onUpload: (title: String, artist: String, genre: String, music: ByteArray, musicName: String, cover: ByteArray?, coverName: String?) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var artist by remember { mutableStateOf("") }
+    var genre by remember { mutableStateOf(genres.firstOrNull() ?: "Autre") }
+    var musicUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var musicName by remember { mutableStateOf("") }
+    var coverUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var coverName by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    var isExpanded by remember { mutableStateOf(false) }
+
+    val musicPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            musicUri = it
+            readUriBytes(context, it)?.let { pair ->
+                musicName = pair.second
+                if (title.isEmpty()) {
+                    title = pair.second.substringBeforeLast(".")
+                }
+            }
+        }
+    }
+
+    val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            coverUri = it
+            readUriBytes(context, it)?.let { pair ->
+                coverName = pair.second
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = AmethystPanel,
+        title = { Text(stringResource(R.string.upload), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Titre") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = amethystFieldColors(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = artist,
+                    onValueChange = { artist = it },
+                    label = { Text("Artiste") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = amethystFieldColors(),
+                    singleLine = true
+                )
+
+                ExposedDropdownMenuBox(
+                    expanded = isExpanded,
+                    onExpandedChange = { isExpanded = !isExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = genre,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Genre") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                        colors = amethystFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = isExpanded,
+                        onDismissRequest = { isExpanded = false },
+                        modifier = Modifier.background(AmethystPanel)
+                    ) {
+                        genres.forEach { g ->
+                            DropdownMenuItem(
+                                text = { Text(g, color = AmethystText) },
+                                onClick = {
+                                    genre = g
+                                    isExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { musicPicker.launch("audio/*") },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AmethystPrimary)
+                    ) {
+                        Text("Musique")
+                    }
+                    Text(
+                        text = musicName.ifEmpty { "Aucun fichier" },
+                        color = AmethystTextMuted,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { coverPicker.launch("image/*") },
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AmethystBorder)
+                    ) {
+                        Text("Pochette")
+                    }
+                    Text(
+                        text = coverName.ifEmpty { "Optionnel" },
+                        color = AmethystTextMuted,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val mUri = musicUri
+                    if (mUri != null) {
+                        val mData = readUriBytes(context, mUri)
+                        val cData = coverUri?.let { readUriBytes(context, it) }
+                        if (mData != null) {
+                            onUpload(
+                                title,
+                                artist,
+                                genre,
+                                mData.first,
+                                mData.second,
+                                cData?.first,
+                                cData?.second
+                            )
+                        }
+                    }
+                },
+                enabled = musicUri != null
+            ) {
+                Text(stringResource(R.string.upload), color = AmethystAccent)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close), color = AmethystTextMuted)
+            }
+        }
+    )
+}
+
+private fun readUriBytes(context: android.content.Context, uri: android.net.Uri): Pair<ByteArray, String>? {
+    return try {
+        val contentResolver = context.contentResolver
+        val inputStream = contentResolver.openInputStream(uri) ?: return null
+        val bytes = inputStream.readBytes()
+        inputStream.close()
+
+        var fileName = "file"
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    fileName = cursor.getString(nameIndex)
+                }
+            }
+        }
+        bytes to fileName
+    } catch (e: Exception) {
+        null
+    }
+}
+
+@Composable
+private fun amethystFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = AmethystText,
+    unfocusedTextColor = AmethystText,
+    focusedContainerColor = AmethystPanel,
+    unfocusedContainerColor = AmethystPanel,
+    focusedBorderColor = AmethystAccent,
+    unfocusedBorderColor = AmethystBorder,
+    focusedLabelColor = AmethystAccent,
+    unfocusedLabelColor = AmethystTextMuted,
+    cursorColor = AmethystAccent,
+)

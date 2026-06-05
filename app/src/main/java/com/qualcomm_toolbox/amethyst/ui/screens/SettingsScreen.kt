@@ -98,6 +98,11 @@ fun SettingsScreen(
                 color = AmethystTextMuted,
                 fontSize = 14.sp
             )
+            Text(
+                text = stringResource(R.string.about_mysql),
+                color = AmethystTextMuted,
+                fontSize = 14.sp
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.about_copyright),

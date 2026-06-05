@@ -16,8 +16,9 @@
     <string name="tab_settings">Paramètres</string>
     <string name="search_placeholder">Rechercher…</string>
     <string name="about_title">À propos</string>
-    <string name="about_made_by">App made by La Banane Bleue</string>
+    <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
+    <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2025 Amethyst Music. Tous droits réservés.</string>
     <string name="close">Fermer</string>
 
@@ -36,6 +37,7 @@
     <string name="logging_in">Connexion…</string>
     <string name="logout">Déconnexion</string>
     <string name="refresh">Actualiser</string>
+    <string name="upload">Publier</string>
     <string name="exit_offline">Quitter hors ligne</string>
 
     <string name="now_playing">LECTURE EN COURS</string>

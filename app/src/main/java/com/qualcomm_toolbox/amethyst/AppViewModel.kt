@@ -75,6 +75,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _playlists = MutableStateFlow<List<Playlist>>(emptyList())
     val playlists: StateFlow<List<Playlist>> = _playlists.asStateFlow()
 
+    private val _genres = MutableStateFlow<List<String>>(emptyList())
+    val genres: StateFlow<List<String>> = _genres.asStateFlow()
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -371,11 +374,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
-                val (trackList, playlistList) = withContext(Dispatchers.IO) {
-                    purple.fetchTracks() to purple.fetchPlaylists()
+                val (trackList, playlistList, genreList) = withContext(Dispatchers.IO) {
+                    Triple(purple.fetchTracks(), purple.fetchPlaylists(), purple.fetchGenres())
                 }
                 _tracks.value = trackList
                 _playlists.value = playlistList
+                _genres.value = genreList
                 refreshOfflineState()
                 applyFilter()
             } catch (e: PurpleException) {
@@ -429,6 +433,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } finally {
                 _downloadingIds.update { it - track.id }
                 _downloadProgress.update { it - track.id }
+            }
+        }
+    }
+
+    fun uploadTrack(
+        title: String,
+        artist: String,
+        genre: String,
+        musicBytes: ByteArray,
+        musicName: String,
+        coverBytes: ByteArray?,
+        coverName: String?,
+        onSuccess: () -> Unit = {}
+    ) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.uploadTrack(
+                        title = title,
+                        artist = artist,
+                        genre = genre,
+                        musicBytes = musicBytes,
+                        musicName = musicName,
+                        coverBytes = coverBytes,
+                        coverName = coverName
+                    )
+                }
+                loadLibrary()
+                onSuccess()
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Upload failed"
+            } finally {
+                _isLoading.value = false
             }
         }
     }

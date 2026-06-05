@@ -2,8 +2,11 @@ package com.qualcomm_toolbox.amethyst.data
 
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import java.util.concurrent.TimeUnit
 
@@ -186,6 +189,52 @@ class PurpleClient(
         try {
             client.newCall(request).execute().close()
         } catch (_: Exception) {
+        }
+    }
+
+    fun fetchGenres(): List<String> {
+        val html = fetchPage()
+        val genreSection = html.substringAfter("name=\"genre\"", "")
+        if (genreSection.isEmpty()) return emptyList()
+        val options = Regex("""<option value="([^"]+)">""").findAll(genreSection.substringBefore("</select>"))
+        return options.map { it.groupValues[1] }.toList()
+    }
+
+    fun uploadTrack(
+        title: String,
+        artist: String,
+        genre: String,
+        musicBytes: ByteArray,
+        musicName: String,
+        coverBytes: ByteArray?,
+        coverName: String?
+    ) {
+        val html = fetchPage()
+        val csrf = extractCsrfToken(html) ?: throw PurpleException("CSRF token not found")
+
+        val bodyBuilder = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("csrf_token", csrf)
+            .addFormDataPart("title", title)
+            .addFormDataPart("artist", artist)
+            .addFormDataPart("genre", genre)
+            .addFormDataPart("upload", "")
+            .addFormDataPart("music", musicName, musicBytes.toRequestBody("audio/*".toMediaType()))
+
+        if (coverBytes != null && coverName != null) {
+            bodyBuilder.addFormDataPart("cover", coverName, coverBytes.toRequestBody("image/*".toMediaType()))
+        }
+
+        val request = Request.Builder()
+            .url(indexUrl())
+            .post(bodyBuilder.build())
+            .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw PurpleException("Upload failed: ${response.code}")
+            val resHtml = response.body?.string() ?: ""
+            if (resHtml.contains("Format audio non autorisé")) throw PurpleException("Format audio non autorisé.")
+            if (resHtml.contains("Patientez")) throw PurpleException("Veuillez patienter avant un nouvel upload.")
         }
     }
 
