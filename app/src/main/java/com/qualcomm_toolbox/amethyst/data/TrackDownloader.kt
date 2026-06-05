@@ -21,7 +21,7 @@ class TrackDownloader {
         val musicFile = library.musicFileFor(track.id, ext)
         downloadToFile(
             client = httpClient,
-            url = purple.musicUrl(track.filename),
+            url = purple.musicUrl(track.id),
             dest = musicFile,
             onProgress = onProgress,
         )
@@ -29,7 +29,7 @@ class TrackDownloader {
         try {
             downloadToFile(
                 client = httpClient,
-                url = purple.coverUrl(track.cover),
+                url = purple.coverUrl(track.id),
                 dest = coverFile,
                 onProgress = {},
             )

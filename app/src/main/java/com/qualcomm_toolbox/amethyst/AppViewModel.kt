@@ -154,7 +154,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private fun initClient(url: String, trustAllCerts: Boolean = prefs.trustAllCertificates) {
         val normalized = ServerPreferences.normalizeServerUrl(url)
         cookieJar = PersistentCookieJar(normalized, sessionPersistence)
-        client = PurpleClient(normalized, trustAllCerts, cookieJar)
+        client = PurpleClient(normalized, trustAllCerts, cookieJar).apply {
+            setCredentials(prefs.savedUsername, sessionPersistence.savedPassword)
+        }
         musicPlayer.setOkHttpClient(client?.okHttpClient)
     }
 
@@ -175,6 +177,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     false
                 }
                 if (restored) {
+                    client?.setCredentials(prefs.savedUsername, sessionPersistence.savedPassword)
                     _offlineOnlyMode.value = false
                     loadLibrary()
                     _screen.value = AppScreen.Main
@@ -205,7 +208,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (server != null) {
             offlineLibrary.getMusicUri(server, track.id)?.let { return it.toString() }
         }
-        return client?.musicUrl(track.filename)
+        return client?.musicUrl(track.id)
             ?: offlineLibrary.getMusicUri(server.orEmpty(), track.id)?.toString()
             ?: ""
     }
@@ -215,10 +218,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (server != null) {
             offlineLibrary.getCoverUri(server, track.id)?.let { return it.toString() }
         }
-        return client?.coverUrl(track.cover)
+        return client?.coverUrl(track.id)
     }
-
-    fun coverUrl(cover: String): String? = client?.coverUrl(cover)
 
     fun isDownloaded(trackId: Int): Boolean = _downloadedIds.value.contains(trackId)
 
@@ -308,6 +309,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     purple.login(username.trim(), password)
                 }
+                purple.setCredentials(username.trim(), password)
                 persistLogin(username.trim(), password)
                 _offlineOnlyMode.value = false
                 loadLibrary()
@@ -335,6 +337,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     purple.register(username.trim(), password)
                     purple.login(username.trim(), password)
                 }
+                purple.setCredentials(username.trim(), password)
                 persistLogin(username.trim(), password)
                 _offlineOnlyMode.value = false
                 loadLibrary()
@@ -374,12 +377,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
-                val (trackList, playlistList, genreList) = withContext(Dispatchers.IO) {
-                    Triple(purple.fetchTracks(), purple.fetchPlaylists(), purple.fetchGenres())
+                val trackList = withContext(Dispatchers.IO) {
+                    purple.fetchTracks()
                 }
                 _tracks.value = trackList
-                _playlists.value = playlistList
-                _genres.value = genreList
+                _playlists.value = purple.fetchPlaylists()
+                _genres.value = purple.fetchGenres()
                 refreshOfflineState()
                 applyFilter()
             } catch (e: PurpleException) {
@@ -485,6 +488,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logout() {
         client?.clearSession()
+        client?.setCredentials(null, null)
         sessionPersistence.clearCredentials()
         sessionPersistence.clearAllForServer(currentServerUrl())
         musicPlayer.stop()

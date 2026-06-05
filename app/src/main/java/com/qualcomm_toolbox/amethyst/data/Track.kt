@@ -11,17 +11,19 @@ data class Track(
     val genre: String,
     val playCount: Int,
     val duration: Int,
+    val uploaderId: Int,
 ) {
     companion object {
         fun fromJson(obj: JSONObject): Track = Track(
-            id = obj.getInt("id"),
-            filename = obj.getString("filename"),
-            title = obj.getString("title"),
-            artist = obj.optString("artist", "Artiste inconnu"),
+            id = obj.optInt("id"),
+            filename = obj.optString("filename", ""),
+            title = obj.optString("title", "Unknown"),
+            artist = obj.optString("artist", "Unknown"),
             cover = obj.optString("cover", "default.png"),
             genre = obj.optString("genre", "Autre"),
             playCount = obj.optInt("play_count", 0),
             duration = obj.optInt("duration", 0),
+            uploaderId = obj.optInt("uploader_id", 0)
         )
     }
 }

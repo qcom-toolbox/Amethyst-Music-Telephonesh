@@ -516,7 +516,7 @@ fun UploadDialog(
 ) {
     var title by remember { mutableStateOf("") }
     var artist by remember { mutableStateOf("") }
-    var genre by remember { mutableStateOf(genres.firstOrNull() ?: "Autre") }
+    var genre by remember { mutableStateOf("Autre") }
     var musicUri by remember { mutableStateOf<android.net.Uri?>(null) }
     var musicName by remember { mutableStateOf("") }
     var coverUri by remember { mutableStateOf<android.net.Uri?>(null) }

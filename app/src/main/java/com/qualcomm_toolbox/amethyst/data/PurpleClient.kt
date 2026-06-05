@@ -2,12 +2,14 @@ package com.qualcomm_toolbox.amethyst.data
 
 import okhttp3.FormBody
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
+import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class PurpleClient(
@@ -17,8 +19,15 @@ class PurpleClient(
 ) {
     private var trustAllCerts: Boolean = trustAllCerts
     private var client: OkHttpClient = buildHttpClient()
+    private var currentUsername: String? = null
+    private var currentPassword: String? = null
 
     val okHttpClient: OkHttpClient get() = client
+
+    fun setCredentials(user: String?, pass: String?) {
+        currentUsername = user
+        currentPassword = pass
+    }
 
     fun setTrustAllCerts(enabled: Boolean) {
         if (trustAllCerts == enabled) return
@@ -32,12 +41,8 @@ class PurpleClient(
             .followSslRedirects(true)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
-        if (cookieJar != null) {
-            builder.cookieJar(cookieJar)
-        }
-        if (trustAllCerts) {
-            UnsafeSsl.applyTo(builder)
-        }
+        if (cookieJar != null) builder.cookieJar(cookieJar)
+        if (trustAllCerts) UnsafeSsl.applyTo(builder)
         return builder.build()
     }
 
@@ -51,269 +56,114 @@ class PurpleClient(
         cookieJar?.clear()
     }
 
-    fun hasValidSession(): Boolean = try {
-        fetchPage().contains("ALL_MUSIC_DATA")
-    } catch (_: Exception) {
-        false
+    fun hasValidSession(): Boolean = cookieJar?.hasCookies() ?: false
+
+    private fun apiUrl(action: String): HttpUrl {
+        return "$baseUrl/api.php".toHttpUrl()
+            .newBuilder()
+            .addQueryParameter("action", action)
+            .build()
     }
 
-    fun indexUrl(): String = "$baseUrl/"
+    fun musicUrl(trackId: Int): String = apiUrl("stream").newBuilder().addQueryParameter("q", trackId.toString()).build().toString()
 
-    fun musicUrl(filename: String): String = "$baseUrl/music/$filename"
+    fun coverUrl(trackId: Int): String = apiUrl("cover").newBuilder().addQueryParameter("q", trackId.toString()).build().toString()
 
-    fun coverUrl(cover: String): String = "$baseUrl/covers/$cover"
+    private fun postRequest(action: String, params: Map<String, String> = emptyMap()): String {
+        val body = FormBody.Builder().apply {
+            params.forEach { (k, v) -> add(k, v) }
+            currentUsername?.let { add("username", it) }
+            currentPassword?.let { add("password", it) }
+        }.build()
 
-    private fun fetchPage(path: String = "/"): String {
-        val url = if (path == "/") indexUrl() else "$baseUrl$path"
-        val request = Request.Builder().url(url).get().build()
+        val request = Request.Builder()
+            .url(apiUrl(action))
+            .post(body)
+            .build()
+
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw PurpleException("Serveur injoignable (${response.code})")
+                throw PurpleException("HTTP ${response.code}")
             }
-            return response.body?.string()
-                ?: throw PurpleException("Réponse vide du serveur")
+            return response.body?.string() ?: throw PurpleException("Empty response")
         }
     }
 
     fun validateServer(): String {
-        val html = fetchPage()
-        if (html.contains("MODE INSTALLATION") || html.contains("name=\"install\"")) {
-            throw PurpleException("Ce serveur n'est pas encore installé.")
-        }
-        extractSiteName(html)?.let { return it }
-        if (html.contains("name=\"login\"") || html.contains("ALL_MUSIC_DATA")) {
-            return "Purple Music"
-        }
-        throw PurpleException("URL invalide — serveur Purple/Amethyst introuvable.")
+        try {
+            val json = postRequest("list")
+            if (json.startsWith("[")) return "Amethyst Music"
+        } catch (_: Exception) {}
+        throw PurpleException("Serveur Amethyst non détecté")
     }
 
     fun login(username: String, password: String) {
-        val loginPage = fetchPage()
-        val csrf = extractCsrfToken(loginPage)
-            ?: throw PurpleException("Impossible de lire le jeton CSRF.")
-        if (!loginPage.contains("name=\"login\"") && loginPage.contains("ALL_MUSIC_DATA")) {
-            return
-        }
-        val body = FormBody.Builder()
-            .add("csrf_token", csrf)
-            .add("username", username)
-            .add("password", password)
-            .add("login", "")
-            .build()
-        val request = Request.Builder()
-            .url(indexUrl())
-            .post(body)
-            .build()
-        client.newCall(request).execute().use { response ->
-            val html = response.body?.string() ?: ""
-            extractAuthError(html)?.let { throw PurpleException(it) }
-            if (!html.contains("ALL_MUSIC_DATA")) {
-                if (html.contains("name=\"login\"")) {
-                    throw PurpleException("Identifiants incorrects.")
-                }
-                if (!response.isSuccessful) {
-                    throw PurpleException("Échec de connexion (${response.code}).")
-                }
-            }
+        val resp = postRequest("login", mapOf("username" to username, "password" to password))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Login failed"))
         }
     }
 
     fun register(username: String, password: String) {
-        val loginPage = fetchPage()
-        val csrf = extractCsrfToken(loginPage)
-            ?: throw PurpleException("Impossible de lire le jeton CSRF.")
-        val body = FormBody.Builder()
-            .add("csrf_token", csrf)
-            .add("username", username)
-            .add("password", password)
-            .add("register", "")
-            .build()
-        val request = Request.Builder()
-            .url(indexUrl())
-            .post(body)
-            .build()
-        client.newCall(request).execute().use { response ->
-            val html = response.body?.string() ?: ""
-            extractAuthError(html)?.let { throw PurpleException(it) }
-            if (html.contains("ALL_MUSIC_DATA")) return@use
+        val resp = postRequest("register", mapOf("username" to username, "password" to password))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Registration failed"))
         }
-    }
-
-    private fun extractAuthError(html: String): String? {
-        val patterns = listOf(
-            Regex("""color:var\(--danger\);?">([^<]+)</p>"""),
-            Regex("""class="error"[^>]*>([^<]+)</"""),
-        )
-        for (pattern in patterns) {
-            pattern.find(html)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                return it
-            }
-        }
-        if (html.contains("Nom d'utilisateur déjà pris") || html.contains("déjà pris")) {
-            return "Nom d'utilisateur déjà pris."
-        }
-        if (html.contains("Veuillez patienter")) {
-            return "Veuillez patienter avant de réessayer."
-        }
-        return null
     }
 
     fun fetchTracks(): List<Track> {
-        val html = fetchPage()
-        if (html.contains("name=\"login\"") && !html.contains("ALL_MUSIC_DATA")) {
-            throw PurpleException("Session expirée — reconnectez-vous.")
-        }
-        val json = extractJsonArray(html, "ALL_MUSIC_DATA")
-            ?: throw PurpleException("Bibliothèque introuvable sur ce serveur.")
-        return parseTracks(json)
-    }
-
-    fun fetchPlaylists(): List<Playlist> {
-        val html = fetchPage()
-        return parsePlaylistsFromHtml(html)
-    }
-
-    fun fetchPlaylistTracks(ids: List<Int>): List<Track> {
-        if (ids.isEmpty()) return emptyList()
-        val url = "${indexUrl()}?get_playlist_tracks=${ids.joinToString(",")}"
-        val request = Request.Builder().url(url).get().build()
-        client.newCall(request).execute().use { response ->
-            val body = response.body?.string() ?: "[]"
-            return parseTracks(JSONArray(body))
+        val resp = postRequest("list")
+        val array = JSONArray(resp)
+        return (0 until array.length()).map { i ->
+            Track.fromJson(array.getJSONObject(i))
         }
     }
 
     fun incrementPlay(trackId: Int) {
-        val url = "${indexUrl()}?increment_play=$trackId"
-        val request = Request.Builder().url(url).get().build()
         try {
-            client.newCall(request).execute().close()
-        } catch (_: Exception) {
-        }
+            postRequest("increment_play", mapOf("track_id" to trackId.toString()))
+        } catch (_: Exception) {}
     }
 
-    fun fetchGenres(): List<String> {
-        val html = fetchPage()
-        val genreSection = html.substringAfter("name=\"genre\"", "")
-        if (genreSection.isEmpty()) return emptyList()
-        val options = Regex("""<option value="([^"]+)">""").findAll(genreSection.substringBefore("</select>"))
-        return options.map { it.groupValues[1] }.toList()
-    }
+    fun fetchGenres(): List<String> = listOf(
+        "Autre", "Phonk/Funk", "Rap", "Pop", "Rock", "Electro",
+        "Hyperpop", "Nightcore"
+    )
 
     fun uploadTrack(
-        title: String,
-        artist: String,
-        genre: String,
-        musicBytes: ByteArray,
-        musicName: String,
-        coverBytes: ByteArray?,
-        coverName: String?
+        title: String, artist: String, genre: String,
+        musicBytes: ByteArray, musicName: String,
+        coverBytes: ByteArray?, coverName: String?
     ) {
-        val html = fetchPage()
-        val csrf = extractCsrfToken(html) ?: throw PurpleException("CSRF token not found")
+        val url = apiUrl("upload")
 
-        val bodyBuilder = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("csrf_token", csrf)
+        val body = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("title", title)
             .addFormDataPart("artist", artist)
             .addFormDataPart("genre", genre)
-            .addFormDataPart("upload", "")
-            .addFormDataPart("music", musicName, musicBytes.toRequestBody("audio/*".toMediaType()))
-
-        if (coverBytes != null && coverName != null) {
-            bodyBuilder.addFormDataPart("cover", coverName, coverBytes.toRequestBody("image/*".toMediaType()))
-        }
-
-        val request = Request.Builder()
-            .url(indexUrl())
-            .post(bodyBuilder.build())
-            .build()
-
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw PurpleException("Upload failed: ${response.code}")
-            val resHtml = response.body?.string() ?: ""
-            if (resHtml.contains("Format audio non autorisé")) throw PurpleException("Format audio non autorisé.")
-            if (resHtml.contains("Patientez")) throw PurpleException("Veuillez patienter avant un nouvel upload.")
-        }
-    }
-
-    private fun parseTracks(array: JSONArray): List<Track> {
-        val tracks = ArrayList<Track>(array.length())
-        for (i in 0 until array.length()) {
-            tracks.add(Track.fromJson(array.getJSONObject(i)))
-        }
-        return tracks
-    }
-
-    private fun parsePlaylistsFromHtml(html: String): List<Playlist> {
-        val regex = Regex(
-            """<h3[^>]*>([^<]+)</h3>[\s\S]*?playPlaylist\('([^']*)',\s*'?(\d+)'?\)""",
-        )
-        val results = mutableListOf<Playlist>()
-        regex.findAll(html).forEach { match ->
-            val name = match.groupValues[1].trim()
-            val ids = match.groupValues[2].split(',').mapNotNull { it.trim().toIntOrNull() }
-            val id = match.groupValues[3].toIntOrNull() ?: return@forEach
-            if (name.isNotEmpty()) {
-                results.add(Playlist(id = id, name = name, songIds = ids, creatorName = ""))
-            }
-        }
-        return results.distinctBy { it.id }
-    }
-
-    private fun extractCsrfToken(html: String): String? {
-        val regex = Regex("""name="csrf_token"\s+value="([^"]+)"""")
-        return regex.find(html)?.groupValues?.get(1)
-    }
-
-    private fun extractSiteName(html: String): String? {
-        val logoRegex = Regex("""<div class="logo"[^>]*>([^<]+)</div>""")
-        return logoRegex.find(html)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun extractJsonArray(html: String, variableName: String): JSONArray? {
-        val marker = "const $variableName"
-        val startIndex = html.indexOf(marker)
-        if (startIndex < 0) return null
-        val arrayStart = html.indexOf('[', startIndex)
-        if (arrayStart < 0) return null
-        var depth = 0
-        var inString = false
-        var escape = false
-        for (i in arrayStart until html.length) {
-            val c = html[i]
-            if (escape) {
-                escape = false
-                continue
-            }
-            when {
-                c == '\\' && inString -> escape = true
-                c == '"' -> inString = !inString
-                !inString && c == '[' -> depth++
-                !inString && c == ']' -> {
-                    depth--
-                    if (depth == 0) {
-                        return try {
-                            // index.php uses JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS
-                            // which replaces " → \u0022, < → \u003C, > → \u003E, & → \u0026, ' → \u0027.
-                            // Unescape these so JSONArray can parse the string correctly.
-                            val raw = html.substring(arrayStart, i + 1)
-                                .replace("\\u0022", "\"")
-                                .replace("\\u003C", "<")
-                                .replace("\\u003E", ">")
-                                .replace("\\u0026", "&")
-                                .replace("\\u0027", "'")
-                            JSONArray(raw)
-                        } catch (_: Exception) {
-                            null
-                        }
-                    }
+            .addFormDataPart("music", musicName, musicBytes.toRequestBody("audio/mpeg".toMediaType()))
+            .apply {
+                currentUsername?.let { addFormDataPart("username", it) }
+                currentPassword?.let { addFormDataPart("password", it) }
+                if (coverBytes != null && coverName != null) {
+                    addFormDataPart("cover", coverName, coverBytes.toRequestBody("image/*".toMediaType()))
                 }
             }
+            .build()
+
+        val request = Request.Builder().url(url).post(body).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw PurpleException("Upload failed")
+            val bodyStr = response.body?.string() ?: ""
+            if (bodyStr.contains("\"status\":\"error\"")) throw PurpleException("Upload error")
         }
-        return null
     }
+
+    fun fetchPlaylists() = emptyList<Playlist>()
+    fun fetchPlaylistTracks(ids: List<Int>) = emptyList<Track>()
 }
 
 class PurpleException(message: String) : Exception(message)

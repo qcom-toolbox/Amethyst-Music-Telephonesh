@@ -27,6 +27,10 @@ class PersistentCookieJar(
         persistence.clearCookies(serverUrl)
     }
 
+    fun hasCookies(): Boolean {
+        return store.values.any { it.isNotEmpty() }
+    }
+
     private fun loadFromDisk() {
         persistence.loadCookies(serverUrl).forEach { cookie ->
             val list = store.getOrPut(cookie.domain) { mutableListOf() }
