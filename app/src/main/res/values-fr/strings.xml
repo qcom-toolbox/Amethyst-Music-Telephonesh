@@ -72,4 +72,8 @@
     <string name="error_download_failed">Téléchargement impossible : %1$s</string>
     <string name="error_load_failed">Erreur de chargement</string>
     <string name="create_account_error">Erreur lors de l\'inscription</string>
+    <string name="lyrics">Paroles</string>
+    <string name="no_lyrics">Paroles non trouvées.</string>
+    <string name="loading_lyrics">Chargement des paroles…</string>
+    <string name="error_lyrics">Erreur lors du chargement des paroles.</string>
 </resources>

@@ -4,15 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
@@ -23,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.qualcomm_toolbox.amethyst.AppViewModel
 import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Track
 import com.qualcomm_toolbox.amethyst.ui.theme.*
@@ -36,6 +44,10 @@ fun FullPlayerScreen(
     loopMode: Int,
     shuffle: Boolean,
     coverUrl: String?,
+    lyrics: String?,
+    parsedLyrics: List<AppViewModel.LyricLine>,
+    isLoadingLyrics: Boolean,
+    showLyrics: Boolean,
     onClose: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
@@ -43,6 +55,7 @@ fun FullPlayerScreen(
     onSeek: (Long) -> Unit,
     onToggleLoop: () -> Unit,
     onToggleShuffle: () -> Unit,
+    onToggleLyrics: () -> Unit,
 ) {
     val gradient = Brush.verticalGradient(
         colors = listOf(AmethystGradientStart, AmethystBackground),
@@ -92,22 +105,22 @@ fun FullPlayerScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
                 )
-                IconButton(onClick = { /* Could add options menu here */ }) {
+                IconButton(onClick = onToggleLyrics) {
                     Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.options),
-                        tint = AmethystText
+                        Icons.Default.Lyrics,
+                        contentDescription = stringResource(R.string.lyrics),
+                        tint = if (showLyrics) AmethystAccent else AmethystText
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.weight(0.2f))
 
             // Album Art
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f)
+                    .aspectRatio(1.2f)
                     .clip(RoundedCornerShape(24.dp)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
@@ -119,7 +132,7 @@ fun FullPlayerScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.weight(0.2f))
 
             // Track Info
             Column(
@@ -128,7 +141,7 @@ fun FullPlayerScreen(
             ) {
                 Text(
                     text = track.title,
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Black,
                     color = AmethystText,
                     maxLines = 1,
@@ -136,7 +149,7 @@ fun FullPlayerScreen(
                 )
                 Text(
                     text = track.artist,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     color = AmethystAccent,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -144,7 +157,7 @@ fun FullPlayerScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Progress Slider
             val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
@@ -167,16 +180,16 @@ fun FullPlayerScreen(
                 Text(
                     text = formatTime(positionMs),
                     color = AmethystTextMuted,
-                    fontSize = 14.sp
+                    fontSize = 12.sp
                 )
                 Text(
                     text = formatTime(durationMs),
                     color = AmethystTextMuted,
-                    fontSize = 14.sp
+                    fontSize = 12.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Main Controls
             Row(
@@ -189,7 +202,7 @@ fun FullPlayerScreen(
                         Icons.Default.Shuffle,
                         contentDescription = stringResource(R.string.shuffle),
                         tint = if (shuffle) AmethystAccent else AmethystText.copy(alpha = 0.5f),
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
@@ -202,13 +215,13 @@ fun FullPlayerScreen(
                             Icons.Default.SkipPrevious,
                             contentDescription = stringResource(R.string.previous),
                             tint = AmethystText,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
 
                     Surface(
                         modifier = Modifier
-                            .size(84.dp)
+                            .size(72.dp)
                             .clickable { onPlayPause() },
                         shape = CircleShape,
                         color = AmethystText,
@@ -218,7 +231,7 @@ fun FullPlayerScreen(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
                                 tint = AmethystBackground,
-                                modifier = Modifier.size(42.dp)
+                                modifier = Modifier.size(36.dp)
                             )
                         }
                     }
@@ -228,7 +241,7 @@ fun FullPlayerScreen(
                             Icons.Default.SkipNext,
                             contentDescription = stringResource(R.string.next),
                             tint = AmethystText,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 }
@@ -238,12 +251,78 @@ fun FullPlayerScreen(
                         imageVector = if (loopMode == 2) Icons.Default.RepeatOne else Icons.Default.Repeat,
                         contentDescription = stringResource(R.string.loop),
                         tint = if (loopMode > 0) AmethystAccent else AmethystText.copy(alpha = 0.5f),
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            if (showLyrics) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                        .background(AmethystText.copy(alpha = 0.05f))
+                ) {
+                    if (isLoadingLyrics) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = AmethystAccent
+                        )
+                    } else if (parsedLyrics.isNotEmpty()) {
+                        val listState = rememberLazyListState()
+                        val currentIndex = parsedLyrics.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0)
+
+                        LaunchedEffect(currentIndex) {
+                            listState.animateScrollToItem(currentIndex)
+                        }
+
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 32.dp, horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            itemsIndexed(parsedLyrics) { index, line ->
+                                val isCurrent = index == currentIndex
+                                Text(
+                                    text = line.text,
+                                    color = if (isCurrent) AmethystAccent else AmethystText,
+                                    fontSize = if (isCurrent) 22.sp else 18.sp,
+                                    fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
+                                    textAlign = TextAlign.Center,
+                                    lineHeight = 32.sp,
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                        .alpha(if (isCurrent) 1f else 0.5f)
+                                        .clickable { onSeek(line.timeMs) }
+                                )
+                            }
+                        }
+                    } else {
+                        val scrollState = rememberScrollState()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                                .verticalScroll(scrollState),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = lyrics ?: stringResource(R.string.no_lyrics),
+                                color = AmethystText,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 28.sp
+                            )
+                        }
+                    }
+                }
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 }

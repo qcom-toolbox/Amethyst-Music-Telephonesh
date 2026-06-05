@@ -175,6 +175,10 @@ class MainActivity : AppCompatActivity() {
                                     val durationMs by vm.musicPlayer.durationMs.collectAsState()
                                     val loopMode by vm.musicPlayer.loopModeFlow.collectAsState()
                                     val shuffle by vm.musicPlayer.shuffleFlow.collectAsState()
+                                    val lyrics by vm.lyrics.collectAsState()
+                                    val parsedLyrics by vm.parsedLyrics.collectAsState()
+                                    val isLoadingLyrics by vm.isLoadingLyrics.collectAsState()
+                                    val showLyrics by vm.showLyrics.collectAsState()
 
                                     FullPlayerScreen(
                                         track = track,
@@ -184,6 +188,10 @@ class MainActivity : AppCompatActivity() {
                                         loopMode = loopMode,
                                         shuffle = shuffle,
                                         coverUrl = vm.coverUrlForTrack(track),
+                                        lyrics = lyrics,
+                                        parsedLyrics = parsedLyrics,
+                                        isLoadingLyrics = isLoadingLyrics,
+                                        showLyrics = showLyrics,
                                         onClose = vm::closeFullPlayer,
                                         onPlayPause = vm::togglePlayPause,
                                         onNext = vm::nextTrack,
@@ -191,6 +199,7 @@ class MainActivity : AppCompatActivity() {
                                         onSeek = vm::seekTo,
                                         onToggleLoop = { vm.toggleLoop() },
                                         onToggleShuffle = { vm.toggleShuffle() },
+                                        onToggleLyrics = vm::toggleLyrics,
                                     )
                                 }
                             }

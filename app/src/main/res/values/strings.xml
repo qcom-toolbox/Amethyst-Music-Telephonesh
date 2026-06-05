@@ -72,4 +72,8 @@
     <string name="error_download_failed">Download failed: %1$s</string>
     <string name="error_load_failed">Load failed</string>
     <string name="create_account_error">Error during registration</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="no_lyrics">Lyrics not found.</string>
+    <string name="loading_lyrics">Loading lyrics…</string>
+    <string name="error_lyrics">Error loading lyrics.</string>
 </resources>

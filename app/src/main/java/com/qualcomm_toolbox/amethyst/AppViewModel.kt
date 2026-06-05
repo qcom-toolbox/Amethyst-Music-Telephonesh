@@ -23,10 +23,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 
 enum class AppScreen {
     Setup,
@@ -108,6 +113,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _downloadProgress = MutableStateFlow<Map<Int, Float>>(emptyMap())
     val downloadProgress: StateFlow<Map<Int, Float>> = _downloadProgress.asStateFlow()
 
+    private val _lyrics = MutableStateFlow<String?>(null)
+    val lyrics: StateFlow<String?> = _lyrics.asStateFlow()
+
+    data class LyricLine(val timeMs: Long, val text: String)
+    private val _parsedLyrics = MutableStateFlow<List<LyricLine>>(emptyList())
+    val parsedLyrics: StateFlow<List<LyricLine>> = _parsedLyrics.asStateFlow()
+
+    private val _isLoadingLyrics = MutableStateFlow(false)
+    val isLoadingLyrics: StateFlow<Boolean> = _isLoadingLyrics.asStateFlow()
+
+    private val _showLyrics = MutableStateFlow(false)
+    val showLyrics: StateFlow<Boolean> = _showLyrics.asStateFlow()
+
     private var searchJob: Job? = null
     private var progressJob: Job? = null
 
@@ -123,6 +141,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         refreshOfflineState()
         startProgressUpdates()
         updatePlayerCallbacks()
+        observeTrackChanges()
+    }
+
+    private fun observeTrackChanges() {
+        viewModelScope.launch {
+            musicPlayer.currentTrack.collectLatest { track ->
+                _lyrics.value = null
+                if (_showLyrics.value && track != null) {
+                    fetchLyrics(track)
+                }
+            }
+        }
     }
 
     fun okHttpClient() = client?.okHttpClient
@@ -263,6 +293,76 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeFullPlayer() {
         _showFullPlayer.value = false
+        _showLyrics.value = false
+    }
+
+    fun toggleLyrics() {
+        val newState = !_showLyrics.value
+        _showLyrics.value = newState
+        if (newState && _lyrics.value == null) {
+            musicPlayer.currentTrack.value?.let { fetchLyrics(it) }
+        }
+    }
+
+    private fun fetchLyrics(track: Track) {
+        viewModelScope.launch {
+            _isLoadingLyrics.value = true
+            _lyrics.value = null
+            try {
+                val url = "https://lrclib.net/api/get".toHttpUrl().newBuilder()
+                    .addQueryParameter("artist_name", track.artist)
+                    .addQueryParameter("track_name", track.title)
+                    .build()
+
+                val request = Request.Builder()
+                    .header("User-Agent", "AmethystMusic/1.0")
+                    .url(url)
+                    .build()
+                val okHttpClient = client?.okHttpClient ?: OkHttpClient()
+
+                withContext(Dispatchers.IO) {
+                    okHttpClient.newCall(request).execute().use { response ->
+                        if (response.isSuccessful) {
+                            val body = response.body?.string()
+                            if (body != null) {
+                                val json = JSONObject(body)
+                                val lrc = json.optString("syncedLyrics").ifBlank { json.optString("plainLyrics") }
+                                _lyrics.value = lrc.ifBlank { getString(R.string.no_lyrics) }
+                                _parsedLyrics.value = parseLrc(lrc)
+                            }
+                        } else if (response.code == 404) {
+                            _lyrics.value = getString(R.string.no_lyrics)
+                            _parsedLyrics.value = emptyList()
+                        } else {
+                            _lyrics.value = getString(R.string.error_lyrics)
+                            _parsedLyrics.value = emptyList()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                _lyrics.value = getString(R.string.error_lyrics)
+                _parsedLyrics.value = emptyList()
+            } finally {
+                _isLoadingLyrics.value = false
+            }
+        }
+    }
+
+    private fun parseLrc(lrc: String): List<LyricLine> {
+        val lines = mutableListOf<LyricLine>()
+        val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2,3})](.*)")
+        lrc.split("\n").forEach { line ->
+            val match = regex.find(line)
+            if (match != null) {
+                val min = match.groupValues[1].toLong()
+                val sec = match.groupValues[2].toLong()
+                val ms = match.groupValues[3].toLong().let { if (it < 100) it * 10 else it }
+                val timeMs = (min * 60 + sec) * 1000 + ms
+                val text = match.groupValues[4].trim()
+                lines.add(LyricLine(timeMs, text))
+            }
+        }
+        return lines.sortedBy { it.timeMs }
     }
 
     fun saveServer(url: String, trustAllCerts: Boolean, onSuccess: () -> Unit = {}) {
