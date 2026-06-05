@@ -17,10 +17,10 @@ data class Track(
         fun fromJson(obj: JSONObject): Track = Track(
             id = obj.optInt("id"),
             filename = obj.optString("filename", ""),
-            title = obj.optString("title", "Unknown"),
-            artist = obj.optString("artist", "Unknown"),
-            cover = obj.optString("cover", "default.png"),
-            genre = obj.optString("genre", "Autre"),
+            title = obj.optString("title").ifBlank { "Unknown" },
+            artist = obj.optString("artist").ifBlank { "Unknown" },
+            cover = obj.optString("cover").ifBlank { "default.png" },
+            genre = obj.optString("genre").ifBlank { "Autre" },
             playCount = obj.optInt("play_count", 0),
             duration = obj.optInt("duration", 0),
             uploaderId = obj.optInt("uploader_id", 0)

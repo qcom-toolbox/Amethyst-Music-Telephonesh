@@ -530,8 +530,29 @@ fun UploadDialog(
             musicUri = it
             readUriBytes(context, it)?.let { pair ->
                 musicName = pair.second
-                if (title.isEmpty()) {
-                    title = pair.second.substringBeforeLast(".")
+
+                // Auto-fill from metadata
+                try {
+                    val retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(context, it)
+                    val mTitle = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
+                    val mArtist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                    retriever.release()
+
+                    if (!mTitle.isNullOrBlank()) title = mTitle
+                    if (!mArtist.isNullOrBlank()) artist = mArtist
+                } catch (_: Exception) {}
+
+                // Fallback to filename parsing
+                if (title.isEmpty() || artist.isEmpty()) {
+                    val rawName = pair.second.substringBeforeLast(".")
+                    if (rawName.contains(" - ")) {
+                        val parts = rawName.split(" - ", limit = 2)
+                        if (artist.isEmpty()) artist = parts[0].trim()
+                        if (title.isEmpty()) title = parts[1].trim()
+                    } else if (title.isEmpty()) {
+                        title = rawName
+                    }
                 }
             }
         }
