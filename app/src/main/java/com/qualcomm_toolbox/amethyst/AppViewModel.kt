@@ -229,6 +229,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun refreshOfflineState() {
         val server = currentServerUrl() ?: return
+        offlineLibrary.reload()
         _offlineTracks.value = offlineLibrary.getTracks(server)
         _downloadedIds.value = offlineLibrary.getDownloadedIds(server).toSet()
         applyFilter()
@@ -286,6 +287,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun refreshCache() {
+        lyricsCache.clear()
         loadLibrary()
     }
 

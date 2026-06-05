@@ -236,6 +236,14 @@ fun MainScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
+            if (isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().height(2.dp),
+                    color = AmethystAccent,
+                    trackColor = AmethystBackground
+                )
+            }
+
             val showLoading = isLoading &&
                 tracks.isEmpty() &&
                 offlineTracks.isEmpty() &&

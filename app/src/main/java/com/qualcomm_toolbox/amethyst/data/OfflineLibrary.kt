@@ -84,6 +84,11 @@ class OfflineLibrary(context: Context) {
         }
     }
 
+    @Synchronized
+    fun reload() {
+        entries = loadIndex().toMutableList()
+    }
+
     private fun loadIndex(): List<OfflineEntry> {
         if (!indexFile.exists()) return emptyList()
         return try {

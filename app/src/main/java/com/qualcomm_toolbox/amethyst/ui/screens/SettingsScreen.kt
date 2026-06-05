@@ -136,6 +136,20 @@ fun SettingsScreen(
             onClick = onRefreshCache
         )
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Version Section
+        SettingsSectionTitle("Version")
+        Text(
+            text = "0.5",
+            color = AmethystText,
+            fontSize = 16.sp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AmethystPanel, RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
 
         // About section
