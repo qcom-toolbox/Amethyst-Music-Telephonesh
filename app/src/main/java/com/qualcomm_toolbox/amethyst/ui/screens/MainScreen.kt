@@ -429,33 +429,21 @@ private fun TrackRow(
             }
         }
 
-        val actionContent = remember(isDownloading, isDownloaded, showDownloadActions) {
+        val actionStatus = remember(isDownloading, isDownloaded) {
             when {
                 isDownloading -> "loading"
-                showDownloadActions && isDownloaded -> "remove"
-                showDownloadActions -> "download"
                 isDownloaded -> "check"
                 else -> "music"
             }
         }
 
-        when (actionContent) {
+        when (actionStatus) {
             "loading" -> {
                 CircularProgressIndicator(
                     modifier = Modifier.size(28.dp),
                     color = AmethystAccent,
                     strokeWidth = 2.dp,
                 )
-            }
-            "remove" -> {
-                IconButton(onClick = onRemoveDownload) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_download), tint = AmethystTextMuted)
-                }
-            }
-            "download" -> {
-                IconButton(onClick = onDownload) {
-                    Icon(Icons.Default.Download, contentDescription = stringResource(R.string.download), tint = AmethystAccent)
-                }
             }
             "check" -> {
                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent, modifier = Modifier.size(24.dp))
@@ -465,16 +453,16 @@ private fun TrackRow(
             }
         }
 
-        if (onAddToPlaylist != null) {
-            Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(AmethystPanel)
-                ) {
+        Box {
+            IconButton(onClick = { showMenu = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
+            }
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                modifier = Modifier.background(AmethystPanel)
+            ) {
+                if (onAddToPlaylist != null) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.add_to_playlist), color = AmethystText) },
                         onClick = {
@@ -483,6 +471,28 @@ private fun TrackRow(
                         },
                         leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, tint = AmethystText) }
                     )
+                }
+
+                if (showDownloadActions) {
+                    if (isDownloaded) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.remove_download), color = AmethystText) },
+                            onClick = {
+                                onRemoveDownload()
+                                showMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = AmethystText) }
+                        )
+                    } else if (!isDownloading) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.download), color = AmethystText) },
+                            onClick = {
+                                onDownload()
+                                showMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.Download, contentDescription = null, tint = AmethystAccent) }
+                        )
+                    }
                 }
             }
         }
