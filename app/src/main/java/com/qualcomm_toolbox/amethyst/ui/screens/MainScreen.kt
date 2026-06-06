@@ -93,6 +93,7 @@ import com.qualcomm_toolbox.amethyst.data.Track
 import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.components.CreatePlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.components.MiniPlayerBar
+import com.qualcomm_toolbox.amethyst.ui.components.PlayingVisualizer
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
@@ -564,41 +565,6 @@ private fun TrackRow(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun PlayingVisualizer(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "visualizer")
-    
-    val barCount = 5
-    // Slower durations (increased values)
-    val durations = listOf(700, 950, 800, 1050, 850)
-    
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically // Center vertically to expand top and bottom
-    ) {
-        for (i in 0 until barCount) {
-            val heightPercent by infiniteTransition.animateFloat(
-                initialValue = 0.2f,
-                targetValue = 0.55f, // Reduced max height for a subtler effect
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durations[i], easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "bar_$i"
-            )
-            
-            Box(
-                modifier = Modifier
-                    .width(3.dp)
-                    .fillMaxHeight(heightPercent)
-                    .clip(RoundedCornerShape(2.dp)) // Rounded on both ends
-                    .background(Color.White)
-            )
         }
     }
 }
