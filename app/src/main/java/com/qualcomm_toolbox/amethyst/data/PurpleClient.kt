@@ -176,8 +176,62 @@ class PurpleClient(
         }
     }
 
-    fun fetchPlaylists() = emptyList<Playlist>()
-    fun fetchPlaylistTracks(ids: List<Int>) = emptyList<Track>()
+    fun fetchPlaylists(): List<Playlist> {
+        val resp = postRequest("playlists")
+        val array = JSONArray(resp)
+        return (0 until array.length()).map { i ->
+            Playlist.fromJson(array.getJSONObject(i))
+        }
+    }
+
+    fun fetchPlaylistTracks(ids: List<Int>): List<Track> {
+        if (ids.isEmpty()) return emptyList()
+        val allTracks = fetchTracks().associateBy { it.id }
+        return ids.mapNotNull { allTracks[it] }
+    }
+
+    fun createPlaylist(name: String) {
+        val resp = postRequest("playlist_create", mapOf("name" to name))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to create playlist"))
+        }
+    }
+
+    fun addToPlaylist(playlistId: Int, trackId: Int) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "add",
+            "track_id" to trackId.toString()
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to add to playlist"))
+        }
+    }
+
+    fun removeFromPlaylist(playlistId: Int, trackId: Int) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "remove",
+            "track_id" to trackId.toString()
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to remove from playlist"))
+        }
+    }
+
+    fun deletePlaylist(playlistId: Int) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "delete"
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to delete playlist"))
+        }
+    }
 }
 
 class PurpleException(message: String) : Exception(message)

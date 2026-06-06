@@ -41,6 +41,7 @@
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="create_account">Create account</string>
+    <string name="create">Create</string>
     <string name="change_server">Change server</string>
     <string name="auto_login">Automatic login…</string>
     <string name="logging_in">Logging in…</string>
@@ -76,4 +77,11 @@
     <string name="no_lyrics">Lyrics not found.</string>
     <string name="loading_lyrics">Loading lyrics…</string>
     <string name="error_lyrics">Error loading lyrics.</string>
+    <string name="create_playlist">Create playlist</string>
+    <string name="add_to_playlist">Add to playlist</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="playlist_created">Playlist created</string>
+    <string name="track_added">Track added to playlist</string>
+    <string name="delete_playlist">Delete playlist</string>
+    <string name="empty_playlist">This playlist is empty.</string>
 </resources>

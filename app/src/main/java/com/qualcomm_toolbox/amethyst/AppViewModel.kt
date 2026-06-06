@@ -25,6 +25,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -88,11 +91,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _filteredTracks = MutableStateFlow<List<Track>>(emptyList())
-    val filteredTracks: StateFlow<List<Track>> = _filteredTracks.asStateFlow()
+    val filteredTracks: StateFlow<List<Track>> = combine(_tracks, _searchQuery) { tracks, query ->
+        val q = query.lowercase().trim()
+        if (q.isEmpty()) tracks
+        else tracks.filter {
+            it.title.contains(q, ignoreCase = true) ||
+            it.artist.contains(q, ignoreCase = true) ||
+            it.genre.contains(q, ignoreCase = true)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val _filteredOfflineTracks = MutableStateFlow<List<Track>>(emptyList())
-    val filteredOfflineTracks: StateFlow<List<Track>> = _filteredOfflineTracks.asStateFlow()
+    val filteredOfflineTracks: StateFlow<List<Track>> = combine(_offlineTracks, _searchQuery) { tracks, query ->
+        val q = query.lowercase().trim()
+        if (q.isEmpty()) tracks
+        else tracks.filter {
+            it.title.contains(q, ignoreCase = true) ||
+            it.artist.contains(q, ignoreCase = true) ||
+            it.genre.contains(q, ignoreCase = true)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
@@ -127,6 +144,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showLyrics = MutableStateFlow(false)
     val showLyrics: StateFlow<Boolean> = _showLyrics.asStateFlow()
+
+    private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
+    val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
 
     private var searchJob: Job? = null
     private var progressJob: Job? = null
@@ -232,8 +252,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         offlineLibrary.reload()
         _offlineTracks.value = offlineLibrary.getTracks(server)
         _downloadedIds.value = offlineLibrary.getDownloadedIds(server).toSet()
-        applyFilter()
-        applyOfflineFilter()
     }
 
     fun playbackUrl(track: Track): String {
@@ -264,16 +282,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
-        searchJob?.cancel()
-
-        // Debounced + background filtering
-        searchJob = viewModelScope.launch(Dispatchers.Default) {
-            delay(250)
-            withContext(Dispatchers.Main) {
-                applyFilter()
-                applyOfflineFilter()
-            }
-        }
     }
 
     fun setSelectedTab(tab: Int) {
@@ -298,6 +306,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun closeFullPlayer() {
         _showFullPlayer.value = false
         _showLyrics.value = false
+    }
+
+    fun showAddToPlaylist(track: Track) {
+        _trackToAddToPlaylist.value = track
+    }
+
+    fun hideAddToPlaylist() {
+        _trackToAddToPlaylist.value = null
     }
 
     fun toggleLyrics() {
@@ -493,20 +509,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
+                // 1. Fetch tracks
                 val trackList = withContext(Dispatchers.IO) {
                     purple.fetchTracks()
                 }
                 _tracks.value = trackList
-                _playlists.value = purple.fetchPlaylists()
+                
+                // 2. Fetch playlists in background
+                launch {
+                    try {
+                        val playlists = withContext(Dispatchers.IO) { purple.fetchPlaylists() }
+                        _playlists.value = playlists
+                    } catch (_: Exception) {}
+                }
+                
                 _genres.value = purple.fetchGenres()
                 refreshOfflineState()
-                applyFilter()
-            } catch (e: PurpleException) {
-                _error.value = e.message
-                if (e.message?.contains("Session") == true) {
-                    purple.clearSession()
-                    _screen.value = AppScreen.Login
-                }
             } catch (e: Exception) {
                 _error.value = e.message ?: getString(R.string.error_load_failed)
             } finally {
@@ -628,38 +646,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _screen.value = AppScreen.Login
     }
 
-    private fun applyFilter() {
-        val q = _searchQuery.value.lowercase().trim()
-        val list = if (q.isEmpty()) {
-            _tracks.value
-        } else {
-            _tracks.value.filter {
-                it.title.contains(q, ignoreCase = true) ||
-                it.artist.contains(q, ignoreCase = true) ||
-                it.genre.contains(q, ignoreCase = true)
-            }
-        }
-        _filteredTracks.value = list
-    }
-
-    private fun applyOfflineFilter() {
-        val q = _searchQuery.value.lowercase().trim()
-        val list = if (q.isEmpty()) {
-            _offlineTracks.value
-        } else {
-            _offlineTracks.value.filter {
-                it.title.contains(q, ignoreCase = true) ||
-                it.artist.contains(q, ignoreCase = true) ||
-                it.genre.contains(q, ignoreCase = true)
-            }
-        }
-        _filteredOfflineTracks.value = list
-    }
-
     fun playTrack(track: Track) {
         val queue = when (_selectedTab.value) {
-            2 -> _filteredOfflineTracks.value.ifEmpty { _offlineTracks.value }
-            else -> _filteredTracks.value.ifEmpty { _tracks.value }
+            2 -> filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
+            else -> filteredTracks.value.ifEmpty { tracks.value }
         }
         if (queue.isEmpty()) return
         val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
@@ -680,12 +670,63 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     purple.fetchPlaylistTracks(playlist.songIds)
                 }
                 if (tracks.isEmpty()) {
-                    _error.value = "Cette playlist est vide."
+                    _error.value = getString(R.string.empty_playlist)
                     return@launch
                 }
                 musicPlayer.playQueue(tracks, 0) { playbackUrl(it) }
                 withContext(Dispatchers.IO) { purple.incrementPlay(tracks.first().id) }
                 openFullPlayer()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun createPlaylist(name: String) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.createPlaylist(name)
+                }
+                loadLibrary()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun addToPlaylist(playlist: Playlist, track: Track) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.addToPlaylist(playlist.id, track.id)
+                }
+                loadLibrary()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deletePlaylist(playlist: Playlist) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.deletePlaylist(playlist.id)
+                }
+                loadLibrary()
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {

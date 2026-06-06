@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
@@ -34,6 +36,9 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -75,6 +80,8 @@ import coil.compose.LocalImageLoader
 import com.qualcomm_toolbox.amethyst.AppViewModel
 import com.qualcomm_toolbox.amethyst.data.Playlist
 import com.qualcomm_toolbox.amethyst.data.Track
+import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
+import com.qualcomm_toolbox.amethyst.ui.components.CreatePlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.components.MiniPlayerBar
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
@@ -118,6 +125,7 @@ fun MainScreen(
     val genres by vm.genres.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
+    var showPlaylistCreateDialog by remember { mutableStateOf(false) }
 
     if (showUploadDialog) {
         UploadDialog(
@@ -126,6 +134,16 @@ fun MainScreen(
             onUpload = { t, a, g, m, mn, c, cn ->
                 onUploadTrack(t, a, g, m, mn, c, cn)
                 showUploadDialog = false
+            }
+        )
+    }
+
+    if (showPlaylistCreateDialog) {
+        CreatePlaylistDialog(
+            onDismiss = { showPlaylistCreateDialog = false },
+            onCreate = { name ->
+                vm.createPlaylist(name)
+                showPlaylistCreateDialog = false
             }
         )
     }
@@ -208,6 +226,11 @@ fun MainScreen(
                         Icon(Icons.Default.CloudOff, contentDescription = stringResource(R.string.exit_offline), tint = AmethystTextMuted)
                     }
                 } else {
+                    if (selectedTab == 1) {
+                        IconButton(onClick = { showPlaylistCreateDialog = true }) {
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_playlist), tint = AmethystTextMuted)
+                        }
+                    }
                     IconButton(onClick = { showUploadDialog = true }) {
                         Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.upload), tint = AmethystTextMuted)
                     }
@@ -244,17 +267,7 @@ fun MainScreen(
                 )
             }
 
-            val showLoading = isLoading &&
-                tracks.isEmpty() &&
-                offlineTracks.isEmpty() &&
-                playlists.isEmpty() &&
-                !offlineOnlyMode
-
-            if (showLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AmethystPrimary)
-                }
-            } else when (selectedTab) {
+            when (selectedTab) {
                 0 -> TrackList(
                     title = stringResource(R.string.tab_library),
                     tracks = tracks,
@@ -266,10 +279,12 @@ fun MainScreen(
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
+                    onAddToPlaylist = { vm.showAddToPlaylist(it) }
                 )
                 1 -> PlaylistList(
                     playlists = playlists,
                     onPlaylistClick = onPlaylistClick,
+                    onDeletePlaylist = { vm.deletePlaylist(it) }
                 )
                 2 -> TrackList(
                     title = stringResource(R.string.tab_offline),
@@ -314,14 +329,8 @@ private fun TrackList(
     onTrackClick: (Track) -> Unit,
     onDownload: (Track) -> Unit,
     onRemoveDownload: (Track) -> Unit,
+    onAddToPlaylist: ((Track) -> Unit)? = null,
 ) {
-    if (tracks.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.no_tracks_found), color = AmethystTextMuted)
-        }
-        return
-    }
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -331,12 +340,20 @@ private fun TrackList(
     ) {
         item {
             Text(
-                text = title,
+                text = "$title (${tracks.size})",
                 modifier = Modifier.padding(8.dp),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = AmethystText,
             )
+        }
+
+        if (tracks.isEmpty()) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    Text(stringResource(R.string.no_tracks_found), color = AmethystTextMuted)
+                }
+            }
         }
 
         items(
@@ -354,6 +371,7 @@ private fun TrackList(
                 onClick = { onTrackClick(track) },
                 onDownload = { onDownload(track) },
                 onRemoveDownload = { onRemoveDownload(track) },
+                onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
             )
         }
     }
@@ -370,7 +388,10 @@ private fun TrackRow(
     onClick: () -> Unit,
     onDownload: () -> Unit,
     onRemoveDownload: () -> Unit,
+    onAddToPlaylist: (() -> Unit)? = null,
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -456,6 +477,28 @@ private fun TrackRow(
                 Icon(Icons.Default.MusicNote, contentDescription = null, tint = AmethystPrimary)
             }
         }
+
+        if (onAddToPlaylist != null) {
+            Box {
+                IconButton(onClick = { showMenu = true }) {
+                    Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(AmethystPanel)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.add_to_playlist), color = AmethystText) },
+                        onClick = {
+                            onAddToPlaylist()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -463,6 +506,7 @@ private fun TrackRow(
 private fun PlaylistList(
     playlists: List<Playlist>,
     onPlaylistClick: (Playlist) -> Unit,
+    onDeletePlaylist: (Playlist) -> Unit,
 ) {
     if (playlists.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -475,6 +519,7 @@ private fun PlaylistList(
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 80.dp),
     ) {
         item {
             Text(
@@ -486,28 +531,49 @@ private fun PlaylistList(
             )
         }
         items(playlists, key = { it.id }) { playlist ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(AmethystPanel)
-                    .clickable { onPlaylistClick(playlist) }
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.PlaylistPlay,
-                    contentDescription = null,
-                    tint = AmethystAccent,
-                    modifier = Modifier.size(40.dp),
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(playlist.name, fontWeight = FontWeight.Bold, color = AmethystText)
-                    Text(
-                        "${playlist.songIds.size} titres",
-                        color = AmethystTextMuted,
-                        fontSize = 13.sp,
+            var showMenu by remember { mutableStateOf(false) }
+
+            Box {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(AmethystPanel)
+                        .clickable { onPlaylistClick(playlist) }
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.PlaylistPlay,
+                        contentDescription = null,
+                        tint = AmethystAccent,
+                        modifier = Modifier.size(40.dp),
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(playlist.name, fontWeight = FontWeight.Bold, color = AmethystText)
+                        Text(
+                            "${playlist.songIds.size} titres",
+                            color = AmethystTextMuted,
+                            fontSize = 13.sp,
+                        )
+                    }
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
+                    }
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(AmethystPanel)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.delete_playlist), color = AmethystText) },
+                        onClick = {
+                            onDeletePlaylist(playlist)
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = AmethystText) }
                     )
                 }
             }

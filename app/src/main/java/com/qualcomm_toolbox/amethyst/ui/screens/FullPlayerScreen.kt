@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -54,6 +55,7 @@ fun FullPlayerScreen(
     onToggleLoop: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleLyrics: () -> Unit,
+    onAddToPlaylist: () -> Unit,
 ) {
     var isLyricsMaximized by remember { mutableStateOf(false) }
 
@@ -105,12 +107,21 @@ fun FullPlayerScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
                 )
-                IconButton(onClick = onToggleLyrics) {
-                    Icon(
-                        Icons.Default.Lyrics,
-                        contentDescription = stringResource(R.string.lyrics),
-                        tint = if (showLyrics) AmethystAccent else AmethystText
-                    )
+                Row {
+                    IconButton(onClick = onAddToPlaylist) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.PlaylistAdd,
+                            contentDescription = stringResource(R.string.add_to_playlist),
+                            tint = AmethystText
+                        )
+                    }
+                    IconButton(onClick = onToggleLyrics) {
+                        Icon(
+                            Icons.Default.Lyrics,
+                            contentDescription = stringResource(R.string.lyrics),
+                            tint = if (showLyrics) AmethystAccent else AmethystText
+                        )
+                    }
                 }
             }
 

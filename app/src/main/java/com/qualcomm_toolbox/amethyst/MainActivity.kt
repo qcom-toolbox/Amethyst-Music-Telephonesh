@@ -28,6 +28,7 @@ import coil.request.CachePolicy
 import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.qualcomm_toolbox.amethyst.data.ServerPreferences
+import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.screens.FullPlayerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.LoginScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.MainScreen
@@ -165,6 +166,18 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
 
+                            val trackToAddToPlaylist by vm.trackToAddToPlaylist.collectAsState()
+                            if (trackToAddToPlaylist != null) {
+                                AddToPlaylistDialog(
+                                    playlists = playlists,
+                                    onDismiss = { vm.hideAddToPlaylist() },
+                                    onPlaylistSelected = { playlist ->
+                                        vm.addToPlaylist(playlist, trackToAddToPlaylist!!)
+                                        vm.hideAddToPlaylist()
+                                    }
+                                )
+                            }
+
                             AnimatedVisibility(
                                 visible = showFullPlayer && currentTrack != null,
                                 enter = slideInVertically(initialOffsetY = { it }),
@@ -200,6 +213,7 @@ class MainActivity : AppCompatActivity() {
                                         onToggleLoop = { vm.toggleLoop() },
                                         onToggleShuffle = { vm.toggleShuffle() },
                                         onToggleLyrics = vm::toggleLyrics,
+                                        onAddToPlaylist = { vm.showAddToPlaylist(track) },
                                     )
                                 }
                             }

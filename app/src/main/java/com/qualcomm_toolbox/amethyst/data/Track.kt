@@ -43,7 +43,7 @@ data class Playlist(
                 id = obj.getInt("id"),
                 name = obj.getString("name"),
                 songIds = ids,
-                creatorName = obj.optString("username", ""),
+                creatorName = obj.optString("creator").ifBlank { obj.optString("username", "") },
             )
         }
     }
