@@ -2,6 +2,12 @@ package com.qualcomm_toolbox.amethyst.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -69,6 +76,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.qualcomm_toolbox.amethyst.R
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -288,6 +297,8 @@ fun MainScreen(
             when (selectedTab) {
                 0 -> TrackList(
                     tracks = tracks,
+                    currentTrack = currentTrack,
+                    isPlaying = isPlaying,
                     downloadedIds = downloadedIds,
                     downloadingIds = downloadingIds,
                     downloadProgress = downloadProgress,
@@ -301,6 +312,8 @@ fun MainScreen(
                 1 -> if (currentPlaylist != null) {
                     TrackList(
                         tracks = currentPlaylistTracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
                         downloadedIds = downloadedIds,
                         downloadingIds = downloadingIds,
                         downloadProgress = downloadProgress,
@@ -320,6 +333,8 @@ fun MainScreen(
                 }
                 2 -> TrackList(
                     tracks = offlineTracks,
+                    currentTrack = currentTrack,
+                    isPlaying = isPlaying,
                     downloadedIds = downloadedIds,
                     downloadingIds = downloadingIds,
                     downloadProgress = downloadProgress,
@@ -351,6 +366,8 @@ private fun navColors() = NavigationBarItemDefaults.colors(
 @Composable
 private fun TrackList(
     tracks: List<Track>,
+    currentTrack: Track?,
+    isPlaying: Boolean,
     downloadedIds: Set<Int>,
     downloadingIds: Set<Int>,
     downloadProgress: Map<Int, Float>,
@@ -383,6 +400,8 @@ private fun TrackList(
         ) { track ->
             TrackRow(
                 track = track,
+                isCurrent = track.id == currentTrack?.id,
+                isPlaying = isPlaying,
                 cover = coverUrlForTrack(track),
                 isDownloaded = downloadedIds.contains(track.id),
                 isDownloading = downloadingIds.contains(track.id),
@@ -400,6 +419,8 @@ private fun TrackList(
 @Composable
 private fun TrackRow(
     track: Track,
+    isCurrent: Boolean,
+    isPlaying: Boolean,
     cover: String?,
     isDownloaded: Boolean,
     isDownloading: Boolean,
@@ -417,28 +438,43 @@ private fun TrackRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
+            .background(if (isCurrent) AmethystPanel.copy(alpha = 0.5f) else Color.Transparent)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val placeholder = rememberVectorPainter(Icons.Default.MusicNote)
-        AsyncImage(
-            model = cover,
-            contentDescription = track.title,
+        
+        Box(
             modifier = Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(AmethystBorder),
-            contentScale = ContentScale.Crop,
-            placeholder = placeholder,
-            error = placeholder,
-            imageLoader = LocalImageLoader.current,
-        )
+            contentAlignment = Alignment.Center
+        ) {
+            AsyncImage(
+                model = cover,
+                contentDescription = track.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                placeholder = placeholder,
+                error = placeholder,
+                imageLoader = LocalImageLoader.current,
+            )
+
+            if (isCurrent && isPlaying) {
+                PlayingVisualizer(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                )
+            }
+        }
         Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = track.title,
                 fontWeight = FontWeight.Bold,
-                color = AmethystText,
+                color = if (isCurrent) AmethystAccent else AmethystText,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -528,6 +564,41 @@ private fun TrackRow(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PlayingVisualizer(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "visualizer")
+    
+    val barCount = 5
+    // Slower durations (increased values)
+    val durations = listOf(700, 950, 800, 1050, 850)
+    
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically // Center vertically to expand top and bottom
+    ) {
+        for (i in 0 until barCount) {
+            val heightPercent by infiniteTransition.animateFloat(
+                initialValue = 0.2f,
+                targetValue = 0.55f, // Reduced max height for a subtler effect
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durations[i], easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "bar_$i"
+            )
+            
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .fillMaxHeight(heightPercent)
+                    .clip(RoundedCornerShape(2.dp)) // Rounded on both ends
+                    .background(Color.White)
+            )
         }
     }
 }
