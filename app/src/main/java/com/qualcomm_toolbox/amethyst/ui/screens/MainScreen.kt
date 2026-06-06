@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
@@ -123,6 +124,8 @@ fun MainScreen(
     val downloadProgress by vm.downloadProgress.collectAsState()
     val currentLanguage by vm.language.collectAsState()
     val genres by vm.genres.collectAsState()
+    val currentPlaylist by vm.currentPlaylist.collectAsState()
+    val currentPlaylistTracks by vm.currentPlaylistTracks.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
     var showPlaylistCreateDialog by remember { mutableStateOf(false) }
@@ -168,7 +171,10 @@ fun MainScreen(
                     if (!offlineOnlyMode) {
                         NavigationBarItem(
                             selected = selectedTab == 0,
-                            onClick = { onTabSelected(0) },
+                            onClick = { 
+                                vm.closePlaylist()
+                                onTabSelected(0) 
+                            },
                             icon = { Icon(Icons.Default.LibraryMusic, contentDescription = null) },
                             label = { Text(stringResource(R.string.tab_library)) },
                             colors = navColors(),
@@ -183,14 +189,20 @@ fun MainScreen(
                     }
                     NavigationBarItem(
                         selected = selectedTab == 2,
-                        onClick = { onTabSelected(2) },
+                        onClick = { 
+                            vm.closePlaylist()
+                            onTabSelected(2) 
+                        },
                         icon = { Icon(Icons.Default.Download, contentDescription = null) },
                         label = { Text(stringResource(R.string.tab_offline)) },
                         colors = navColors(),
                     )
                     NavigationBarItem(
                         selected = selectedTab == 3,
-                        onClick = { onTabSelected(3) },
+                        onClick = { 
+                            vm.closePlaylist()
+                            onTabSelected(3) 
+                        },
                         icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                         label = { Text(stringResource(R.string.tab_settings)) },
                         colors = navColors(),
@@ -221,6 +233,12 @@ fun MainScreen(
                     modifier = Modifier.weight(1f),
                 )
                 
+                if (currentPlaylist != null && selectedTab == 1) {
+                    IconButton(onClick = { vm.closePlaylist() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = AmethystTextMuted)
+                    }
+                }
+
                 if (offlineOnlyMode) {
                     IconButton(onClick = onExitOffline) {
                         Icon(Icons.Default.CloudOff, contentDescription = stringResource(R.string.exit_offline), tint = AmethystTextMuted)
@@ -280,11 +298,26 @@ fun MainScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = { vm.showAddToPlaylist(it) }
                 )
-                1 -> PlaylistList(
-                    playlists = playlists,
-                    onPlaylistClick = onPlaylistClick,
-                    onDeletePlaylist = { vm.deletePlaylist(it) }
-                )
+                1 -> if (currentPlaylist != null) {
+                    TrackList(
+                        tracks = currentPlaylistTracks,
+                        downloadedIds = downloadedIds,
+                        downloadingIds = downloadingIds,
+                        downloadProgress = downloadProgress,
+                        coverUrlForTrack = coverUrlForTrack,
+                        showDownloadActions = true,
+                        onTrackClick = onTrackClick,
+                        onDownload = onDownload,
+                        onRemoveDownload = onRemoveDownload,
+                        onAddToPlaylist = { vm.showAddToPlaylist(it) }
+                    )
+                } else {
+                    PlaylistList(
+                        playlists = playlists,
+                        onPlaylistClick = { vm.openPlaylist(it) },
+                        onDeletePlaylist = { vm.deletePlaylist(it) }
+                    )
+                }
                 2 -> TrackList(
                     tracks = offlineTracks,
                     downloadedIds = downloadedIds,

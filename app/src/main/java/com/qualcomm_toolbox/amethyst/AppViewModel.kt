@@ -148,6 +148,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
     val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
 
+    private val _currentPlaylist = MutableStateFlow<Playlist?>(null)
+    val currentPlaylist: StateFlow<Playlist?> = _currentPlaylist.asStateFlow()
+
+    private val _currentPlaylistTracks = MutableStateFlow<List<Track>>(emptyList())
+    val currentPlaylistTracks: StateFlow<List<Track>> = _currentPlaylistTracks.asStateFlow()
+
     private var searchJob: Job? = null
     private var progressJob: Job? = null
 
@@ -682,6 +688,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun openPlaylist(playlist: Playlist) {
+        _currentPlaylist.value = playlist
+        _currentPlaylistTracks.value = emptyList()
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val tracks = withContext(Dispatchers.IO) {
+                    purple.fetchPlaylistTracks(playlist.songIds)
+                }
+                _currentPlaylistTracks.value = tracks
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun closePlaylist() {
+        _currentPlaylist.value = null
+        _currentPlaylistTracks.value = emptyList()
     }
 
     fun createPlaylist(name: String) {
