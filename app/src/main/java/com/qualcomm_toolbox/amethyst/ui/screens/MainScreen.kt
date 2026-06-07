@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.AlertDialog
@@ -88,11 +89,14 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.LocalImageLoader
 import com.qualcomm_toolbox.amethyst.AppViewModel
+import com.qualcomm_toolbox.amethyst.SortOrder
 import com.qualcomm_toolbox.amethyst.data.Playlist
 import com.qualcomm_toolbox.amethyst.data.Track
 import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.components.CreatePlaylistDialog
 import com.qualcomm_toolbox.amethyst.ui.components.MiniPlayerBar
+import androidx.compose.material.icons.filled.Edit
+import com.qualcomm_toolbox.amethyst.ui.components.EditTrackDialog
 import com.qualcomm_toolbox.amethyst.ui.components.PlayingVisualizer
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
@@ -136,9 +140,16 @@ fun MainScreen(
     val genres by vm.genres.collectAsState()
     val currentPlaylist by vm.currentPlaylist.collectAsState()
     val currentPlaylistTracks by vm.currentPlaylistTracks.collectAsState()
+    val isAdmin by vm.isAdmin.collectAsState()
+    val adminModeEnabled by vm.adminModeEnabled.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
+    var trackToEdit by remember { mutableStateOf<Track?>(null) }
     var showPlaylistCreateDialog by remember { mutableStateOf(false) }
+    var showFilterMenu by remember { mutableStateOf(false) }
+
+    val selectedGenres by vm.selectedGenres.collectAsState()
+    val sortOrder by vm.sortOrder.collectAsState()
 
     if (showUploadDialog) {
         UploadDialog(
@@ -157,6 +168,22 @@ fun MainScreen(
             onCreate = { name ->
                 vm.createPlaylist(name)
                 showPlaylistCreateDialog = false
+            }
+        )
+    }
+
+    trackToEdit?.let { track ->
+        EditTrackDialog(
+            track = track,
+            genres = genres,
+            onDismiss = { trackToEdit = null },
+            onSave = { id, title, artist, genre, cover, coverName ->
+                vm.editTrack(id, title, artist, genre, cover, coverName)
+                trackToEdit = null
+            },
+            onDelete = { id ->
+                vm.deleteTrack(id)
+                trackToEdit = null
             }
         )
     }
@@ -272,18 +299,43 @@ fun MainScreen(
             }
 
             if (selectedTab == 0 || selectedTab == 2) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchChange,
-                    placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                    singleLine = true,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = amethystFieldColors(),
-                )
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = onSearchChange,
+                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(50),
+                        colors = amethystFieldColors(),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box {
+                        IconButton(onClick = { showFilterMenu = true }) {
+                            Icon(
+                                Icons.Default.FilterList,
+                                contentDescription = stringResource(R.string.filter_sort),
+                                tint = if (selectedGenres.isNotEmpty()) AmethystAccent else AmethystTextMuted
+                            )
+                        }
+                        FilterSortMenu(
+                            expanded = showFilterMenu,
+                            onDismissRequest = { showFilterMenu = false },
+                            genres = genres,
+                            selectedGenres = selectedGenres,
+                            onGenreToggle = vm::toggleGenre,
+                            onClearFilters = vm::clearGenreFilters,
+                            currentSort = sortOrder,
+                            onSortSelect = vm::setSortOrder
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -308,7 +360,9 @@ fun MainScreen(
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = { vm.showAddToPlaylist(it) }
+                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                    adminModeEnabled = adminModeEnabled,
+                    onEditTrack = { trackToEdit = it }
                 )
                 1 -> if (currentPlaylist != null) {
                     TrackList(
@@ -323,7 +377,9 @@ fun MainScreen(
                         onTrackClick = onTrackClick,
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
-                        onAddToPlaylist = { vm.showAddToPlaylist(it) }
+                        onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = { trackToEdit = it }
                     )
                 } else {
                     PlaylistList(
@@ -344,11 +400,16 @@ fun MainScreen(
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
+                    adminModeEnabled = adminModeEnabled,
+                    onEditTrack = { trackToEdit = it }
                 )
                 3 -> SettingsScreen(
                     currentLanguage = currentLanguage,
                     onLanguageChange = vm::setLanguage,
-                    onRefreshCache = vm::refreshCache
+                    onRefreshCache = vm::refreshCache,
+                    isAdmin = isAdmin,
+                    adminModeEnabled = adminModeEnabled,
+                    onAdminModeChange = vm::setAdminModeEnabled
                 )
             }
         }
@@ -365,6 +426,74 @@ private fun navColors() = NavigationBarItemDefaults.colors(
 )
 
 @Composable
+fun FilterSortMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    genres: List<String>,
+    selectedGenres: Set<String>,
+    onGenreToggle: (String) -> Unit,
+    onClearFilters: () -> Unit,
+    currentSort: SortOrder,
+    onSortSelect: (SortOrder) -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.background(AmethystPanel)
+    ) {
+        // Sort Section FIRST
+        Text(
+            text = "Sort by",
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = AmethystAccent
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.sort_popularity)) },
+            onClick = { onSortSelect(SortOrder.POPULARITY); onDismissRequest() },
+            leadingIcon = { if (currentSort == SortOrder.POPULARITY) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.sort_title)) },
+            onClick = { onSortSelect(SortOrder.TITLE_ASC); onDismissRequest() },
+            leadingIcon = { if (currentSort == SortOrder.TITLE_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.sort_artist)) },
+            onClick = { onSortSelect(SortOrder.ARTIST_ASC); onDismissRequest() },
+            leadingIcon = { if (currentSort == SortOrder.ARTIST_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.sort_newest)) },
+            onClick = { onSortSelect(SortOrder.DATE_UPLOAD_DESC); onDismissRequest() },
+            leadingIcon = { if (currentSort == SortOrder.DATE_UPLOAD_DESC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        )
+
+        // Genre Section
+        Text(
+            text = "Genre",
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = AmethystAccent
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.genre_all)) },
+            onClick = { onClearFilters(); onDismissRequest() },
+            leadingIcon = { if (selectedGenres.isEmpty()) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        )
+        genres.forEach { genre ->
+            DropdownMenuItem(
+                text = { Text(genre) },
+                onClick = { onGenreToggle(genre) }, // Don't dismiss so user can select multiple
+                leadingIcon = { if (selectedGenres.contains(genre)) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+            )
+        }
+    }
+}
+
+@Composable
 private fun TrackList(
     tracks: List<Track>,
     currentTrack: Track?,
@@ -378,6 +507,8 @@ private fun TrackList(
     onDownload: (Track) -> Unit,
     onRemoveDownload: (Track) -> Unit,
     onAddToPlaylist: ((Track) -> Unit)? = null,
+    adminModeEnabled: Boolean = false,
+    onEditTrack: ((Track) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -412,6 +543,8 @@ private fun TrackList(
                 onDownload = { onDownload(track) },
                 onRemoveDownload = { onRemoveDownload(track) },
                 onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
+                adminModeEnabled = adminModeEnabled,
+                onEditTrack = onEditTrack?.let { { it(track) } },
             )
         }
     }
@@ -431,6 +564,8 @@ private fun TrackRow(
     onDownload: () -> Unit,
     onRemoveDownload: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    adminModeEnabled: Boolean = false,
+    onEditTrack: (() -> Unit)? = null,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -540,6 +675,17 @@ private fun TrackRow(
                             showMenu = false
                         },
                         leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
+                if (adminModeEnabled && onEditTrack != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.edit_metadata), color = AmethystText) },
+                        onClick = {
+                            onEditTrack()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = AmethystAccent) }
                     )
                 }
 

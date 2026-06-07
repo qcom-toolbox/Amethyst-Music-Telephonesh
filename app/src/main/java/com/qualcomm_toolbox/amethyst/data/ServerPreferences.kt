@@ -20,6 +20,14 @@ class ServerPreferences(context: Context) {
             prefs.edit().putString(KEY_USERNAME, value).apply()
         }
 
+    var isAdmin: Boolean
+        get() = prefs.getBoolean(KEY_IS_ADMIN, false)
+        set(value) = prefs.edit().putBoolean(KEY_IS_ADMIN, value).apply()
+
+    var adminModeEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ADMIN_MODE_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_ADMIN_MODE_ENABLED, value).apply()
+
     var language: String
         get() = prefs.getString(KEY_LANGUAGE, "fr") ?: "fr"
         set(value) {
@@ -44,6 +52,8 @@ class ServerPreferences(context: Context) {
         private const val KEY_USERNAME = "username"
         private const val KEY_LANGUAGE = "language"
         private const val KEY_TRUST_ALL_CERTS = "trust_all_certs"
+        private const val KEY_IS_ADMIN = "is_admin"
+        private const val KEY_ADMIN_MODE_ENABLED = "admin_mode_enabled"
 
         fun normalizeServerUrl(raw: String): String {
             var url = raw.trim()

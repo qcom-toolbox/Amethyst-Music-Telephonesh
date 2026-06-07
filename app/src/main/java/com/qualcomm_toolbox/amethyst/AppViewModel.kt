@@ -43,6 +43,14 @@ enum class AppScreen {
     Main,
 }
 
+enum class SortOrder {
+    POPULARITY,
+    TITLE_ASC,
+    ARTIST_ASC,
+    DATE_UPLOAD_DESC,
+    DATE_UPLOAD_ASC
+}
+
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = ServerPreferences(application)
     private val sessionPersistence = SessionPersistence(application)
@@ -88,26 +96,60 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _genres = MutableStateFlow<List<String>>(emptyList())
     val genres: StateFlow<List<String>> = _genres.asStateFlow()
 
+    private val _selectedGenres = MutableStateFlow<Set<String>>(emptySet())
+    val selectedGenres: StateFlow<Set<String>> = _selectedGenres.asStateFlow()
+
+    private val _sortOrder = MutableStateFlow(SortOrder.POPULARITY)
+    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val filteredTracks: StateFlow<List<Track>> = combine(_tracks, _searchQuery) { tracks, query ->
+    val filteredTracks: StateFlow<List<Track>> = combine(
+        _tracks, _searchQuery, _selectedGenres, _sortOrder
+    ) { tracks, query, genres, sort ->
+        var filtered = tracks
         val q = query.lowercase().trim()
-        if (q.isEmpty()) tracks
-        else tracks.filter {
-            it.title.contains(q, ignoreCase = true) ||
-            it.artist.contains(q, ignoreCase = true) ||
-            it.genre.contains(q, ignoreCase = true)
+        if (q.isNotEmpty()) {
+            filtered = filtered.filter {
+                it.title.contains(q, ignoreCase = true) ||
+                it.artist.contains(q, ignoreCase = true) ||
+                it.genre.contains(q, ignoreCase = true)
+            }
+        }
+        if (genres.isNotEmpty()) {
+            filtered = filtered.filter { genres.contains(it.genre) }
+        }
+        when (sort) {
+            SortOrder.POPULARITY -> filtered.sortedByDescending { it.playCount }
+            SortOrder.TITLE_ASC -> filtered.sortedBy { it.title.lowercase() }
+            SortOrder.ARTIST_ASC -> filtered.sortedBy { it.artist.lowercase() }
+            SortOrder.DATE_UPLOAD_DESC -> filtered.sortedByDescending { it.id }
+            SortOrder.DATE_UPLOAD_ASC -> filtered.sortedBy { it.id }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val filteredOfflineTracks: StateFlow<List<Track>> = combine(_offlineTracks, _searchQuery) { tracks, query ->
+    val filteredOfflineTracks: StateFlow<List<Track>> = combine(
+        _offlineTracks, _searchQuery, _selectedGenres, _sortOrder
+    ) { tracks, query, genres, sort ->
+        var filtered = tracks
         val q = query.lowercase().trim()
-        if (q.isEmpty()) tracks
-        else tracks.filter {
-            it.title.contains(q, ignoreCase = true) ||
-            it.artist.contains(q, ignoreCase = true) ||
-            it.genre.contains(q, ignoreCase = true)
+        if (q.isNotEmpty()) {
+            filtered = filtered.filter {
+                it.title.contains(q, ignoreCase = true) ||
+                it.artist.contains(q, ignoreCase = true) ||
+                it.genre.contains(q, ignoreCase = true)
+            }
+        }
+        if (genres.isNotEmpty()) {
+            filtered = filtered.filter { genres.contains(it.genre) }
+        }
+        when (sort) {
+            SortOrder.POPULARITY -> filtered.sortedByDescending { it.playCount }
+            SortOrder.TITLE_ASC -> filtered.sortedBy { it.title.lowercase() }
+            SortOrder.ARTIST_ASC -> filtered.sortedBy { it.artist.lowercase() }
+            SortOrder.DATE_UPLOAD_DESC -> filtered.sortedByDescending { it.id }
+            SortOrder.DATE_UPLOAD_ASC -> filtered.sortedBy { it.id }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -116,6 +158,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _language = MutableStateFlow(prefs.language)
     val language: StateFlow<String> = _language.asStateFlow()
+
+    private val _isAdmin = MutableStateFlow(prefs.isAdmin)
+    val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
+
+    private val _adminModeEnabled = MutableStateFlow(prefs.adminModeEnabled)
+    val adminModeEnabled: StateFlow<Boolean> = _adminModeEnabled.asStateFlow()
 
     private val _showFullPlayer = MutableStateFlow(false)
     val showFullPlayer: StateFlow<Boolean> = _showFullPlayer.asStateFlow()
@@ -224,18 +272,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                var isAdminResult = prefs.isAdmin
                 val restored = withContext(Dispatchers.IO) {
-                    if (purple.hasValidSession()) return@withContext true
                     val user = prefs.savedUsername
                     val pass = sessionPersistence.savedPassword
+                    
+                    // If we have saved credentials, call login to get fresh is_admin status
                     if (!user.isNullOrBlank() && !pass.isNullOrBlank()) {
-                        purple.login(user, pass)
+                        isAdminResult = purple.login(user, pass)
                         return@withContext true
                     }
-                    false
+                    
+                    // Otherwise try to use existing cookies
+                    purple.hasValidSession()
                 }
+                
                 if (restored) {
                     client?.setCredentials(prefs.savedUsername, sessionPersistence.savedPassword)
+                    prefs.isAdmin = isAdminResult
+                    _isAdmin.value = isAdminResult
+                    _adminModeEnabled.value = prefs.adminModeEnabled
                     _offlineOnlyMode.value = false
                     loadLibrary()
                     _screen.value = AppScreen.Main
@@ -290,6 +346,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _searchQuery.value = query
     }
 
+    fun toggleGenre(genre: String) {
+        _selectedGenres.update { current ->
+            if (current.contains(genre)) current - genre
+            else current + genre
+        }
+    }
+
+    fun clearGenreFilters() {
+        _selectedGenres.value = emptySet()
+    }
+
+    fun setSortOrder(order: SortOrder) {
+        _sortOrder.value = order
+    }
+
     fun setSelectedTab(tab: Int) {
         _selectedTab.value = tab
     }
@@ -298,6 +369,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         prefs.language = lang
         _language.value = lang
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
+    }
+
+    fun setAdminModeEnabled(enabled: Boolean) {
+        prefs.adminModeEnabled = enabled
+        _adminModeEnabled.value = enabled
     }
 
     fun refreshCache() {
@@ -444,10 +520,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
-                withContext(Dispatchers.IO) {
+                val isAdmin = withContext(Dispatchers.IO) {
                     purple.login(username.trim(), password)
                 }
                 purple.setCredentials(username.trim(), password)
+                prefs.isAdmin = isAdmin
+                _isAdmin.value = isAdmin
                 persistLogin(username.trim(), password)
                 _offlineOnlyMode.value = false
                 loadLibrary()
@@ -471,11 +549,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
-                withContext(Dispatchers.IO) {
+                val isAdmin = withContext(Dispatchers.IO) {
                     purple.register(username.trim(), password)
                     purple.login(username.trim(), password)
                 }
                 purple.setCredentials(username.trim(), password)
+                prefs.isAdmin = isAdmin
+                _isAdmin.value = isAdmin
                 persistLogin(username.trim(), password)
                 _offlineOnlyMode.value = false
                 loadLibrary()
@@ -629,6 +709,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun logout() {
         client?.clearSession()
         client?.setCredentials(null, null)
+        prefs.isAdmin = false
+        prefs.adminModeEnabled = false
+        _isAdmin.value = false
+        _adminModeEnabled.value = false
         sessionPersistence.clearCredentials()
         sessionPersistence.clearAllForServer(currentServerUrl())
         lyricsCache.clear()
@@ -755,6 +839,47 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 withContext(Dispatchers.IO) {
                     purple.deletePlaylist(playlist.id)
+                }
+                loadLibrary()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun editTrack(
+        trackId: Int,
+        title: String,
+        artist: String,
+        genre: String,
+        newCover: ByteArray?,
+        newCoverName: String?
+    ) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.editTrack(trackId, title, artist, genre, newCover, newCoverName)
+                }
+                loadLibrary()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteTrack(trackId: Int) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.deleteTrack(trackId)
                 }
                 loadLibrary()
             } catch (e: Exception) {

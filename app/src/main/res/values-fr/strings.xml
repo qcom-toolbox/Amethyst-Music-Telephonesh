@@ -15,6 +15,13 @@
     <string name="tab_playlists">Playlists</string>
     <string name="tab_settings">Paramètres</string>
     <string name="search_placeholder">Rechercher…</string>
+    <string name="filter_sort">Filtrer &amp; Trier</string>
+    <string name="genre_all">Tous les genres</string>
+    <string name="sort_popularity">Popularité</string>
+    <string name="sort_title">Titre (A-Z)</string>
+    <string name="sort_artist">Artiste (A-Z)</string>
+    <string name="sort_newest">Plus récent</string>
+    <string name="sort_oldest">Plus ancien</string>
     <string name="about_title">À propos</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>

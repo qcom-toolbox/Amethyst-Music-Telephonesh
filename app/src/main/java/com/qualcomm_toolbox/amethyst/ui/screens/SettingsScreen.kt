@@ -24,6 +24,8 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,6 +51,9 @@ fun SettingsScreen(
     currentLanguage: String,
     onLanguageChange: (String) -> Unit,
     onRefreshCache: () -> Unit,
+    isAdmin: Boolean = false,
+    adminModeEnabled: Boolean = false,
+    onAdminModeChange: (Boolean) -> Unit = {},
 ) {
     val languages = listOf(
         "en" to stringResource(R.string.language_english),
@@ -138,10 +143,39 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Admin Section
+        if (isAdmin) {
+            SettingsSectionTitle(stringResource(R.string.admin_mode))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AmethystPanel, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(R.string.admin_mode), color = AmethystText, fontSize = 16.sp)
+                    Text(text = stringResource(R.string.admin_mode_hint), color = AmethystTextMuted, fontSize = 12.sp)
+                }
+                Switch(
+                    checked = adminModeEnabled,
+                    onCheckedChange = onAdminModeChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = AmethystAccent,
+                        checkedTrackColor = AmethystAccent.copy(alpha = 0.5f),
+                        uncheckedThumbColor = AmethystTextMuted,
+                        uncheckedTrackColor = AmethystBorder,
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
         // Version Section
         SettingsSectionTitle("Version")
         Text(
-            text = "0.7",
+            text = "0.8",
             color = AmethystText,
             fontSize = 16.sp,
             modifier = Modifier

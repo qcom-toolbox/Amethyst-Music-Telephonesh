@@ -97,20 +97,23 @@ class PurpleClient(
         throw PurpleException("Serveur Amethyst non détecté")
     }
 
-    fun login(username: String, password: String) {
+    fun login(username: String, password: String): Boolean {
         val resp = postRequest("login", mapOf("username" to username, "password" to password))
         val json = JSONObject(resp)
         if (json.optString("status") == "error") {
             throw PurpleException(json.optString("message", "Login failed"))
         }
+        // Support both boolean (PHP json_encode) and integer (MySQL TINYINT)
+        return json.optBoolean("is_admin", json.optInt("is_admin", 0) == 1)
     }
 
-    fun register(username: String, password: String) {
+    fun register(username: String, password: String): Boolean {
         val resp = postRequest("register", mapOf("username" to username, "password" to password))
         val json = JSONObject(resp)
         if (json.optString("status") == "error") {
             throw PurpleException(json.optString("message", "Registration failed"))
         }
+        return false // New users are likely not admins by default from register action in PHP
     }
 
     fun fetchTracks(): List<Track> {
@@ -173,6 +176,53 @@ class PurpleClient(
                 val msg = JSONObject(bodyStr).optString("message", "Upload error")
                 throw PurpleException(msg)
             }
+        }
+    }
+
+    fun editTrack(
+        trackId: Int,
+        title: String,
+        artist: String,
+        genre: String,
+        newCoverBytes: ByteArray?,
+        newCoverName: String?
+    ) {
+        val url = apiUrl("edit_track")
+        val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("track_id", trackId.toString())
+            .addFormDataPart("title", title)
+            .addFormDataPart("artist", artist)
+            .addFormDataPart("new_genre", genre)
+
+        currentUsername?.let { builder.addFormDataPart("username", it) }
+        currentPassword?.let { builder.addFormDataPart("password", it) }
+
+        if (newCoverBytes != null && newCoverName != null) {
+            builder.addFormDataPart(
+                "new_cover",
+                newCoverName,
+                newCoverBytes.toRequestBody("image/*".toMediaType())
+            )
+        }
+
+        val body = builder.build()
+        val request = Request.Builder().url(url).post(body).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw PurpleException("Edit failed (HTTP ${response.code})")
+            val bodyStr = response.body?.string() ?: ""
+            if (bodyStr.contains("\"status\":\"error\"")) {
+                val msg = JSONObject(bodyStr).optString("message", "Edit error")
+                throw PurpleException(msg)
+            }
+        }
+    }
+
+    fun deleteTrack(trackId: Int) {
+        val resp = postRequest("delete_track", mapOf("track_id" to trackId.toString()))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Delete failed"))
         }
     }
 
