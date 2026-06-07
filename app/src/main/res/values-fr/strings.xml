@@ -91,4 +91,17 @@
     <string name="track_added">Titre ajouté à la playlist</string>
     <string name="delete_playlist">Supprimer la playlist</string>
     <string name="empty_playlist">Cette playlist est vide.</string>
+
+    <string name="admin_mode">Mode Admin</string>
+    <string name="admin_mode_hint">Permet de modifier les métadonnées et de supprimer des chansons.</string>
+    <string name="edit_metadata">Modifier les métadonnées</string>
+    <string name="delete_track">Supprimer le titre</string>
+    <string name="delete_confirm_1">Voulez-vous vraiment supprimer ce titre ?</string>
+    <string name="delete_confirm_2">Cette action est irréversible. Supprimer définitivement ?</string>
+    <string name="delete_confirm_3">DERNIER AVERTISSEMENT : Êtes-vous absolument sûr ?</string>
+    <string name="save_changes">Enregistrer les modifications</string>
+    <string name="metadata_updated">Métadonnées mises à jour avec succès</string>
+    <string name="version">Version</string>
+    <string name="cache">Cache</string>
+    <string name="admin">Admin</string>
 </resources>

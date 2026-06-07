@@ -15,6 +15,13 @@
     <string name="tab_playlists">播放列表</string>
     <string name="tab_settings">设置</string>
     <string name="search_placeholder">搜索…</string>
+    <string name="filter_sort">过滤与排序</string>
+    <string name="genre_all">所有流派</string>
+    <string name="sort_popularity">热门程度</string>
+    <string name="sort_title">标题 (A-Z)</string>
+    <string name="sort_artist">艺术家 (A-Z)</string>
+    <string name="sort_newest">最新</string>
+    <string name="sort_oldest">最旧</string>
     <string name="about_title">关于</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">密码</string>
     <string name="login">登录</string>
     <string name="create_account">创建账户</string>
+    <string name="create">创建</string>
     <string name="change_server">更改服务器</string>
     <string name="auto_login">自动登录…</string>
     <string name="logging_in">登录中…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">下载失败：%1$s</string>
     <string name="error_load_failed">加载失败</string>
     <string name="create_account_error">注册时出错</string>
+    <string name="lyrics">歌词</string>
+    <string name="no_lyrics">未找到歌词。</string>
+    <string name="loading_lyrics">正在加载歌词…</string>
+    <string name="error_lyrics">加载歌词出错。</string>
+    <string name="create_playlist">创建播放列表</string>
+    <string name="add_to_playlist">添加到播放列表</string>
+    <string name="playlist_name">播放列表名称</string>
+    <string name="playlist_created">播放列表已创建</string>
+    <string name="track_added">已添加到播放列表</string>
+    <string name="delete_playlist">删除播放列表</string>
+    <string name="empty_playlist">此播放列表为空。</string>
+
+    <string name="admin_mode">开启管理模式</string>
+    <string name="admin_mode_hint">允许编辑曲目元数据和删除歌曲。</string>
+    <string name="edit_metadata">编辑元数据</string>
+    <string name="delete_track">删除曲目</string>
+    <string name="delete_confirm_1">确定要删除此曲目吗？</string>
+    <string name="delete_confirm_2">此操作不可逆。永久删除？</string>
+    <string name="delete_confirm_3">最后警告：完全确定？</string>
+    <string name="save_changes">保存更改</string>
+    <string name="metadata_updated">元数据更新成功</string>
+    <string name="version">版本</string>
+    <string name="cache">缓存</string>
+    <string name="admin">管理</string>
 </resources>

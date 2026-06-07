@@ -15,6 +15,13 @@
     <string name="tab_playlists">Playlists</string>
     <string name="tab_settings">Einstellungen</string>
     <string name="search_placeholder">Suchen…</string>
+    <string name="filter_sort">Filtern &amp; Sortieren</string>
+    <string name="genre_all">Alle Genres</string>
+    <string name="sort_popularity">Beliebtheit</string>
+    <string name="sort_title">Titel (A-Z)</string>
+    <string name="sort_artist">Interpret (A-Z)</string>
+    <string name="sort_newest">Neueste</string>
+    <string name="sort_oldest">Älteste</string>
     <string name="about_title">Über</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">Passwort</string>
     <string name="login">Anmelden</string>
     <string name="create_account">Konto erstellen</string>
+    <string name="create">Erstellen</string>
     <string name="change_server">Server ändern</string>
     <string name="auto_login">Automatische Anmeldung…</string>
     <string name="logging_in">Anmeldung…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">Download fehlgeschlagen: %1$s</string>
     <string name="error_load_failed">Laden fehlgeschlagen</string>
     <string name="create_account_error">Fehler bei der Registrierung</string>
+    <string name="lyrics">Songtext</string>
+    <string name="no_lyrics">Songtext nicht gefunden.</string>
+    <string name="loading_lyrics">Songtext wird geladen…</string>
+    <string name="error_lyrics">Fehler beim Laden des Songtexts.</string>
+    <string name="create_playlist">Playlist erstellen</string>
+    <string name="add_to_playlist">Zur Playlist hinzufügen</string>
+    <string name="playlist_name">Name der Playlist</string>
+    <string name="playlist_created">Playlist erstellt</string>
+    <string name="track_added">Titel zur Playlist hinzugefügt</string>
+    <string name="delete_playlist">Playlist löschen</string>
+    <string name="empty_playlist">Diese playlist ist leer.</string>
+
+    <string name="admin_mode">Admin-Modus aktivieren</string>
+    <string name="admin_mode_hint">Ermöglicht das Bearbeiten von Metadaten und das Löschen von Songs.</string>
+    <string name="edit_metadata">Metadaten bearbeiten</string>
+    <string name="delete_track">Titel löschen</string>
+    <string name="delete_confirm_1">Sind Sie sicher, dass Sie diesen Titel löschen möchten?</string>
+    <string name="delete_confirm_2">Diese Aktion ist unwiderruflich. Endgültig löschen?</string>
+    <string name="delete_confirm_3">LETZTE WARNUNG: Ganz sicher?</string>
+    <string name="save_changes">Änderungen speichern</string>
+    <string name="metadata_updated">Metadaten erfolgreich aktualisiert</string>
+    <string name="version">Version</string>
+    <string name="cache">Cache</string>
+    <string name="admin">Admin</string>
 </resources>

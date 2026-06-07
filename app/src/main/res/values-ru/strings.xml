@@ -15,6 +15,13 @@
     <string name="tab_playlists">Плейлисты</string>
     <string name="tab_settings">Настройки</string>
     <string name="search_placeholder">Поиск…</string>
+    <string name="filter_sort">Фильтр и сортировка</string>
+    <string name="genre_all">Все жанры</string>
+    <string name="sort_popularity">Популярность</string>
+    <string name="sort_title">Название (А-Я)</string>
+    <string name="sort_artist">Исполнитель (А-Я)</string>
+    <string name="sort_newest">Сначала новые</string>
+    <string name="sort_oldest">Сначала старые</string>
     <string name="about_title">О приложении</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">Пароль</string>
     <string name="login">Войти</string>
     <string name="create_account">Создать аккаунт</string>
+    <string name="create">Создать</string>
     <string name="change_server">Сменить сервер</string>
     <string name="auto_login">Автоматический вход…</string>
     <string name="logging_in">Вход…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">Ошибка загрузки: %1$s</string>
     <string name="error_load_failed">Ошибка загрузки</string>
     <string name="create_account_error">Ошибка при регистрации</string>
+    <string name="lyrics">Текст песни</string>
+    <string name="no_lyrics">Текст песни не найден. </string>
+    <string name="loading_lyrics">Загрузка текста песни…</string>
+    <string name="error_lyrics">Ошибка при загрузке текста песни.</string>
+    <string name="create_playlist">Создать плейлист</string>
+    <string name="add_to_playlist">Добавить в плейлист</string>
+    <string name="playlist_name">Название плейлиста</string>
+    <string name="playlist_created">Плейлист создан</string>
+    <string name="track_added">Трек добавлен в плейлист</string>
+    <string name="delete_playlist">Удалить плейлист</string>
+    <string name="empty_playlist">Этот плейлист пуст.</string>
+
+    <string name="admin_mode">Включить режим администратора</string>
+    <string name="admin_mode_hint">Позволяет редактировать метаданные и удалять песни.</string>
+    <string name="edit_metadata">Редактировать метаданные</string>
+    <string name="delete_track">Удалить трек</string>
+    <string name="delete_confirm_1">Вы уверены, что хотите удалить этот трек?</string>
+    <string name="delete_confirm_2">Это действие необратимо. Удалить навсегда?</string>
+    <string name="delete_confirm_3">ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ: Вы абсолютно уверены?</string>
+    <string name="save_changes">Сохранить изменения</string>
+    <string name="metadata_updated">Метаданные успешно обновлены</string>
+    <string name="version">Версия</string>
+    <string name="cache">Кэш</string>
+    <string name="admin">Админ</string>
 </resources>

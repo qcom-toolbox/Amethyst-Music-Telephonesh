@@ -134,7 +134,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Cache Section
-        SettingsSectionTitle(stringResource(R.string.refresh_cache).substringBefore(" "))
+        SettingsSectionTitle(stringResource(R.string.cache))
         SettingsItem(
             icon = Icons.Default.Refresh,
             label = stringResource(R.string.refresh_cache),
@@ -145,7 +145,7 @@ fun SettingsScreen(
 
         // Admin Section
         if (isAdmin) {
-            SettingsSectionTitle(stringResource(R.string.admin_mode))
+            SettingsSectionTitle(stringResource(R.string.admin))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -173,7 +173,7 @@ fun SettingsScreen(
         }
 
         // Version Section
-        SettingsSectionTitle("Version")
+        SettingsSectionTitle(stringResource(R.string.version))
         Text(
             text = "0.8",
             color = AmethystText,

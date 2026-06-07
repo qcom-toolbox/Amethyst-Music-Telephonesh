@@ -15,6 +15,13 @@
     <string name="tab_playlists">プレイリスト</string>
     <string name="tab_settings">設定</string>
     <string name="search_placeholder">検索…</string>
+    <string name="filter_sort">フィルターと並べ替え</string>
+    <string name="genre_all">すべてのジャンル</string>
+    <string name="sort_popularity">人気順</string>
+    <string name="sort_title">タイトル (A-Z)</string>
+    <string name="sort_artist">アーティスト (A-Z)</string>
+    <string name="sort_newest">新しい順</string>
+    <string name="sort_oldest">古い順</string>
     <string name="about_title">このアプリについて</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">パスワード</string>
     <string name="login">ログイン</string>
     <string name="create_account">アカウント作成</string>
+    <string name="create">作成</string>
     <string name="change_server">サーバーを変更</string>
     <string name="auto_login">自動ログイン中…</string>
     <string name="logging_in">ログイン中…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">ダウンロードに失敗しました: %1$s</string>
     <string name="error_load_failed">読み込みに失敗しました</string>
     <string name="create_account_error">登録中にエラーが発生しました</string>
+    <string name="lyrics">歌詞</string>
+    <string name="no_lyrics">歌詞が見つかりません。</string>
+    <string name="loading_lyrics">歌詞を読み込み中…</string>
+    <string name="error_lyrics">歌詞の読み込み中にエラーが発生しました。</string>
+    <string name="create_playlist">プレイリストを作成</string>
+    <string name="add_to_playlist">プレイリストに追加</string>
+    <string name="playlist_name">プレイリスト名</string>
+    <string name="playlist_created">プレイリストを作成しました</string>
+    <string name="track_added">プレイリストに曲を追加しました</string>
+    <string name="delete_playlist">プレイリストを削除</string>
+    <string name="empty_playlist">このプレイリストは空です。</string>
+
+    <string name="admin_mode">管理モードを有効にする</string>
+    <string name="admin_mode_hint">曲のメタデータの編集や削除を許可します。</string>
+    <string name="edit_metadata">メタデータを編集</string>
+    <string name="delete_track">曲を削除</string>
+    <string name="delete_confirm_1">この曲を削除してもよろしいですか？</string>
+    <string name="delete_confirm_2">この操作は取り消せません。永久に削除しますか？</string>
+    <string name="delete_confirm_3">最終警告：本当によろしいですか？</string>
+    <string name="save_changes">変更を保存</string>
+    <string name="metadata_updated">メタデータを更新しました</string>
+    <string name="version">バージョン</string>
+    <string name="cache">キャッシュ</string>
+    <string name="admin">管理</string>
 </resources>

@@ -15,6 +15,13 @@
     <string name="tab_playlists">प्लेलिस्ट</string>
     <string name="tab_settings">सेटिंग्स</string>
     <string name="search_placeholder">खोजें…</string>
+    <string name="filter_sort">फ़िल्टर और क्रमबद्ध करें</string>
+    <string name="genre_all">सभी शैलियाँ</string>
+    <string name="sort_popularity">लोकप्रियता</string>
+    <string name="sort_title">शीर्षक (A-Z)</string>
+    <string name="sort_artist">कलाकार (A-Z)</string>
+    <string name="sort_newest">नवीनतम</string>
+    <string name="sort_oldest">सबसे पुराना</string>
     <string name="about_title">ऐप के बारे में</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">पासवर्ड</string>
     <string name="login">लॉगिन</string>
     <string name="create_account">खाता बनाएं</string>
+    <string name="create">बनाएँ</string>
     <string name="change_server">सर्वर बदलें</string>
     <string name="auto_login">स्वचालित लॉगिन…</string>
     <string name="logging_in">लॉगिन हो रहा है…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">डाउनलोड विफल: %1$s</string>
     <string name="error_load_failed">लोड करने में विफल</string>
     <string name="create_account_error">पंजीकरण के दौरान त्रुटि</string>
+    <string name="lyrics">बोल</string>
+    <string name="no_lyrics">बोल नहीं मिले।</string>
+    <string name="loading_lyrics">बोल लोड हो रहे हैं…</string>
+    <string name="error_lyrics">बोल लोड करने में त्रुटि।</string>
+    <string name="create_playlist">प्लेलिस्ट बनाएँ</string>
+    <string name="add_to_playlist">प्लेलिस्ट में जोड़ें</string>
+    <string name="playlist_name">प्लेलिस्ट का नाम</string>
+    <string name="playlist_created">प्लेलिस्ट बनाई गई</string>
+    <string name="track_added">गाना प्लेलिस्ट में जोड़ा गया</string>
+    <string name="delete_playlist">प्लेलिस्ट हटाएँ</string>
+    <string name="empty_playlist">यह प्लेलिस्ट खाली है।</string>
+
+    <string name="admin_mode">व्यवस्थापक मोड सक्षम करें</string>
+    <string name="admin_mode_hint">ट्रैक मेटाडेटा संपादित करने और गाने हटाने की अनुमति देता है।</string>
+    <string name="edit_metadata">मेटाडेटा संपादित करें</string>
+    <string name="delete_track">गाना हटाएँ</string>
+    <string name="delete_confirm_1">क्या आप वाकई इस गाने को हटाना चाहते हैं?</string>
+    <string name="delete_confirm_2">यह क्रिया अपरिवर्तनीय है। स्थायी रूप से हटाएँ?</string>
+    <string name="delete_confirm_3">अंतिम चेतावनी: बिल्कुल पक्का?</string>
+    <string name="save_changes">बदलाव सहेजें</string>
+    <string name="metadata_updated">मेटाडेटा सफलतापूर्वक अपडेट किया गया</string>
+    <string name="version">संस्करण</string>
+    <string name="cache">कैश</string>
+    <string name="admin">एडमिन</string>
 </resources>

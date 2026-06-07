@@ -101,4 +101,7 @@
     <string name="delete_confirm_3">LAST WARNING: Absolutely sure?</string>
     <string name="save_changes">Save Changes</string>
     <string name="metadata_updated">Metadata updated successfully</string>
+    <string name="version">Version</string>
+    <string name="cache">Cache</string>
+    <string name="admin">Admin</string>
 </resources>

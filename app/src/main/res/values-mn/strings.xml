@@ -15,6 +15,13 @@
     <string name="tab_playlists">Плейлист</string>
     <string name="tab_settings">Тохиргоо</string>
     <string name="search_placeholder">Хайх…</string>
+    <string name="filter_sort">Шүүлтүүр ба эрэмбэ</string>
+    <string name="genre_all">Бүх төрөл</string>
+    <string name="sort_popularity">Алдартай байдал</string>
+    <string name="sort_title">Гарчиг (А-Я)</string>
+    <string name="sort_artist">Дуучин (А-Я)</string>
+    <string name="sort_newest">Хамгийн сүүлийнх</string>
+    <string name="sort_oldest">Хамгийн хуучин</string>
     <string name="about_title">Тухай</string>
     <string name="about_made_by">App made by 高通工具箱</string>
     <string name="about_backend">Backend created by Axolat</string>
@@ -41,6 +48,7 @@
     <string name="password">Нууц үг</string>
     <string name="login">Нэвтрэх</string>
     <string name="create_account">Бүртгүүлэх</string>
+    <string name="create">Үүсгэх</string>
     <string name="change_server">Сервер солих</string>
     <string name="auto_login">Автоматаар нэвтэрч байна…</string>
     <string name="logging_in">Нэвтэрч байна…</string>
@@ -72,4 +80,28 @@
     <string name="error_download_failed">Татаж авах боломжгүй: %1$s</string>
     <string name="error_load_failed">Ачаалах алдаа</string>
     <string name="create_account_error">Бүртгүүлэхэд алдаа гарлао</string>
+    <string name="lyrics">Дууны үг</string>
+    <string name="no_lyrics">Дууны үг олдсонгүй.</string>
+    <string name="loading_lyrics">Дууны үг ачаалж байна…</string>
+    <string name="error_lyrics">Дууны үг ачаалахад алдаа гарлаа.</string>
+    <string name="create_playlist">Плейлист үүсгэх</string>
+    <string name="add_to_playlist">Плейлистэд нэмэх</string>
+    <string name="playlist_name">Плейлистийн нэр</string>
+    <string name="playlist_created">Плейлист үүсгэгдлээ</string>
+    <string name="track_added">Дуу плейлистэд нэмэгдлээ</string>
+    <string name="delete_playlist">Плейлист устгах</string>
+    <string name="empty_playlist">Энэ плейлист хоосон байна.</string>
+
+    <string name="admin_mode">Админ горимыг идэвхжүүлэх</string>
+    <string name="admin_mode_hint">Дууны мэдээллийг засах болон дуу устгах боломжийг олгоно.</string>
+    <string name="edit_metadata">Мэдээллийг засах</string>
+    <string name="delete_track">Дуу устгах</string>
+    <string name="delete_confirm_1">Та энэ дууг устгахдаа итгэлтэй байна уу?</string>
+    <string name="delete_confirm_2">Энэ үйлдэл буцаагдахгүй. Бүрмөсөн устгах уу?</string>
+    <string name="delete_confirm_3">СҮҮЛЧИЙН САНАМЖ: Танд үнэхээр итгэлтэй байна уу?</string>
+    <string name="save_changes">Өөрчлөлтийг хадгалах</string>
+    <string name="metadata_updated">Мэдээлэл амжилттай шинэчлэгдлээ</string>
+    <string name="version">Хувилбар</string>
+    <string name="cache">Кэш</string>
+    <string name="admin">Админ</string>
 </resources>
