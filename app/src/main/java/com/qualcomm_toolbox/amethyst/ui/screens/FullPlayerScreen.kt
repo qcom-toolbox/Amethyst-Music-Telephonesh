@@ -58,6 +58,24 @@ fun FullPlayerScreen(
     onAddToPlaylist: () -> Unit,
 ) {
     var isLyricsMaximized by remember { mutableStateOf(false) }
+    var sliderPosition by remember { mutableStateOf<Float?>(null) }
+
+    // Smooth position interpolation
+    var smoothedPositionMs by remember(positionMs) { mutableLongStateOf(positionMs) }
+
+    LaunchedEffect(isPlaying, positionMs) {
+        if (isPlaying) {
+            val startTime = System.currentTimeMillis()
+            val startPos = positionMs
+            while (true) {
+                withFrameMillis {
+                    smoothedPositionMs = startPos + (System.currentTimeMillis() - startTime)
+                }
+            }
+        }
+    }
+
+    val displayPosition = smoothedPositionMs.coerceIn(0L, durationMs)
 
     val gradient = Brush.verticalGradient(
         colors = listOf(AmethystGradientStart, AmethystBackground),
@@ -172,11 +190,18 @@ fun FullPlayerScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Progress Slider
-                val progress = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
+                val progress = if (durationMs > 0) {
+                    sliderPosition ?: (displayPosition.toFloat() / durationMs)
+                } else 0f
+
                 Slider(
                     value = progress.coerceIn(0f, 1f),
                     onValueChange = { v ->
+                        sliderPosition = v
                         if (durationMs > 0) onSeek((v * durationMs).toLong())
+                    },
+                    onValueChangeFinished = {
+                        sliderPosition = null
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
@@ -189,8 +214,13 @@ fun FullPlayerScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    val currentTime = if (sliderPosition != null && durationMs > 0) {
+                        (sliderPosition!! * durationMs).toLong()
+                    } else {
+                        displayPosition
+                    }
                     Text(
-                        text = formatTime(positionMs),
+                        text = formatTime(currentTime),
                         color = AmethystTextMuted,
                         fontSize = 12.sp
                     )
@@ -288,7 +318,7 @@ fun FullPlayerScreen(
                         )
                     } else if (parsedLyrics.isNotEmpty()) {
                         val listState = rememberLazyListState()
-                        val currentIndex = parsedLyrics.indexOfLast { it.timeMs <= positionMs }.coerceAtLeast(0)
+                        val currentIndex = parsedLyrics.indexOfLast { it.timeMs <= displayPosition }.coerceAtLeast(0)
 
                         LaunchedEffect(currentIndex) {
                             listState.animateScrollToItem(currentIndex)

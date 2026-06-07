@@ -920,7 +920,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 if (musicPlayer.isPlaying.value) {
                     musicPlayer.updateProgress()
                 }
-                delay(1500) // 1.5 seconds when music is playing
+                delay(250) // 250ms for smoother UI updates
             }
         }
     }
