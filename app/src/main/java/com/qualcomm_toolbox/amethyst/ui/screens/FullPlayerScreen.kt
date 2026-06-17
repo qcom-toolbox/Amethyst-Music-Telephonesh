@@ -314,7 +314,7 @@ fun FullPlayerScreen(
                     if (isLoadingLyrics) {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = AmethystAccent
+                            color = MaterialTheme.colorScheme.primary
                         )
                     } else if (parsedLyrics.isNotEmpty()) {
                         val listState = rememberLazyListState()

@@ -17,8 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Playlist
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPanel
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystTextMuted
 
@@ -30,8 +28,8 @@ fun CreatePlaylistDialog(
     var name by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = AmethystPanel,
-        title = { Text(stringResource(R.string.create_playlist), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.create_playlist), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
         text = {
             OutlinedTextField(
                 value = name,
@@ -47,12 +45,12 @@ fun CreatePlaylistDialog(
                 onClick = { onCreate(name) },
                 enabled = name.isNotBlank()
             ) {
-                Text(stringResource(R.string.create), color = AmethystAccent)
+                Text(stringResource(R.string.create), color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close), color = AmethystTextMuted)
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -66,11 +64,11 @@ fun AddToPlaylistDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = AmethystPanel,
-        title = { Text(stringResource(R.string.add_to_playlist), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.add_to_playlist), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
         text = {
             if (playlists.isEmpty()) {
-                Text("Aucune playlist disponible.", color = AmethystText)
+                Text("Aucune playlist disponible.", color = MaterialTheme.colorScheme.onSurface)
             } else {
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 300.dp),
@@ -85,9 +83,9 @@ fun AddToPlaylistDialog(
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null, tint = AmethystAccent)
+                            Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text(playlist.name, color = AmethystText)
+                            Text(playlist.name, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
@@ -96,7 +94,7 @@ fun AddToPlaylistDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close), color = AmethystTextMuted)
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -104,13 +102,13 @@ fun AddToPlaylistDialog(
 
 @Composable
 private fun amethystFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = AmethystText,
-    unfocusedTextColor = AmethystText,
-    focusedContainerColor = AmethystPanel,
-    unfocusedContainerColor = AmethystPanel,
-    focusedBorderColor = AmethystAccent,
-    unfocusedBorderColor = com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder,
-    focusedLabelColor = AmethystAccent,
-    unfocusedLabelColor = AmethystTextMuted,
-    cursorColor = AmethystAccent,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    cursorColor = MaterialTheme.colorScheme.primary,
 )

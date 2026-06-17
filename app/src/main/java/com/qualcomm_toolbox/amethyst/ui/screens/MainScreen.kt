@@ -99,9 +99,7 @@ import com.qualcomm_toolbox.amethyst.ui.components.MiniPlayerBar
 import androidx.compose.material.icons.filled.Edit
 import com.qualcomm_toolbox.amethyst.ui.components.EditTrackDialog
 import com.qualcomm_toolbox.amethyst.ui.components.PlayingVisualizer
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPanel
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPrimary
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystTextMuted
@@ -208,8 +206,8 @@ fun MainScreen(
                     )
                 }
                 NavigationBar(
-                    containerColor = AmethystPanel,
-                    contentColor = AmethystText,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
                     if (!offlineOnlyMode) {
                         NavigationBarItem(
@@ -355,7 +353,7 @@ fun MainScreen(
             if (isLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth().height(2.dp),
-                    color = AmethystAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.background
                 )
             }
@@ -597,7 +595,7 @@ private fun TrackRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
-            .background(if (isCurrent) AmethystPanel.copy(alpha = 0.5f) else Color.Transparent)
+            .background(if (isCurrent) MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) else Color.Transparent)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -651,7 +649,7 @@ private fun TrackRow(
                         .fillMaxWidth()
                         .padding(top = 6.dp)
                         .height(3.dp),
-                    color = AmethystAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = AmethystBorder,
                 )
             }
@@ -669,12 +667,12 @@ private fun TrackRow(
             "loading" -> {
                 CircularProgressIndicator(
                     modifier = Modifier.size(28.dp),
-                    color = AmethystAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     strokeWidth = 2.dp,
                 )
             }
             "check" -> {
-                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             }
             else -> {
                 Icon(Icons.Default.MusicNote, contentDescription = null, tint = AmethystPrimary)
@@ -688,7 +686,7 @@ private fun TrackRow(
             DropdownMenu(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false },
-                modifier = Modifier.background(AmethystPanel)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 if (onAddToPlaylist != null) {
                     DropdownMenuItem(
@@ -708,7 +706,7 @@ private fun TrackRow(
                             onEditTrack()
                             showMenu = false
                         },
-                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = AmethystAccent) }
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                     )
                 }
 
@@ -729,7 +727,7 @@ private fun TrackRow(
                                 onDownload()
                                 showMenu = false
                             },
-                            leadingIcon = { Icon(Icons.Default.Download, contentDescription = null, tint = AmethystAccent) }
+                            leadingIcon = { Icon(Icons.Default.Download, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                         )
                     }
                 }
@@ -765,7 +763,7 @@ private fun PlaylistList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(AmethystPanel)
+                        .background(MaterialTheme.colorScheme.surface)
                         .clickable { onPlaylistClick(playlist) }
                         .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -792,7 +790,7 @@ private fun PlaylistList(
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(AmethystPanel)
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete_playlist), color = AmethystText) },
@@ -870,8 +868,8 @@ fun UploadDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = AmethystPanel,
-        title = { Text(stringResource(R.string.upload), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.upload), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier
@@ -914,11 +912,11 @@ fun UploadDialog(
                     ExposedDropdownMenu(
                         expanded = isExpanded,
                         onDismissRequest = { isExpanded = false },
-                        modifier = Modifier.background(AmethystPanel)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         genres.forEach { g ->
                             DropdownMenuItem(
-                                text = { Text(g, color = AmethystText) },
+                                text = { Text(g, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     genre = g
                                     isExpanded = false
@@ -934,13 +932,13 @@ fun UploadDialog(
                 ) {
                     Button(
                         onClick = { musicPicker.launch("audio/*") },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AmethystPrimary)
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Musique")
+                        Text("Musique", color = Color.White)
                     }
                     Text(
                         text = musicName.ifEmpty { "Aucun fichier" },
-                        color = AmethystTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -954,13 +952,13 @@ fun UploadDialog(
                 ) {
                     Button(
                         onClick = { coverPicker.launch("image/*") },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AmethystBorder)
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline)
                     ) {
-                        Text("Pochette")
+                        Text("Pochette", color = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         text = coverName.ifEmpty { "Optionnel" },
-                        color = AmethystTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -991,12 +989,12 @@ fun UploadDialog(
                 },
                 enabled = musicUri != null
             ) {
-                Text(stringResource(R.string.upload), color = AmethystAccent)
+                Text(stringResource(R.string.upload), color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close), color = AmethystTextMuted)
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )

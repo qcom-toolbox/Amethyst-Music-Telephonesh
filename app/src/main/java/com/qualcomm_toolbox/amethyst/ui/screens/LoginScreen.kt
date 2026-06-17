@@ -11,13 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,11 +30,10 @@ import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.ui.components.AuthScreenLayout
 import com.qualcomm_toolbox.amethyst.ui.components.authFieldColors
 import com.qualcomm_toolbox.amethyst.ui.components.authFieldShape
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystDanger
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPrimary
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystTextMuted
+import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 
 @Composable
 fun LoginScreen(
@@ -86,7 +79,7 @@ fun LoginScreen(
                 text = siteName,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = AmethystAccent,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
             )
             Text(
@@ -135,12 +128,12 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(52.dp),
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(containerColor = AmethystPrimary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.height(24.dp),
-                        color = AmethystText,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp,
                     )
                 } else {
@@ -156,7 +149,7 @@ fun LoginScreen(
                     .padding(top = 12.dp)
                     .height(52.dp),
                 shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = AmethystAccent),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
             ) {
                 Text(stringResource(R.string.create_account))
             }

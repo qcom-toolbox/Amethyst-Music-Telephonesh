@@ -9,7 +9,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystSearchBg
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
@@ -28,15 +27,15 @@ fun AuthScreenLayout(content: @Composable () -> Unit) {
 
 @Composable
 fun authFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = AmethystAccent,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
     unfocusedBorderColor = AmethystBorder,
     focusedContainerColor = AmethystSearchBg,
     unfocusedContainerColor = AmethystSearchBg,
     focusedTextColor = AmethystText,
     unfocusedTextColor = AmethystText,
-    focusedLabelColor = AmethystAccent,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
     unfocusedLabelColor = AmethystTextMuted,
-    cursorColor = AmethystAccent,
+    cursorColor = MaterialTheme.colorScheme.primary,
     focusedPlaceholderColor = AmethystTextMuted,
     unfocusedPlaceholderColor = AmethystTextMuted,
 )

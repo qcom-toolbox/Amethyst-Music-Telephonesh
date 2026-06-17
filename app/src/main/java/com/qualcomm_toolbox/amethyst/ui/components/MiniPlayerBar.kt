@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,9 +33,7 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
 import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Track
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPanel
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystTextMuted
 
@@ -49,7 +48,7 @@ fun MiniPlayerBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AmethystPanel)
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -81,14 +80,14 @@ fun MiniPlayerBar(
             Text(
                 text = track.title,
                 fontWeight = FontWeight.Bold,
-                color = AmethystText,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.basicMarquee()
             )
             Text(
                 text = track.artist,
-                color = AmethystAccent,
+                color = MaterialTheme.colorScheme.primary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.basicMarquee()
@@ -98,7 +97,7 @@ fun MiniPlayerBar(
             Icon(
                 if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                 contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                tint = AmethystText,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(32.dp),
             )
         }

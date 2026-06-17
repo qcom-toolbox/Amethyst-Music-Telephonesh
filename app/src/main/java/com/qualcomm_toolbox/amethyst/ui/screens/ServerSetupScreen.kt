@@ -9,13 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.ui.res.stringResource
 import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.ui.components.AuthScreenLayout
@@ -34,7 +28,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPrimary
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystSearchBg
@@ -63,7 +56,7 @@ fun ServerSetupScreen(
             text = "◆ Amethyst",
             fontSize = 36.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = AmethystAccent,
+            color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = "Music",
@@ -109,9 +102,9 @@ fun ServerSetupScreen(
                 checked = trustAllCerts,
                 onCheckedChange = { trustAllCerts = it },
                 colors = CheckboxDefaults.colors(
-                    checkedColor = AmethystPrimary,
-                    checkmarkColor = AmethystText,
-                    uncheckedColor = AmethystBorder,
+                    checkedColor = MaterialTheme.colorScheme.primary,
+                    checkmarkColor = MaterialTheme.colorScheme.background,
+                    uncheckedColor = MaterialTheme.colorScheme.outline,
                 ),
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -151,12 +144,12 @@ fun ServerSetupScreen(
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = AmethystPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.height(24.dp),
-                    color = AmethystText,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp,
                 )
             } else {

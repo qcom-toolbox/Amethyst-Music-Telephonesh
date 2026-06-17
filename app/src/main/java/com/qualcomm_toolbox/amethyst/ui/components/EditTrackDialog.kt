@@ -18,12 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qualcomm_toolbox.amethyst.R
 import com.qualcomm_toolbox.amethyst.data.Track
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPanel
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystTextMuted
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPrimary
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,15 +52,15 @@ fun EditTrackDialog(
 
     if (showDeleteConfirm > 0) {
         val (confirmText, confirmColor) = when (showDeleteConfirm) {
-            1 -> stringResource(R.string.delete_confirm_1) to AmethystText
-            2 -> stringResource(R.string.delete_confirm_2) to AmethystAccent
+            1 -> stringResource(R.string.delete_confirm_1) to MaterialTheme.colorScheme.onSurface
+            2 -> stringResource(R.string.delete_confirm_2) to MaterialTheme.colorScheme.primary
             else -> stringResource(R.string.delete_confirm_3) to androidx.compose.ui.graphics.Color.Red
         }
 
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = 0 },
-            containerColor = AmethystPanel,
-            title = { Text(stringResource(R.string.delete_track), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.delete_track), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
             text = { Text(confirmText, color = confirmColor) },
             confirmButton = {
                 TextButton(
@@ -77,12 +73,12 @@ fun EditTrackDialog(
                         }
                     }
                 ) {
-                    Text(stringResource(R.string.delete_track), color = if (showDeleteConfirm == 3) androidx.compose.ui.graphics.Color.Red else AmethystAccent)
+                    Text(stringResource(R.string.delete_track), color = if (showDeleteConfirm == 3) androidx.compose.ui.graphics.Color.Red else MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = 0 }) {
-                    Text(stringResource(R.string.close), color = AmethystTextMuted)
+                    Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -90,8 +86,8 @@ fun EditTrackDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = AmethystPanel,
-        title = { Text(stringResource(R.string.edit_metadata), color = AmethystAccent, fontWeight = FontWeight.Bold) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.edit_metadata), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier
@@ -134,11 +130,11 @@ fun EditTrackDialog(
                     ExposedDropdownMenu(
                         expanded = isExpanded,
                         onDismissRequest = { isExpanded = false },
-                        modifier = Modifier.background(AmethystPanel)
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                     ) {
                         genres.forEach { g ->
                             DropdownMenuItem(
-                                text = { Text(g, color = AmethystText) },
+                                text = { Text(g, color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     genre = g
                                     isExpanded = false
@@ -154,13 +150,13 @@ fun EditTrackDialog(
                 ) {
                     Button(
                         onClick = { coverPicker.launch("image/*") },
-                        colors = ButtonDefaults.buttonColors(containerColor = AmethystBorder)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline)
                     ) {
-                        Text("Pochette")
+                        Text("Pochette", color = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
                         text = coverName.ifEmpty { "Garder l'actuelle" },
-                        color = AmethystTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,
                         modifier = Modifier.weight(1f)
@@ -193,12 +189,12 @@ fun EditTrackDialog(
                     )
                 }
             ) {
-                Text(stringResource(R.string.save_changes), color = AmethystAccent)
+                Text(stringResource(R.string.save_changes), color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close), color = AmethystTextMuted)
+                Text(stringResource(R.string.close), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -228,13 +224,13 @@ private fun readUriBytes(context: android.content.Context, uri: Uri): Pair<ByteA
 
 @Composable
 private fun amethystFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = AmethystText,
-    unfocusedTextColor = AmethystText,
-    focusedContainerColor = AmethystPanel,
-    unfocusedContainerColor = AmethystPanel,
-    focusedBorderColor = AmethystAccent,
-    unfocusedBorderColor = AmethystBorder,
-    focusedLabelColor = AmethystAccent,
-    unfocusedLabelColor = AmethystTextMuted,
-    cursorColor = AmethystAccent,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    cursorColor = MaterialTheme.colorScheme.primary,
 )
