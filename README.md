@@ -2,16 +2,19 @@
 
 Amethyst Music is a modern, feature-rich Android music player client designed to connect with **Purple Music** (SQLite) and **Amethyst Music** (MySQL) backends. Built with Jetpack Compose and Material 3, it offers a seamless and beautiful music streaming experience.
 
+![Amethyst Music Screenshot](Img_1.png)
+
 Full Release 1.0 Soon.
 
 ## ✨ Features
 
 - 🎵 **High-Quality Playback**: Powered by Android Media3 (ExoPlayer).
 - 📥 **Offline Mode**: Download your favorite tracks and listen without an internet connection.
-- 🎨 **Material 3 UI**: Modern, dynamic interface with support for Dark Mode.
+- 🎨 **Customizable Themes**: Personalize your experience with multiple presets including AMOLED, Midnight, Forest, and Crimson, or use Dynamic colors.
 - 🌍 **Multi-language Support**: Fully translated into 11 languages.
 - 🔍 **Smart Search**: Quickly find tracks in your library.
-- 📜 **Playlists**: Manage and listen to your custom playlists.
+- 📜 **Playlist Management**: Create, edit, and manage your personal playlists directly within the app.
+- 🛠️ **Admin Tools**: Upload, edit, and delete tracks directly from the interface (for authorized administrators).
 - 🛡️ **Secure Connectivity**: Support for custom server URLs and options to bypass HTTPS errors for self-signed certificates.
 
 ## 🌍 Supported Languages
@@ -51,5 +54,5 @@ Amethyst Music supports the following languages:
 
 ## 📋 To-Do
 
-- [ ] UI Customization options
 - [ ] Bug Fixes
+- [ ] Improved Tablet Support
