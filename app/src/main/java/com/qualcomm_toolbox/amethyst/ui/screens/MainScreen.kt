@@ -1,5 +1,6 @@
 package com.qualcomm_toolbox.amethyst.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
@@ -154,6 +155,10 @@ fun MainScreen(
 
     val selectedGenres by vm.selectedGenres.collectAsState()
     val sortOrder by vm.sortOrder.collectAsState()
+
+    BackHandler(enabled = currentPlaylist != null && selectedTab == 2) {
+        vm.closePlaylist()
+    }
 
     if (showUploadDialog) {
         UploadDialog(

@@ -1,5 +1,6 @@
 package com.qualcomm_toolbox.amethyst.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -83,6 +84,8 @@ fun FullPlayerScreen(
 
     // Interaction source to disable ripple on the background click consumer
     val interactionSource = remember { MutableInteractionSource() }
+
+    BackHandler(onBack = onClose)
 
     Box(
         modifier = Modifier
