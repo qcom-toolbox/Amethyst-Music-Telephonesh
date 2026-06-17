@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">पर्पल म्यूजिक सर्वर URL</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://your-server.com</string>
     <string name="trust_all_certs">HTTPS त्रुटियों को अनदेखा करें</string>
     <string name="trust_all_certs_hint">स्व-हस्ताक्षरित प्रमाणपत्रों के लिए Android 6 पर अनुशंसित।</string>
     <string name="tab_offline">ऑफलाइन</string>

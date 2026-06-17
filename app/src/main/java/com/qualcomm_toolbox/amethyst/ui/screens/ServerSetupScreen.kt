@@ -41,7 +41,7 @@ fun ServerSetupScreen(
     initialTrustAllCerts: Boolean,
     onConnect: (String, Boolean) -> Unit,
 ) {
-    var url by rememberSaveable { mutableStateOf("https://web.office-works.ch/Purple") }
+    var url by rememberSaveable { mutableStateOf("") }
     var trustAllCerts by rememberSaveable { mutableStateOf(initialTrustAllCerts) }
 
     AuthScreenLayout {

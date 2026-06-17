@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">URL-адрес сервера Purple Music</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://vash-server.ru</string>
     <string name="trust_all_certs">Игнорировать ошибки HTTPS</string>
     <string name="trust_all_certs_hint">Рекомендуется для Android 6 при использовании самоподписанных сертификатов.</string>
     <string name="tab_offline">Офлайн</string>

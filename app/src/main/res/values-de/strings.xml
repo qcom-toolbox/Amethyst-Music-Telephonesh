@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music Server-URL</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://dein-server.de</string>
     <string name="trust_all_certs">HTTPS-Fehler ignorieren</string>
     <string name="trust_all_certs_hint">Empfohlen für Android 6 bei selbstsignierten Zertifikaten.</string>
     <string name="tab_offline">Offline</string>

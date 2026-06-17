@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music 服务器地址</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://your-server.com</string>
     <string name="trust_all_certs">忽略 HTTPS 错误</string>
     <string name="trust_all_certs_hint">推荐在 Android 6 上对自签名证书使用。</string>
     <string name="tab_offline">离线</string>

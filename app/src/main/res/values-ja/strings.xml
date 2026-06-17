@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music サーバーURL</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://your-server.com</string>
     <string name="trust_all_certs">HTTPSエラーを無視</string>
     <string name="trust_all_certs_hint">自己署名証明書を使用する場合、Android 6で推奨されます。</string>
     <string name="tab_offline">オフライン</string>

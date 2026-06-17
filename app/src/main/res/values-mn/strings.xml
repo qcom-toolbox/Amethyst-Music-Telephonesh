@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music серверын URL</string>
-    <string name="server_example">https://web.office-works.ch/Purple</string>
+    <string name="server_example">https://your-server.com</string>
     <string name="trust_all_certs">HTTPS алдааг үл тоомсорлох</string>
     <string name="trust_all_certs_hint">Android 6 дээр өөрөө гарын үсэг зурсан сертификатад санал болгож байна.</string>
     <string name="tab_offline">Офлайн</string>
