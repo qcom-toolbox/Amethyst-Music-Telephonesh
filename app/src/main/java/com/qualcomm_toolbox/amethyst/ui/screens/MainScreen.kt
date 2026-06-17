@@ -9,8 +9,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -369,7 +371,14 @@ fun MainScreen(
                     popular = homePopular,
                     hiddenGems = homeHiddenGems,
                     coverUrlForTrack = coverUrlForTrack,
-                    onTrackClick = onTrackClick
+                    onTrackClick = onTrackClick,
+                    downloadedIds = downloadedIds,
+                    downloadingIds = downloadingIds,
+                    onDownload = onDownload,
+                    onRemoveDownload = onRemoveDownload,
+                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                    adminModeEnabled = adminModeEnabled,
+                    onEditTrack = { trackToEdit = it }
                 )
                 1 -> TrackList(
                     tracks = tracks,
@@ -419,10 +428,11 @@ fun MainScreen(
                     downloadingIds = downloadingIds,
                     downloadProgress = downloadProgress,
                     coverUrlForTrack = coverUrlForTrack,
-                    showDownloadActions = false,
+                    showDownloadActions = true,
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
+                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = { trackToEdit = it }
                 )
@@ -576,6 +586,7 @@ private fun TrackList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TrackRow(
     track: Track,
@@ -599,7 +610,10 @@ private fun TrackRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = { showMenu = true }
+            )
             .background(if (isCurrent) MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) else Color.Transparent)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -685,7 +699,16 @@ private fun TrackRow(
         }
 
         Box {
-            IconButton(onClick = { showMenu = true }) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .combinedClickable(
+                        onClick = { showMenu = true },
+                        onLongClick = { showMenu = true }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
             }
             DropdownMenu(
@@ -741,6 +764,7 @@ private fun TrackRow(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlaylistList(
     playlists: List<Playlist>,
@@ -769,7 +793,10 @@ private fun PlaylistList(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .clickable { onPlaylistClick(playlist) }
+                        .combinedClickable(
+                            onClick = { onPlaylistClick(playlist) },
+                            onLongClick = { showMenu = true }
+                        )
                         .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
