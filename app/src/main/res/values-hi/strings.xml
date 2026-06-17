@@ -11,6 +11,11 @@
     <string name="playback_channel_name">म्यूजिक प्लेबैक</string>
     <string name="playback_channel_description">प्लेबैक नियंत्रण और कवर आर्ट</string>
 
+    <string name="tab_home">होम</string>
+    <string name="home_for_you">आपके लिए</string>
+    <string name="home_popular">लोकप्रिय</string>
+    <string name="home_hidden_gems">छिपे हुए रत्न</string>
+
     <string name="tab_library">लाइब्रेरी</string>
     <string name="tab_playlists">प्लेलिस्ट</string>
     <string name="tab_settings">सेटिंग्स</string>
@@ -30,6 +35,7 @@
     <string name="close">बंद करें</string>
 
     <string name="language">भाषा</string>
+    <string name="theme_selection">ऐप थीम</string>
     <string name="language_english">अंग्रेज़ी</string>
     <string name="language_french">फ़्रेंच</string>
     <string name="language_german">जर्मन</string>
@@ -104,4 +110,18 @@
     <string name="version">संस्करण</string>
     <string name="cache">कैश</string>
     <string name="admin">एडमिन</string>
+
+    <string name="label_title">शीर्षक</string>
+    <string name="label_artist">कलाकार</string>
+    <string name="label_genre">शैली</string>
+    <string name="label_music">संगीत</string>
+    <string name="label_cover_art">कवर आर्ट</string>
+    <string name="no_file_selected">कोई फ़ाइल चुनी नहीं गई</string>
+    <string name="optional">वैकल्पिक</string>
+    <string name="no_playlists">कोई प्लेलिस्ट नहीं।</string>
+    <string name="no_playlists_available">कोई प्लेलिस्ट उपलब्ध नहीं है।</string>
+    <string name="keep_current">वर्तमान रखें</string>
+    <string name="tracks_count">%1$d गाने</string>
+    <string name="genre_other">अन्य</string>
+    <string name="exit_fullscreen">पूर्ण स्क्रीन से बाहर निकलें</string>
 </resources>

@@ -749,7 +749,7 @@ private fun PlaylistList(
 ) {
     if (playlists.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Aucune playlist.", color = AmethystTextMuted)
+            Text(stringResource(R.string.no_playlists), color = AmethystTextMuted)
         }
         return
     }
@@ -783,7 +783,7 @@ private fun PlaylistList(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(playlist.name, fontWeight = FontWeight.Bold, color = AmethystText)
                         Text(
-                            "${playlist.songIds.size} titres",
+                            stringResource(R.string.tracks_count, playlist.songIds.size),
                             color = AmethystTextMuted,
                             fontSize = 13.sp,
                         )
@@ -820,7 +820,8 @@ fun UploadDialog(
 ) {
     var title by remember { mutableStateOf("") }
     var artist by remember { mutableStateOf("") }
-    var genre by remember { mutableStateOf("Autre") }
+    val defaultGenre = stringResource(R.string.genre_other)
+    var genre by remember { mutableStateOf(defaultGenre) }
     var musicUri by remember { mutableStateOf<android.net.Uri?>(null) }
     var musicName by remember { mutableStateOf("") }
     var coverUri by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -885,7 +886,7 @@ fun UploadDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Titre") },
+                    label = { Text(stringResource(R.string.label_title)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = amethystFieldColors(),
                     singleLine = true
@@ -893,7 +894,7 @@ fun UploadDialog(
                 OutlinedTextField(
                     value = artist,
                     onValueChange = { artist = it },
-                    label = { Text("Artiste") },
+                    label = { Text(stringResource(R.string.label_artist)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = amethystFieldColors(),
                     singleLine = true
@@ -907,7 +908,7 @@ fun UploadDialog(
                         value = genre,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Genre") },
+                        label = { Text(stringResource(R.string.label_genre)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                         colors = amethystFieldColors(),
                         modifier = Modifier
@@ -939,10 +940,10 @@ fun UploadDialog(
                         onClick = { musicPicker.launch("audio/*") },
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Musique", color = Color.White)
+                        Text(stringResource(R.string.label_music), color = Color.White)
                     }
                     Text(
-                        text = musicName.ifEmpty { "Aucun fichier" },
+                        text = musicName.ifEmpty { stringResource(R.string.no_file_selected) },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,
@@ -959,10 +960,10 @@ fun UploadDialog(
                         onClick = { coverPicker.launch("image/*") },
                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline)
                     ) {
-                        Text("Pochette", color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.label_cover_art), color = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
-                        text = coverName.ifEmpty { "Optionnel" },
+                        text = coverName.ifEmpty { stringResource(R.string.optional) },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,

@@ -68,7 +68,7 @@ fun AddToPlaylistDialog(
         title = { Text(stringResource(R.string.add_to_playlist), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) },
         text = {
             if (playlists.isEmpty()) {
-                Text("Aucune playlist disponible.", color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.no_playlists_available), color = MaterialTheme.colorScheme.onSurface)
             } else {
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 300.dp),

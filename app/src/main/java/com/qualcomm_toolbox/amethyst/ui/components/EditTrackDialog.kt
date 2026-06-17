@@ -98,7 +98,7 @@ fun EditTrackDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Titre") },
+                    label = { Text(stringResource(R.string.label_title)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = amethystFieldColors(),
                     singleLine = true
@@ -106,7 +106,7 @@ fun EditTrackDialog(
                 OutlinedTextField(
                     value = artist,
                     onValueChange = { artist = it },
-                    label = { Text("Artiste") },
+                    label = { Text(stringResource(R.string.label_artist)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = amethystFieldColors(),
                     singleLine = true
@@ -120,7 +120,7 @@ fun EditTrackDialog(
                         value = genre,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Genre") },
+                        label = { Text(stringResource(R.string.label_genre)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
                         colors = amethystFieldColors(),
                         modifier = Modifier
@@ -152,10 +152,10 @@ fun EditTrackDialog(
                         onClick = { coverPicker.launch("image/*") },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.outline)
                     ) {
-                        Text("Pochette", color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.label_cover_art), color = MaterialTheme.colorScheme.onSurface)
                     }
                     Text(
-                        text = coverName.ifEmpty { "Garder l'actuelle" },
+                        text = coverName.ifEmpty { stringResource(R.string.keep_current) },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         maxLines = 1,

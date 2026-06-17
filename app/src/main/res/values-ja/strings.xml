@@ -11,6 +11,11 @@
     <string name="playback_channel_name">音楽再生</string>
     <string name="playback_channel_description">再生コントロールとカバーアート</string>
 
+    <string name="tab_home">ホーム</string>
+    <string name="home_for_you">おすすめ</string>
+    <string name="home_popular">人気ヒット曲</string>
+    <string name="home_hidden_gems">隠れた名曲</string>
+
     <string name="tab_library">ライブラリ</string>
     <string name="tab_playlists">プレイリスト</string>
     <string name="tab_settings">設定</string>
@@ -30,6 +35,7 @@
     <string name="close">閉じる</string>
 
     <string name="language">言語</string>
+    <string name="theme_selection">アプリのテーマ</string>
     <string name="language_english">英語</string>
     <string name="language_french">フランス語</string>
     <string name="language_german">ドイツ語</string>
@@ -104,4 +110,18 @@
     <string name="version">バージョン</string>
     <string name="cache">キャッシュ</string>
     <string name="admin">管理</string>
+
+    <string name="label_title">タイトル</string>
+    <string name="label_artist">アーティスト</string>
+    <string name="label_genre">ジャンル</string>
+    <string name="label_music">音楽</string>
+    <string name="label_cover_art">カバーアート</string>
+    <string name="no_file_selected">ファイルが選択されていません</string>
+    <string name="optional">オプション</string>
+    <string name="no_playlists">プレイリストなし。</string>
+    <string name="no_playlists_available">利用可能なプレイリストはありません。</string>
+    <string name="keep_current">現在のまま</string>
+    <string name="tracks_count">%1$d 曲</string>
+    <string name="genre_other">その他</string>
+    <string name="exit_fullscreen">全画面表示を終了</string>
 </resources>

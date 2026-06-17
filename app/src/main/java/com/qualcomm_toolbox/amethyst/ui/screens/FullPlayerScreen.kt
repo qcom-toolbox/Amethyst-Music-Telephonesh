@@ -375,7 +375,7 @@ fun FullPlayerScreen(
                             onClick = { isLyricsMaximized = false },
                             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                         ) {
-                            Icon(Icons.Default.FullscreenExit, contentDescription = "Exit Fullscreen", tint = AmethystText)
+                            Icon(Icons.Default.FullscreenExit, contentDescription = stringResource(R.string.exit_fullscreen), tint = AmethystText)
                         }
                     }
                 }

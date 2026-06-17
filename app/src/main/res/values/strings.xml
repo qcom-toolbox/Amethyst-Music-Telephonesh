@@ -110,4 +110,18 @@
     <string name="version">Version</string>
     <string name="cache">Cache</string>
     <string name="admin">Admin</string>
+
+    <string name="label_title">Title</string>
+    <string name="label_artist">Artist</string>
+    <string name="label_genre">Genre</string>
+    <string name="label_music">Music</string>
+    <string name="label_cover_art">Cover Art</string>
+    <string name="no_file_selected">No file selected</string>
+    <string name="optional">Optional</string>
+    <string name="no_playlists">No playlists.</string>
+    <string name="no_playlists_available">No playlists available.</string>
+    <string name="keep_current">Keep current</string>
+    <string name="tracks_count">%1$d tracks</string>
+    <string name="genre_other">Other</string>
+    <string name="exit_fullscreen">Exit Fullscreen</string>
 </resources>

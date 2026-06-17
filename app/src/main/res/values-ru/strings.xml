@@ -11,6 +11,11 @@
     <string name="playback_channel_name">Воспроизведение музыки</string>
     <string name="playback_channel_description">Управление воспроизведением и обложка</string>
 
+    <string name="tab_home">Главная</string>
+    <string name="home_for_you">Рекомендуем вам</string>
+    <string name="home_popular">Популярные хиты</string>
+    <string name="home_hidden_gems">Редкие находки</string>
+
     <string name="tab_library">Библиотека</string>
     <string name="tab_playlists">Плейлисты</string>
     <string name="tab_settings">Настройки</string>
@@ -30,6 +35,7 @@
     <string name="close">Закрыть</string>
 
     <string name="language">Язык</string>
+    <string name="theme_selection">Тема приложения</string>
     <string name="language_english">Английский</string>
     <string name="language_french">Французский</string>
     <string name="language_german">Немецкий</string>
@@ -104,4 +110,18 @@
     <string name="version">Версия</string>
     <string name="cache">Кэш</string>
     <string name="admin">Админ</string>
+
+    <string name="label_title">Название</string>
+    <string name="label_artist">Исполнитель</string>
+    <string name="label_genre">Жанр</string>
+    <string name="label_music">Музыка</string>
+    <string name="label_cover_art">Обложка</string>
+    <string name="no_file_selected">Файл не выбран</string>
+    <string name="optional">Необязательно</string>
+    <string name="no_playlists">Нет плейлистов.</string>
+    <string name="no_playlists_available">Плейлисты недоступны.</string>
+    <string name="keep_current">Оставить текущую</string>
+    <string name="tracks_count">%1$d треков</string>
+    <string name="genre_other">Другое</string>
+    <string name="exit_fullscreen">Выйти из полноэкранного режима</string>
 </resources>

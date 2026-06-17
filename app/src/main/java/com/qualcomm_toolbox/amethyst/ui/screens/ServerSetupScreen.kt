@@ -75,7 +75,7 @@ fun ServerSetupScreen(
             value = url,
             onValueChange = { url = it },
             label = { Text(stringResource(R.string.server_url)) },
-            placeholder = { Text("https://…/Purple") },
+            placeholder = { Text(stringResource(R.string.server_example)) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             shape = authFieldShape,

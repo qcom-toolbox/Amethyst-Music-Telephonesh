@@ -11,6 +11,11 @@
     <string name="playback_channel_name">Musikwiedergabe</string>
     <string name="playback_channel_description">Wiedergabesteuerung und Cover</string>
 
+    <string name="tab_home">Startseite</string>
+    <string name="home_for_you">Für dich empfohlen</string>
+    <string name="home_popular">Beliebte Hits</string>
+    <string name="home_hidden_gems">Geheimtipps</string>
+
     <string name="tab_library">Bibliothek</string>
     <string name="tab_playlists">Playlists</string>
     <string name="tab_settings">Einstellungen</string>
@@ -30,6 +35,7 @@
     <string name="close">Schließen</string>
 
     <string name="language">Sprache</string>
+    <string name="theme_selection">App-Design</string>
     <string name="language_english">Englisch</string>
     <string name="language_french">Französisch</string>
     <string name="language_german">Deutsch</string>
@@ -104,4 +110,18 @@
     <string name="version">Version</string>
     <string name="cache">Cache</string>
     <string name="admin">Admin</string>
+
+    <string name="label_title">Titel</string>
+    <string name="label_artist">Interpret</string>
+    <string name="label_genre">Genre</string>
+    <string name="label_music">Musik</string>
+    <string name="label_cover_art">Cover</string>
+    <string name="no_file_selected">Keine Datei ausgewählt</string>
+    <string name="optional">Optional</string>
+    <string name="no_playlists">Keine Playlists.</string>
+    <string name="no_playlists_available">Keine Playlists verfügbar.</string>
+    <string name="keep_current">Aktuell behalten</string>
+    <string name="tracks_count">%1$d Titel</string>
+    <string name="genre_other">Andere</string>
+    <string name="exit_fullscreen">Vollbild verlassen</string>
 </resources>

@@ -11,6 +11,11 @@
     <string name="playback_channel_name">Riproducziun musicala</string>
     <string name="playback_channel_description">Controllas da riproducziun e cuverta</string>
 
+    <string name="tab_home">Chasa</string>
+    <string name="home_for_you">Recumandà per Te</string>
+    <string name="home_popular">Success populars</string>
+    <string name="home_hidden_gems">Perlas zuppadas</string>
+
     <string name="tab_library">Biblioteca</string>
     <string name="tab_playlists">Playlists</string>
     <string name="tab_settings">Parameters</string>
@@ -30,6 +35,7 @@
     <string name="close">Serrar</string>
 
     <string name="language">Lingua</string>
+    <string name="theme_selection">Tema da l\'app</string>
     <string name="language_english">Englais</string>
     <string name="language_french">Franzos</string>
     <string name="language_german">Tudestg</string>
@@ -104,4 +110,18 @@
     <string name="version">Versiun</string>
     <string name="cache">Cache</string>
     <string name="admin">Admin</string>
+
+    <string name="label_title">Titel</string>
+    <string name="label_artist">Artist</string>
+    <string name="label_genre">Genre</string>
+    <string name="label_music">Musica</string>
+    <string name="label_cover_art">Cuverta</string>
+    <string name="no_file_selected">Nagina datoteca tschernida</string>
+    <string name="optional">Opziunal</string>
+    <string name="no_playlists">Naginas playlists.</string>
+    <string name="no_playlists_available">Naginas playlists disponiblas.</string>
+    <string name="keep_current">Mantegnair actual</string>
+    <string name="tracks_count">%1$d tithels</string>
+    <string name="genre_other">Auter</string>
+    <string name="exit_fullscreen">Sortir dal plein ecran</string>
 </resources>
