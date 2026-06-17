@@ -28,6 +28,14 @@ class ServerPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_ADMIN_MODE_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_ADMIN_MODE_ENABLED, value).apply()
 
+    var backgroundColor: Long
+        get() = prefs.getLong(KEY_BG_COLOR, 0xFF0F0C1D)
+        set(value) = prefs.edit().putLong(KEY_BG_COLOR, value).apply()
+
+    var useHarmony: Boolean
+        get() = prefs.getBoolean(KEY_USE_HARMONY, false)
+        set(value) = prefs.edit().putBoolean(KEY_USE_HARMONY, value).apply()
+
     var language: String
         get() = prefs.getString(KEY_LANGUAGE, "fr") ?: "fr"
         set(value) {
@@ -75,6 +83,8 @@ class ServerPreferences(context: Context) {
         private const val KEY_IS_ADMIN = "is_admin"
         private const val KEY_ADMIN_MODE_ENABLED = "admin_mode_enabled"
         private const val KEY_GENRE_PLAYS = "genre_plays"
+        private const val KEY_BG_COLOR = "bg_color"
+        private const val KEY_USE_HARMONY = "use_harmony"
 
         fun normalizeServerUrl(raw: String): String {
             var url = raw.trim()

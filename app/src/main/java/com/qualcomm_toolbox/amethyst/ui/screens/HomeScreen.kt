@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -77,7 +78,7 @@ fun HomeSection(
             text = title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = AmethystText,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
         )
         LazyRow(
@@ -114,7 +115,7 @@ fun HomeTrackCard(
             modifier = Modifier
                 .size(132.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(AmethystBorder),
+                .background(MaterialTheme.colorScheme.outline),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -122,14 +123,14 @@ fun HomeTrackCard(
             text = track.title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = AmethystText,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = track.artist,
             fontSize = 12.sp,
-            color = AmethystTextMuted,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

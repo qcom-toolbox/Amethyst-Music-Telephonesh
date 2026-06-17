@@ -4,12 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystSearchBg
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystText
@@ -20,7 +20,7 @@ fun AuthScreenLayout(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AmethystBackground),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         content()
     }

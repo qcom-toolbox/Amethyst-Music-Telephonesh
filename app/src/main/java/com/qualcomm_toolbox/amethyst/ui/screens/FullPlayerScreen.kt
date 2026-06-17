@@ -78,7 +78,7 @@ fun FullPlayerScreen(
     val displayPosition = smoothedPositionMs.coerceIn(0L, durationMs)
 
     val gradient = Brush.verticalGradient(
-        colors = listOf(AmethystGradientStart, AmethystBackground),
+        colors = listOf(AmethystGradientStart, MaterialTheme.colorScheme.background),
     )
 
     // Interaction source to disable ripple on the background click consumer
@@ -120,7 +120,7 @@ fun FullPlayerScreen(
                 }
                 Text(
                     text = stringResource(R.string.now_playing),
-                    color = AmethystTextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
@@ -137,7 +137,7 @@ fun FullPlayerScreen(
                         Icon(
                             Icons.Default.Lyrics,
                             contentDescription = stringResource(R.string.lyrics),
-                            tint = if (showLyrics) AmethystAccent else AmethystText
+                            tint = if (showLyrics) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -180,7 +180,7 @@ fun FullPlayerScreen(
                     Text(
                         text = track.artist,
                         fontSize = if (showLyrics) 14.sp else 16.sp,
-                        color = AmethystAccent,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -221,12 +221,12 @@ fun FullPlayerScreen(
                     }
                     Text(
                         text = formatTime(currentTime),
-                        color = AmethystTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Text(
                         text = formatTime(durationMs),
-                        color = AmethystTextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                 }
@@ -243,7 +243,7 @@ fun FullPlayerScreen(
                         Icon(
                             Icons.Default.Shuffle,
                             contentDescription = stringResource(R.string.shuffle),
-                            tint = if (shuffle) AmethystAccent else AmethystText.copy(alpha = 0.5f),
+                            tint = if (shuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -272,7 +272,7 @@ fun FullPlayerScreen(
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                     contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                                    tint = AmethystBackground,
+                                    tint = MaterialTheme.colorScheme.background,
                                     modifier = Modifier.size(36.dp)
                                 )
                             }
@@ -292,7 +292,7 @@ fun FullPlayerScreen(
                         Icon(
                             imageVector = if (loopMode == 2) Icons.Default.RepeatOne else Icons.Default.Repeat,
                             contentDescription = stringResource(R.string.loop),
-                            tint = if (loopMode > 0) AmethystAccent else AmethystText.copy(alpha = 0.5f),
+                            tint = if (loopMode > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -335,7 +335,7 @@ fun FullPlayerScreen(
                                 val isCurrent = index == currentIndex
                                 Text(
                                     text = line.text,
-                                    color = if (isCurrent) AmethystAccent else AmethystText,
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     fontSize = if (isCurrent) 22.sp else 18.sp,
                                     fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                     textAlign = TextAlign.Center,
@@ -358,7 +358,7 @@ fun FullPlayerScreen(
                         ) {
                             Text(
                                 text = lyrics ?: stringResource(R.string.no_lyrics),
-                                color = AmethystText,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
                                 textAlign = TextAlign.Center,

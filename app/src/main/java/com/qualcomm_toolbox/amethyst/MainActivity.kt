@@ -1,6 +1,5 @@
 package com.qualcomm_toolbox.amethyst
 
-import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
@@ -18,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
@@ -33,9 +33,9 @@ import com.qualcomm_toolbox.amethyst.ui.screens.FullPlayerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.LoginScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.MainScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.ServerSetupScreen
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystMusicTheme
 import com.qualcomm_toolbox.amethyst.util.NotificationPermissionHelper
+import android.graphics.Color
 
 class MainActivity : AppCompatActivity() {
 
@@ -46,18 +46,27 @@ class MainActivity : AppCompatActivity() {
         notificationPermission = NotificationPermissionHelper(this)
         notificationPermission.requestIfNeeded()
 
-        val barColor = Color.parseColor("#0F0C1D")
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(barColor),
-            navigationBarStyle = SystemBarStyle.dark(barColor),
-        )
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = false
             isAppearanceLightNavigationBars = false
         }
         setContent {
-            AmethystMusicTheme {
-                val vm: AppViewModel = viewModel()
+            val vm: AppViewModel = viewModel()
+            val backgroundColor by vm.backgroundColor.collectAsState()
+            val useHarmony by vm.useHarmony.collectAsState()
+
+            androidx.compose.runtime.LaunchedEffect(backgroundColor) {
+                val colorInt = backgroundColor.toInt()
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.dark(colorInt),
+                    navigationBarStyle = SystemBarStyle.dark(colorInt),
+                )
+            }
+            
+            AmethystMusicTheme(
+                backgroundColor = ComposeColor(backgroundColor),
+                useHarmony = useHarmony
+            ) {
                 val screen by vm.screen.collectAsState()
                 val isLoading by vm.isLoading.collectAsState()
                 val error by vm.error.collectAsState()
@@ -67,6 +76,7 @@ class MainActivity : AppCompatActivity() {
                 val filteredOfflineTracks by vm.filteredOfflineTracks.collectAsState()
                 val playlists by vm.playlists.collectAsState()
                 val selectedTab by vm.selectedTab.collectAsState()
+                val useHarmony by vm.useHarmony.collectAsState()
                 val showFullPlayer by vm.showFullPlayer.collectAsState()
                 val offlineOnlyMode by vm.offlineOnlyMode.collectAsState()
                 val currentTrack by vm.musicPlayer.currentTrack.collectAsState()
@@ -94,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                 CompositionLocalProvider(LocalImageLoader provides imageLoader) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = AmethystBackground,
+                        color = ComposeColor(backgroundColor),
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             when (screen) {
@@ -171,6 +181,12 @@ class MainActivity : AppCompatActivity() {
                                         homeRecommended = homeRecommended,
                                         homePopular = homePopular,
                                         homeHiddenGems = homeHiddenGems,
+                                        backgroundColor = backgroundColor,
+                                        useHarmony = useHarmony,
+                                        onThemeChange = { color, harmony ->
+                                            vm.setBackgroundColor(color)
+                                            vm.setUseHarmony(harmony)
+                                        },
                                     )
                                 }
                             }

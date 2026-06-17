@@ -22,9 +22,34 @@ private val AmethystColorScheme = darkColorScheme(
 )
 
 @Composable
-fun AmethystMusicTheme(content: @Composable () -> Unit) {
+fun AmethystMusicTheme(
+    backgroundColor: Color = AmethystBackground,
+    useHarmony: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val accent = if (useHarmony) ThemeUtils.deriveAccent(backgroundColor) else AmethystAccent
+    val panel = if (useHarmony) ThemeUtils.derivePanel(backgroundColor) else AmethystPanel
+    val border = if (useHarmony) ThemeUtils.deriveBorder(backgroundColor) else AmethystBorder
+    val textMuted = if (useHarmony) ThemeUtils.deriveTextMuted(backgroundColor) else AmethystTextMuted
+
+    val dynamicColorScheme = darkColorScheme(
+        primary = accent,
+        onPrimary = Color.White,
+        secondary = accent,
+        onSecondary = backgroundColor,
+        tertiary = accent,
+        background = backgroundColor,
+        onBackground = AmethystText,
+        surface = panel,
+        onSurface = AmethystText,
+        surfaceVariant = panel,
+        onSurfaceVariant = textMuted,
+        outline = border,
+        error = AmethystDanger,
+    )
+
     MaterialTheme(
-        colorScheme = AmethystColorScheme,
+        colorScheme = dynamicColorScheme,
         typography = Typography,
         content = content,
     )

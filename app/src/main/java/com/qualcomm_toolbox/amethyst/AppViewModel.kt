@@ -184,6 +184,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _language = MutableStateFlow(prefs.language)
     val language: StateFlow<String> = _language.asStateFlow()
 
+    private val _backgroundColor = MutableStateFlow(prefs.backgroundColor)
+    val backgroundColor: StateFlow<Long> = _backgroundColor.asStateFlow()
+
+    private val _useHarmony = MutableStateFlow(prefs.useHarmony)
+    val useHarmony: StateFlow<Boolean> = _useHarmony.asStateFlow()
+
     private val _isAdmin = MutableStateFlow(prefs.isAdmin)
     val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
 
@@ -394,6 +400,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         prefs.language = lang
         _language.value = lang
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(lang))
+    }
+
+    fun setBackgroundColor(color: Long) {
+        prefs.backgroundColor = color
+        _backgroundColor.value = color
+    }
+
+    fun setUseHarmony(enabled: Boolean) {
+        prefs.useHarmony = enabled
+        _useHarmony.value = enabled
     }
 
     fun setAdminModeEnabled(enabled: Boolean) {

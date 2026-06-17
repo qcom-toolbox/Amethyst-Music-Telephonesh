@@ -58,6 +58,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -99,7 +100,6 @@ import androidx.compose.material.icons.filled.Edit
 import com.qualcomm_toolbox.amethyst.ui.components.EditTrackDialog
 import com.qualcomm_toolbox.amethyst.ui.components.PlayingVisualizer
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystAccent
-import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBackground
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystBorder
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPanel
 import com.qualcomm_toolbox.amethyst.ui.theme.AmethystPrimary
@@ -135,6 +135,9 @@ fun MainScreen(
     homeRecommended: List<Track> = emptyList(),
     homePopular: List<Track> = emptyList(),
     homeHiddenGems: List<Track> = emptyList(),
+    backgroundColor: Long = 0xFF0F0C1D,
+    useHarmony: Boolean = true,
+    onThemeChange: (Long, Boolean) -> Unit = { _, _ -> },
 ) {
     val downloadedIds by vm.downloadedIds.collectAsState()
     val downloadingIds by vm.downloadingIds.collectAsState()
@@ -192,7 +195,7 @@ fun MainScreen(
     }
 
     Scaffold(
-        containerColor = AmethystBackground,
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             Column {
                 if (currentTrack != null) {
@@ -274,7 +277,7 @@ fun MainScreen(
                     text = if (offlineOnlyMode) stringResource(R.string.tab_offline) else siteName,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = AmethystAccent,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
@@ -293,17 +296,17 @@ fun MainScreen(
                 } else {
                     if (selectedTab == 2) {
                         IconButton(onClick = { showPlaylistCreateDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_playlist), tint = AmethystTextMuted)
+                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_playlist), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     IconButton(onClick = { showUploadDialog = true }) {
-                        Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.upload), tint = AmethystTextMuted)
+                        Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.upload), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     IconButton(onClick = onRefresh) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh), tint = AmethystTextMuted)
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.logout), tint = AmethystTextMuted)
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.logout), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -331,7 +334,7 @@ fun MainScreen(
                             Icon(
                                 Icons.Default.FilterList,
                                 contentDescription = stringResource(R.string.filter_sort),
-                                tint = if (selectedGenres.isNotEmpty()) AmethystAccent else AmethystTextMuted
+                                tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         FilterSortMenu(
@@ -353,7 +356,7 @@ fun MainScreen(
                 LinearProgressIndicator(
                     modifier = Modifier.fillMaxWidth().height(2.dp),
                     color = AmethystAccent,
-                    trackColor = AmethystBackground
+                    trackColor = MaterialTheme.colorScheme.background
                 )
             }
 
@@ -423,6 +426,9 @@ fun MainScreen(
                 4 -> SettingsScreen(
                     currentLanguage = currentLanguage,
                     onLanguageChange = vm::setLanguage,
+                    currentBackgroundColor = backgroundColor,
+                    currentUseHarmony = useHarmony,
+                    onThemeChange = onThemeChange,
                     onRefreshCache = vm::refreshCache,
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
@@ -435,11 +441,11 @@ fun MainScreen(
 
 @Composable
 private fun navColors() = NavigationBarItemDefaults.colors(
-    selectedIconColor = AmethystAccent,
-    selectedTextColor = AmethystAccent,
-    unselectedIconColor = AmethystTextMuted,
-    unselectedTextColor = AmethystTextMuted,
-    indicatorColor = AmethystBorder,
+    selectedIconColor = MaterialTheme.colorScheme.primary,
+    selectedTextColor = MaterialTheme.colorScheme.primary,
+    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    indicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
 )
 
 @Composable
@@ -453,61 +459,61 @@ fun FilterSortMenu(
     currentSort: SortOrder,
     onSortSelect: (SortOrder) -> Unit
 ) {
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(AmethystPanel)
-    ) {
-        // Sort Section FIRST
-        Text(
-            text = "Sort by",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = AmethystAccent
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sort_popularity)) },
-            onClick = { onSortSelect(SortOrder.POPULARITY); onDismissRequest() },
-            leadingIcon = { if (currentSort == SortOrder.POPULARITY) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sort_title)) },
-            onClick = { onSortSelect(SortOrder.TITLE_ASC); onDismissRequest() },
-            leadingIcon = { if (currentSort == SortOrder.TITLE_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sort_artist)) },
-            onClick = { onSortSelect(SortOrder.ARTIST_ASC); onDismissRequest() },
-            leadingIcon = { if (currentSort == SortOrder.ARTIST_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.sort_newest)) },
-            onClick = { onSortSelect(SortOrder.DATE_UPLOAD_DESC); onDismissRequest() },
-            leadingIcon = { if (currentSort == SortOrder.DATE_UPLOAD_DESC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
-        )
-
-        // Genre Section
-        Text(
-            text = "Genre",
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            color = AmethystAccent
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.genre_all)) },
-            onClick = { onClearFilters(); onDismissRequest() },
-            leadingIcon = { if (selectedGenres.isEmpty()) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
-        )
-        genres.forEach { genre ->
-            DropdownMenuItem(
-                text = { Text(genre) },
-                onClick = { onGenreToggle(genre) }, // Don't dismiss so user can select multiple
-                leadingIcon = { if (selectedGenres.contains(genre)) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AmethystAccent) }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            // Sort Section FIRST
+            Text(
+                text = "Sort by",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
             )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sort_popularity), color = MaterialTheme.colorScheme.onSurface) },
+                onClick = { onSortSelect(SortOrder.POPULARITY); onDismissRequest() },
+                leadingIcon = { if (currentSort == SortOrder.POPULARITY) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sort_title), color = MaterialTheme.colorScheme.onSurface) },
+                onClick = { onSortSelect(SortOrder.TITLE_ASC); onDismissRequest() },
+                leadingIcon = { if (currentSort == SortOrder.TITLE_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sort_artist), color = MaterialTheme.colorScheme.onSurface) },
+                onClick = { onSortSelect(SortOrder.ARTIST_ASC); onDismissRequest() },
+                leadingIcon = { if (currentSort == SortOrder.ARTIST_ASC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.sort_newest), color = MaterialTheme.colorScheme.onSurface) },
+                onClick = { onSortSelect(SortOrder.DATE_UPLOAD_DESC); onDismissRequest() },
+                leadingIcon = { if (currentSort == SortOrder.DATE_UPLOAD_DESC) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            )
+
+            // Genre Section
+            Text(
+                text = "Genre",
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.genre_all), color = MaterialTheme.colorScheme.onSurface) },
+                onClick = { onClearFilters(); onDismissRequest() },
+                leadingIcon = { if (selectedGenres.isEmpty()) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            )
+            genres.forEach { genre ->
+                DropdownMenuItem(
+                    text = { Text(genre, color = MaterialTheme.colorScheme.onSurface) },
+                    onClick = { onGenreToggle(genre) }, // Don't dismiss so user can select multiple
+                    leadingIcon = { if (selectedGenres.contains(genre)) Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                )
+            }
         }
-    }
 }
 
 @Composable
@@ -537,7 +543,7 @@ private fun TrackList(
         if (tracks.isEmpty()) {
             item {
                 Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.no_tracks_found), color = AmethystTextMuted)
+                    Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -601,7 +607,7 @@ private fun TrackRow(
             modifier = Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(AmethystBorder),
+                .background(MaterialTheme.colorScheme.outline),
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(
@@ -627,13 +633,13 @@ private fun TrackRow(
             Text(
                 text = track.title,
                 fontWeight = FontWeight.Bold,
-                color = if (isCurrent) AmethystAccent else AmethystText,
+                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = "${track.artist} • ${track.genre}",
-                color = AmethystTextMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -767,7 +773,7 @@ private fun PlaylistList(
                     Icon(
                         Icons.AutoMirrored.Filled.PlaylistPlay,
                         contentDescription = null,
-                        tint = AmethystAccent,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(40.dp),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
@@ -1020,13 +1026,13 @@ private fun readUriBytes(context: android.content.Context, uri: android.net.Uri)
 
 @Composable
 private fun amethystFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = AmethystText,
-    unfocusedTextColor = AmethystText,
-    focusedContainerColor = AmethystPanel,
-    unfocusedContainerColor = AmethystPanel,
-    focusedBorderColor = AmethystAccent,
-    unfocusedBorderColor = AmethystBorder,
-    focusedLabelColor = AmethystAccent,
-    unfocusedLabelColor = AmethystTextMuted,
-    cursorColor = AmethystAccent,
+    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+    focusedContainerColor = MaterialTheme.colorScheme.surface,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    focusedBorderColor = MaterialTheme.colorScheme.primary,
+    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+    focusedLabelColor = MaterialTheme.colorScheme.primary,
+    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    cursorColor = MaterialTheme.colorScheme.primary,
 )
