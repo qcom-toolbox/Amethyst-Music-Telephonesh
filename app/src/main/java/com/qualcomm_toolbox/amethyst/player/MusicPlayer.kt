@@ -15,6 +15,7 @@ import com.google.android.gms.cast.framework.CastContext
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.qualcomm_toolbox.amethyst.data.Track
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.OkHttpClient
 
 class MusicPlayer(private val appContext: Context) {
+    val equalizerManager = EqualizerManager(appContext)
     private var exoPlayer: ExoPlayer = buildExoPlayer(null)
     
     private val castContext: CastContext? by lazy {
@@ -111,8 +113,11 @@ class MusicPlayer(private val appContext: Context) {
 
         detachFromSession()
         exoPlayer.removeListener(listener)
+        exoPlayer.removeAnalyticsListener(analyticsListener)
         exoPlayer.release()
         exoPlayer = buildExoPlayer(client)
+        exoPlayer.addAnalyticsListener(analyticsListener)
+        equalizerManager.onAudioSessionIdChanged(exoPlayer.audioSessionId)
         if (isExoCurrent) {
             currentPlayer = exoPlayer
             exoPlayer.addListener(listener)
@@ -182,8 +187,16 @@ class MusicPlayer(private val appContext: Context) {
         }
     }
 
+    private val analyticsListener = object : AnalyticsListener {
+        override fun onAudioSessionIdChanged(eventTime: AnalyticsListener.EventTime, audioSessionId: Int) {
+            equalizerManager.onAudioSessionIdChanged(audioSessionId)
+        }
+    }
+
     init {
         exoPlayer.addListener(listener)
+        exoPlayer.addAnalyticsListener(analyticsListener)
+        equalizerManager.onAudioSessionIdChanged(exoPlayer.audioSessionId)
         castPlayer // initialize
         attachToSession()
     }
@@ -381,6 +394,8 @@ class MusicPlayer(private val appContext: Context) {
     fun release() {
         stop()
         currentPlayer.removeListener(listener)
+        exoPlayer.removeAnalyticsListener(analyticsListener)
+        equalizerManager.release()
         detachFromSession()
         exoPlayer.release()
         castPlayer?.release()

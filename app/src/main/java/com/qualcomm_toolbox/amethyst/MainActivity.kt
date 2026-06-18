@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.qualcomm_toolbox.amethyst.data.ServerPreferences
 import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
+import com.qualcomm_toolbox.amethyst.ui.screens.EqualizerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.FullPlayerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.LoginScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.MainScreen
@@ -200,6 +201,18 @@ class MainActivity : AppCompatActivity() {
                                         vm.addToPlaylist(playlist, trackToAddToPlaylist!!)
                                         vm.hideAddToPlaylist()
                                     }
+                                )
+                            }
+
+                            val showEqualizer by vm.showEqualizer.collectAsState()
+                            AnimatedVisibility(
+                                visible = showEqualizer,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                EqualizerScreen(
+                                    manager = vm.musicPlayer.equalizerManager,
+                                    onClose = vm::closeEqualizer
                                 )
                             }
 

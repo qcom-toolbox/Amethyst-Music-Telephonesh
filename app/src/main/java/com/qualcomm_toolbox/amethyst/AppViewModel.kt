@@ -232,6 +232,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _showLyrics = MutableStateFlow(false)
     val showLyrics: StateFlow<Boolean> = _showLyrics.asStateFlow()
 
+    private val _showEqualizer = MutableStateFlow(false)
+    val showEqualizer: StateFlow<Boolean> = _showEqualizer.asStateFlow()
+
     private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
     val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
 
@@ -437,6 +440,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun closeFullPlayer() {
         _showFullPlayer.value = false
         _showLyrics.value = false
+    }
+
+    fun openEqualizer() {
+        _showEqualizer.value = true
+    }
+
+    fun closeEqualizer() {
+        _showEqualizer.value = false
     }
 
     fun showAddToPlaylist(track: Track) {

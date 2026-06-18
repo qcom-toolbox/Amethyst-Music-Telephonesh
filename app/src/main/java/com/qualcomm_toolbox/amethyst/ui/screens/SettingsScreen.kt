@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.DropdownMenuItem
@@ -67,6 +68,7 @@ fun SettingsScreen(
     currentUseHarmony: Boolean,
     onThemeChange: (Long, Boolean) -> Unit,
     onRefreshCache: () -> Unit,
+    onOpenEqualizer: () -> Unit,
     isAdmin: Boolean = false,
     adminModeEnabled: Boolean = false,
     onAdminModeChange: (Boolean) -> Unit = {},
@@ -209,6 +211,16 @@ fun SettingsScreen(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Audio Section
+        SettingsSectionTitle(stringResource(R.string.audio))
+        SettingsItem(
+            icon = Icons.Default.Equalizer,
+            label = stringResource(R.string.equalizer),
+            onClick = onOpenEqualizer
+        )
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -446,6 +446,7 @@ fun MainScreen(
                     currentUseHarmony = useHarmony,
                     onThemeChange = onThemeChange,
                     onRefreshCache = vm::refreshCache,
+                    onOpenEqualizer = vm::openEqualizer,
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
                     onAdminModeChange = vm::setAdminModeEnabled
