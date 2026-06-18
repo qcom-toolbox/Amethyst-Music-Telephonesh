@@ -29,6 +29,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.mediarouter.app.MediaRouteButton
+import com.google.android.gms.cast.framework.CastButtonFactory
 import coil.compose.AsyncImage
 import com.qualcomm_toolbox.amethyst.AppViewModel
 import com.qualcomm_toolbox.amethyst.R
@@ -128,7 +131,15 @@ fun FullPlayerScreen(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
                 )
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AndroidView(
+                        factory = { context ->
+                            MediaRouteButton(context).apply {
+                                CastButtonFactory.setUpMediaRouteButton(context, this)
+                            }
+                        },
+                        modifier = Modifier.padding(end = 8.dp).size(32.dp)
+                    )
                     IconButton(onClick = onAddToPlaylist) {
                         Icon(
                             Icons.AutoMirrored.Filled.PlaylistAdd,

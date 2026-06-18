@@ -9,6 +9,9 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.SessionAvailabilityListener
+import com.google.android.gms.cast.framework.CastContext
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -21,6 +24,49 @@ import okhttp3.OkHttpClient
 
 class MusicPlayer(private val appContext: Context) {
     private var exoPlayer: ExoPlayer = buildExoPlayer(null)
+    
+    private val castContext: CastContext? by lazy {
+        try { CastContext.getSharedInstance(appContext) } catch (e: Exception) { null }
+    }
+
+    private val castPlayer: CastPlayer? by lazy {
+        castContext?.let { context ->
+            CastPlayer(context).apply {
+                setSessionAvailabilityListener(object : SessionAvailabilityListener {
+                    override fun onCastSessionAvailable() {
+                        switchToPlayer(this@apply)
+                    }
+
+                    override fun onCastSessionUnavailable() {
+                        switchToPlayer(exoPlayer)
+                    }
+                })
+            }
+        }
+    }
+
+    private var currentPlayer: Player = exoPlayer
+
+    private fun switchToPlayer(newPlayer: Player) {
+        if (currentPlayer === newPlayer) return
+
+        val wasPlaying = currentPlayer.isPlaying
+        val position = currentPlayer.currentPosition
+        val index = currentPlayer.currentMediaItemIndex
+        val items = (0 until currentPlayer.mediaItemCount).map { currentPlayer.getMediaItemAt(it) }
+
+        currentPlayer.removeListener(listener)
+        currentPlayer.pause()
+
+        currentPlayer = newPlayer
+        currentPlayer.addListener(listener)
+        currentPlayer.setMediaItems(items, index, position)
+        currentPlayer.prepare()
+        if (wasPlaying) currentPlayer.play()
+        
+        activePlayer = currentPlayer
+        startPlaybackService()
+    }
 
     private val _currentTrack = MutableStateFlow<Track?>(null)
     val currentTrack: StateFlow<Track?> = _currentTrack.asStateFlow()
@@ -61,18 +107,23 @@ class MusicPlayer(private val appContext: Context) {
         val track = _currentTrack.value
         val wasPlaying = exoPlayer.isPlaying
         val position = exoPlayer.currentPosition
+        val isExoCurrent = (currentPlayer === exoPlayer)
+
         detachFromSession()
         exoPlayer.removeListener(listener)
         exoPlayer.release()
         exoPlayer = buildExoPlayer(client)
-        exoPlayer.addListener(listener)
-        activePlayer = exoPlayer
+        if (isExoCurrent) {
+            currentPlayer = exoPlayer
+            exoPlayer.addListener(listener)
+            activePlayer = exoPlayer
+        }
         if (track != null && streamUrlProvider != null) {
             // Restore full queue into the new player
             val items = queue.map { buildMediaItem(it, streamUrlProvider!!(it)) }
             exoPlayer.setMediaItems(items, queueIndex, position)
             exoPlayer.prepare()
-            if (wasPlaying) exoPlayer.play()
+            if (wasPlaying && isExoCurrent) exoPlayer.play()
         }
         if (_currentTrack.value != null) {
             startPlaybackService()
@@ -102,7 +153,7 @@ class MusicPlayer(private val appContext: Context) {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             // Keep our currentTrack / queueIndex in sync when ExoPlayer advances
             // the playlist natively (e.g. via notification next/prev buttons).
-            val newIndex = exoPlayer.currentMediaItemIndex
+            val newIndex = currentPlayer.currentMediaItemIndex
             if (newIndex != queueIndex && newIndex in queue.indices) {
                 queueIndex = newIndex
                 _currentTrack.value = queue[queueIndex]
@@ -117,13 +168,13 @@ class MusicPlayer(private val appContext: Context) {
                 val increment = incrementPlayCallback ?: return
                 if (loopMode == 1) {
                     // Loop all: seek back to beginning of playlist
-                    exoPlayer.seekTo(0, 0)
-                    exoPlayer.play()
+                    currentPlayer.seekTo(0, 0)
+                    currentPlayer.play()
                     queueIndex = 0
                     _currentTrack.value = queue.getOrNull(0)
                     _currentTrack.value?.let { increment(it.id) }
                 } else {
-                    exoPlayer.pause()
+                    currentPlayer.pause()
                     _isPlaying.value = false
                     stopPlaybackService()
                 }
@@ -133,6 +184,7 @@ class MusicPlayer(private val appContext: Context) {
 
     init {
         exoPlayer.addListener(listener)
+        castPlayer // initialize
         attachToSession()
     }
 
@@ -161,28 +213,30 @@ class MusicPlayer(private val appContext: Context) {
             .setTitle(track.title)
             .setArtist(track.artist)
             .setAlbumTitle(track.genre)
+            .setIsPlayable(true)
         if (!cover.isNullOrBlank()) {
             metadataBuilder.setArtworkUri(Uri.parse(cover))
         }
         return MediaItem.Builder()
             .setUri(streamUrl)
+            .setMimeType("audio/*")
             .setMediaId(track.id.toString())
             .setMediaMetadata(metadataBuilder.build())
             .build()
     }
 
     private fun attachToSession() {
-        activePlayer = exoPlayer
+        activePlayer = currentPlayer
     }
 
     private fun detachFromSession() {
-        if (activePlayer === exoPlayer) {
+        if (activePlayer === currentPlayer) {
             activePlayer = null
         }
     }
 
     private fun startPlaybackService() {
-        activePlayer = exoPlayer
+        activePlayer = currentPlayer
         val intent = Intent(appContext, MusicPlaybackService::class.java).apply {
             action = MusicPlaybackService.ACTION_SYNC
         }
@@ -194,8 +248,8 @@ class MusicPlayer(private val appContext: Context) {
     }
 
     fun updateProgress() {
-        _positionMs.value = exoPlayer.currentPosition.coerceAtLeast(0L)
-        val duration = exoPlayer.duration
+        _positionMs.value = currentPlayer.currentPosition.coerceAtLeast(0L)
+        val duration = currentPlayer.duration
         if (duration > 0) {
             _durationMs.value = duration
         }
@@ -208,9 +262,9 @@ class MusicPlayer(private val appContext: Context) {
 
         // Load the entire queue into ExoPlayer so notification controls work natively
         val mediaItems = tracks.map { buildMediaItem(it, streamUrl(it)) }
-        exoPlayer.setMediaItems(mediaItems, queueIndex, 0L)
-        exoPlayer.prepare()
-        exoPlayer.play()
+        currentPlayer.setMediaItems(mediaItems, queueIndex, 0L)
+        currentPlayer.prepare()
+        currentPlayer.play()
 
         _currentTrack.value = tracks[queueIndex]
         _isPlaying.value = true
@@ -223,31 +277,31 @@ class MusicPlayer(private val appContext: Context) {
         _currentTrack.value = queue[queueIndex]
 
         // Seek within the already-loaded playlist when possible
-        if (exoPlayer.mediaItemCount == queue.size) {
-            exoPlayer.seekTo(queueIndex, 0L)
+        if (currentPlayer.mediaItemCount == queue.size) {
+            currentPlayer.seekTo(queueIndex, 0L)
         } else {
             val mediaItems = queue.map { buildMediaItem(it, streamUrl(it)) }
-            exoPlayer.setMediaItems(mediaItems, queueIndex, 0L)
-            exoPlayer.prepare()
+            currentPlayer.setMediaItems(mediaItems, queueIndex, 0L)
+            currentPlayer.prepare()
         }
-        exoPlayer.play()
+        currentPlayer.play()
         _isPlaying.value = true
         startPlaybackService()
     }
 
     fun togglePlayPause() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
+        if (currentPlayer.isPlaying) {
+            currentPlayer.pause()
         } else {
             if (_currentTrack.value != null) {
                 startPlaybackService()
             }
-            exoPlayer.play()
+            currentPlayer.play()
         }
     }
 
     fun seekTo(positionMs: Long) {
-        exoPlayer.seekTo(positionMs)
+        currentPlayer.seekTo(positionMs)
         _positionMs.value = positionMs
     }
 
@@ -255,37 +309,37 @@ class MusicPlayer(private val appContext: Context) {
         if (queue.isEmpty()) return
         if (loopMode == 2) {
             seekTo(0)
-            exoPlayer.play()
+            currentPlayer.play()
             startPlaybackService()
             return
         }
         if (queueIndex < queue.lastIndex) {
             queueIndex++
-            exoPlayer.seekTo(queueIndex, 0L)
-            exoPlayer.play()
+            currentPlayer.seekTo(queueIndex, 0L)
+            currentPlayer.play()
             _currentTrack.value = queue[queueIndex]
             startPlaybackService()
         } else if (loopMode == 1) {
             queueIndex = 0
-            exoPlayer.seekTo(0, 0L)
-            exoPlayer.play()
+            currentPlayer.seekTo(0, 0L)
+            currentPlayer.play()
             _currentTrack.value = queue[0]
             startPlaybackService()
         } else {
-            exoPlayer.pause()
+            currentPlayer.pause()
             _isPlaying.value = false
         }
     }
 
     fun previous(streamUrl: (Track) -> String) {
         if (queue.isEmpty()) return
-        if (exoPlayer.currentPosition > 3000) {
+        if (currentPlayer.currentPosition > 3000) {
             seekTo(0)
             return
         }
         queueIndex = if (queueIndex > 0) queueIndex - 1 else queue.lastIndex
-        exoPlayer.seekTo(queueIndex, 0L)
-        exoPlayer.play()
+        currentPlayer.seekTo(queueIndex, 0L)
+        currentPlayer.play()
         _currentTrack.value = queue[queueIndex]
         startPlaybackService()
     }
@@ -293,7 +347,7 @@ class MusicPlayer(private val appContext: Context) {
     fun toggleLoop(): Int {
         loopMode = (loopMode + 1) % 3
         // Keep ExoPlayer repeat mode in sync
-        exoPlayer.repeatMode = when (loopMode) {
+        currentPlayer.repeatMode = when (loopMode) {
             1 -> Player.REPEAT_MODE_ALL
             2 -> Player.REPEAT_MODE_ONE
             else -> Player.REPEAT_MODE_OFF
@@ -303,15 +357,15 @@ class MusicPlayer(private val appContext: Context) {
 
     fun toggleShuffle(): Boolean {
         shuffle = !shuffle
-        exoPlayer.shuffleModeEnabled = shuffle
+        currentPlayer.shuffleModeEnabled = shuffle
         return shuffle
     }
 
-    fun playbackState(): Int = exoPlayer.playbackState
+    fun playbackState(): Int = currentPlayer.playbackState
 
     fun stop() {
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
+        currentPlayer.stop()
+        currentPlayer.clearMediaItems()
         _isPlaying.value = false
         _currentTrack.value = null
         _positionMs.value = 0L
@@ -326,13 +380,14 @@ class MusicPlayer(private val appContext: Context) {
 
     fun release() {
         stop()
-        exoPlayer.removeListener(listener)
+        currentPlayer.removeListener(listener)
         detachFromSession()
         exoPlayer.release()
+        castPlayer?.release()
     }
 
     companion object {
         @Volatile
-        var activePlayer: ExoPlayer? = null
+        var activePlayer: Player? = null
     }
 }
