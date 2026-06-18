@@ -886,6 +886,27 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun removeFromPlaylist(playlist: Playlist, track: Track) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.removeFromPlaylist(playlist.id, track.id)
+                }
+                // Refresh current playlist view if we are viewing it
+                if (_currentPlaylist.value?.id == playlist.id) {
+                    openPlaylist(playlist)
+                }
+                loadLibrary()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun deletePlaylist(playlist: Playlist) {
         val purple = client ?: return
         viewModelScope.launch {

@@ -92,6 +92,7 @@
     <string name="error_lyrics">Erreur lors du chargement des paroles.</string>
     <string name="create_playlist">Créer une playlist</string>
     <string name="add_to_playlist">Ajouter à la playlist</string>
+    <string name="remove_from_playlist">Retirer de la playlist</string>
     <string name="playlist_name">Nom de la playlist</string>
     <string name="playlist_created">Playlist créée</string>
     <string name="track_added">Titre ajouté à la playlist</string>

@@ -412,6 +412,7 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                        onRemoveFromPlaylist = { track -> vm.removeFromPlaylist(currentPlaylist!!, track) },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it }
                     )
@@ -545,6 +546,7 @@ private fun TrackList(
     onDownload: (Track) -> Unit,
     onRemoveDownload: (Track) -> Unit,
     onAddToPlaylist: ((Track) -> Unit)? = null,
+    onRemoveFromPlaylist: ((Track) -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: ((Track) -> Unit)? = null,
 ) {
@@ -581,6 +583,7 @@ private fun TrackList(
                 onDownload = { onDownload(track) },
                 onRemoveDownload = { onRemoveDownload(track) },
                 onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
+                onRemoveFromPlaylist = onRemoveFromPlaylist?.let { { it(track) } },
                 adminModeEnabled = adminModeEnabled,
                 onEditTrack = onEditTrack?.let { { it(track) } },
             )
@@ -603,6 +606,7 @@ private fun TrackRow(
     onDownload: () -> Unit,
     onRemoveDownload: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    onRemoveFromPlaylist: (() -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: (() -> Unit)? = null,
 ) {
@@ -726,6 +730,17 @@ private fun TrackRow(
                             showMenu = false
                         },
                         leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
+                if (onRemoveFromPlaylist != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.remove_from_playlist), color = AmethystText) },
+                        onClick = {
+                            onRemoveFromPlaylist()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = AmethystText) }
                     )
                 }
 
