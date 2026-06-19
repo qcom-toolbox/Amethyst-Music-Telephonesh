@@ -132,6 +132,8 @@ fun MainScreen(
     onExitOffline: () -> Unit,
     onMiniPlayerClick: () -> Unit,
     onTogglePlay: () -> Unit,
+    onNextTrack: () -> Unit,
+    onPreviousTrack: () -> Unit,
     onUploadTrack: (String, String, String, ByteArray, String, ByteArray?, String?) -> Unit,
     homeRecommended: List<Track> = emptyList(),
     homePopular: List<Track> = emptyList(),
@@ -210,6 +212,8 @@ fun MainScreen(
                         coverUrl = coverUrlForTrack(currentTrack),
                         onClick = onMiniPlayerClick,
                         onPlayPause = onTogglePlay,
+                        onNext = onNextTrack,
+                        onPrevious = onPreviousTrack,
                     )
                 }
                 NavigationBar(

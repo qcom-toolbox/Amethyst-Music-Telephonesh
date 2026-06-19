@@ -176,6 +176,14 @@ class MainActivity : AppCompatActivity() {
                                             notificationPermission.requestIfNeeded()
                                             vm.togglePlayPause()
                                         },
+                                        onNextTrack = {
+                                            notificationPermission.requestIfNeeded()
+                                            vm.nextTrack()
+                                        },
+                                        onPreviousTrack = {
+                                            notificationPermission.requestIfNeeded()
+                                            vm.previousTrack()
+                                        },
                                         onUploadTrack = { t, a, g, m, mn, c, cn ->
                                             vm.uploadTrack(t, a, g, m, mn, c, cn)
                                         },

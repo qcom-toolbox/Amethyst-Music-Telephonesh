@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +46,8 @@ fun MiniPlayerBar(
     coverUrl: String?,
     onClick: () -> Unit,
     onPlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -93,13 +97,31 @@ fun MiniPlayerBar(
                 modifier = Modifier.basicMarquee()
             )
         }
-        IconButton(onClick = onPlayPause) {
-            Icon(
-                if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(32.dp),
-            )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onPrevious) {
+                Icon(
+                    Icons.Default.SkipPrevious,
+                    contentDescription = stringResource(R.string.previous),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            IconButton(onClick = onPlayPause) {
+                Icon(
+                    if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(32.dp),
+                )
+            }
+            IconButton(onClick = onNext) {
+                Icon(
+                    Icons.Default.SkipNext,
+                    contentDescription = stringResource(R.string.next),
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
         }
     }
 }
