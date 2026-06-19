@@ -337,25 +337,27 @@ fun MainScreen(
                         shape = RoundedCornerShape(50),
                         colors = amethystFieldColors(),
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box {
-                        IconButton(onClick = { showFilterMenu = true }) {
-                            Icon(
-                                Icons.Default.FilterList,
-                                contentDescription = stringResource(R.string.filter_sort),
-                                tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    if (selectedTab == 1) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box {
+                            IconButton(onClick = { showFilterMenu = true }) {
+                                Icon(
+                                    Icons.Default.FilterList,
+                                    contentDescription = stringResource(R.string.filter_sort),
+                                    tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            FilterSortMenu(
+                                expanded = showFilterMenu,
+                                onDismissRequest = { showFilterMenu = false },
+                                genres = genres,
+                                selectedGenres = selectedGenres,
+                                onGenreToggle = vm::toggleGenre,
+                                onClearFilters = vm::clearGenreFilters,
+                                currentSort = sortOrder,
+                                onSortSelect = vm::setSortOrder
                             )
                         }
-                        FilterSortMenu(
-                            expanded = showFilterMenu,
-                            onDismissRequest = { showFilterMenu = false },
-                            genres = genres,
-                            selectedGenres = selectedGenres,
-                            onGenreToggle = vm::toggleGenre,
-                            onClearFilters = vm::clearGenreFilters,
-                            currentSort = sortOrder,
-                            onSortSelect = vm::setSortOrder
-                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
