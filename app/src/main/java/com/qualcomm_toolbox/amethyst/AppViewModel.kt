@@ -189,7 +189,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (allTracks.isEmpty()) return
 
         _homePopular.value = allTracks.sortedByDescending { it.playCount }.take(10)
-        _homeHiddenGems.value = allTracks.filter { it.playCount < 5 }.shuffled().take(10)
+        
+        // Hidden Gems: least listened songs (including 0 views) with random rotation
+        // Take a pool of the top 30 lowest viewed tracks, then shuffle and take 10
+        _homeHiddenGems.value = allTracks.sortedBy { it.playCount }.take(30).shuffled().take(10)
         
         val recent = _recentGenres.value
         if (recent.isEmpty()) {
