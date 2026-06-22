@@ -3,6 +3,7 @@ package com.qualcomm_toolbox.amethyst.player
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -52,23 +53,57 @@ class MusicPlayer(private val appContext: Context) {
     private fun switchToPlayer(newPlayer: Player) {
         if (currentPlayer === newPlayer) return
 
-        val wasPlaying = currentPlayer.isPlaying
-        val position = currentPlayer.currentPosition
+        // Capture position and index BEFORE pausing or removing listener
+        // Use a small safety margin for position as CastPlayer might report 0 during teardown
+        val position = currentPlayer.currentPosition.coerceAtLeast(0L)
         val index = currentPlayer.currentMediaItemIndex
-        val items = (0 until currentPlayer.mediaItemCount).map { currentPlayer.getMediaItemAt(it) }
+        val wasPlaying = currentPlayer.isPlaying
         val currentRepeatMode = currentPlayer.repeatMode
+        val isCast = newPlayer is CastPlayer
 
         currentPlayer.removeListener(listener)
         currentPlayer.pause()
 
         currentPlayer = newPlayer
         currentPlayer.addListener(listener)
-        currentPlayer.setMediaItems(items, index, position)
+
+        // Rebuild media items for the new player (especially important for Cast)
+        val items = if (streamUrlProvider != null) {
+            val tracksToUse = if (shuffle) shuffledQueue else queue
+            tracksToUse.map { buildMediaItem(it, streamUrlProvider!!(it, isCast), isCast) }
+        } else {
+            (0 until currentPlayer.mediaItemCount).map { currentPlayer.getMediaItemAt(it) }
+        }
+
+        // Ensure we are within bounds
+        val safeIndex = if (items.isNotEmpty()) index.coerceIn(0, items.size - 1) else 0
+
+        currentPlayer.setMediaItems(items, safeIndex, position)
         currentPlayer.repeatMode = currentRepeatMode
         currentPlayer.prepare()
-        if (wasPlaying) currentPlayer.play()
+        if (wasPlaying) {
+            currentPlayer.play()
+        }
+
+        // Sync local state flows immediately
+        _isPlaying.value = wasPlaying
+        _positionMs.value = position
         
+        // Explicitly update current track to avoid desync
+        val activeQueue = if (shuffle) shuffledQueue else queue
+        if (safeIndex in activeQueue.indices) {
+            if (shuffle) {
+                shuffleIndex = safeIndex
+                queueIndex = queue.indexOf(shuffledQueue[shuffleIndex]).coerceAtLeast(0)
+                _currentTrack.value = shuffledQueue[shuffleIndex]
+            } else {
+                queueIndex = safeIndex
+                _currentTrack.value = queue[queueIndex]
+            }
+        }
+
         activePlayer = currentPlayer
+        // Force a MediaSession sync in the service
         startPlaybackService()
     }
 
@@ -112,9 +147,9 @@ class MusicPlayer(private val appContext: Context) {
         get() = _shuffle.value
         private set(value) { _shuffle.value = value }
 
-    private var streamUrlProvider: ((Track) -> String)? = null
+    private var streamUrlProvider: ((Track, Boolean) -> String)? = null
     private var incrementPlayCallback: ((Int) -> Unit)? = null
-    private var coverUrlProvider: ((Track) -> String?)? = null
+    private var coverUrlProvider: ((Track, Boolean) -> String?)? = null
     private var lastClient: OkHttpClient? = null
 
     fun setOkHttpClient(client: OkHttpClient?) {
@@ -145,7 +180,7 @@ class MusicPlayer(private val appContext: Context) {
         }
         if (track != null && streamUrlProvider != null) {
             // Restore full queue into the new player
-            val items = queue.map { buildMediaItem(it, streamUrlProvider!!(it)) }
+            val items = queue.map { buildMediaItem(it, streamUrlProvider!!(it, false), false) }
             exoPlayer.setMediaItems(items, queueIndex, position)
             exoPlayer.prepare()
             if (wasPlaying && isExoCurrent) exoPlayer.play()
@@ -156,9 +191,9 @@ class MusicPlayer(private val appContext: Context) {
     }
 
     fun setPlaybackCallbacks(
-        streamUrl: (Track) -> String,
+        streamUrl: (Track, Boolean) -> String,
         onIncrementPlay: (Int) -> Unit,
-        coverUrl: (Track) -> String? = { null },
+        coverUrl: (Track, Boolean) -> String? = { t, fr -> null },
     ) {
         streamUrlProvider = streamUrl
         incrementPlayCallback = onIncrementPlay
@@ -248,13 +283,20 @@ class MusicPlayer(private val appContext: Context) {
         return builder.build()
     }
 
-    private fun buildMediaItem(track: Track, streamUrl: String): MediaItem {
-        val cover = coverUrlProvider?.invoke(track)
+    private fun buildMediaItem(track: Track, streamUrl: String, forceRemoteCover: Boolean = false): MediaItem {
+        val cover = coverUrlProvider?.invoke(track, forceRemoteCover)
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(track.title)
+            .setDisplayTitle(track.title)
             .setArtist(track.artist)
+            .setSubtitle(track.artist)
             .setAlbumTitle(track.genre)
+            .setStation("Amethyst Music")
+            .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setIsPlayable(true)
+            .setExtras(Bundle().apply {
+                putString("com.google.android.gms.cast.metadata.TITLE", "Amethyst Music")
+            })
         if (!cover.isNullOrBlank()) {
             metadataBuilder.setArtworkUri(Uri.parse(cover))
         }
@@ -296,10 +338,12 @@ class MusicPlayer(private val appContext: Context) {
         }
     }
 
-    fun playQueue(tracks: List<Track>, startIndex: Int, streamUrl: (Track) -> String) {
+    fun playQueue(tracks: List<Track>, startIndex: Int, streamUrl: (Track, Boolean) -> String) {
         queue = tracks
         queueIndex = startIndex.coerceIn(0, (tracks.size - 1).coerceAtLeast(0))
         if (tracks.isEmpty()) return
+
+        val isCast = currentPlayer is CastPlayer
 
         if (shuffle) {
             // Build a shuffled list starting from the chosen track so it plays first
@@ -308,12 +352,12 @@ class MusicPlayer(private val appContext: Context) {
             shuffledQueue = listOf(start) + rest
             shuffleIndex = 0
 
-            val mediaItems = shuffledQueue.map { buildMediaItem(it, streamUrl(it)) }
+            val mediaItems = shuffledQueue.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
             currentPlayer.setMediaItems(mediaItems, 0, 0L)
         } else {
             shuffledQueue = emptyList()
             shuffleIndex = 0
-            val mediaItems = tracks.map { buildMediaItem(it, streamUrl(it)) }
+            val mediaItems = tracks.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
             currentPlayer.setMediaItems(mediaItems, queueIndex, 0L)
         }
 
@@ -329,8 +373,10 @@ class MusicPlayer(private val appContext: Context) {
         startPlaybackService()
     }
 
-    fun playTrackAt(index: Int, streamUrl: (Track) -> String) {
+    fun playTrackAt(index: Int, streamUrl: (Track, Boolean) -> String) {
         if (queue.isEmpty()) return
+
+        val isCast = currentPlayer is CastPlayer
 
         if (shuffle && shuffledQueue.isNotEmpty()) {
             // index refers to position in shuffledQueue
@@ -341,7 +387,7 @@ class MusicPlayer(private val appContext: Context) {
             if (currentPlayer.mediaItemCount == shuffledQueue.size) {
                 currentPlayer.seekTo(shuffleIndex, 0L)
             } else {
-                val mediaItems = shuffledQueue.map { buildMediaItem(it, streamUrl(it)) }
+                val mediaItems = shuffledQueue.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
                 currentPlayer.setMediaItems(mediaItems, shuffleIndex, 0L)
                 currentPlayer.prepare()
             }
@@ -352,7 +398,7 @@ class MusicPlayer(private val appContext: Context) {
             if (currentPlayer.mediaItemCount == queue.size) {
                 currentPlayer.seekTo(queueIndex, 0L)
             } else {
-                val mediaItems = queue.map { buildMediaItem(it, streamUrl(it)) }
+                val mediaItems = queue.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
                 currentPlayer.setMediaItems(mediaItems, queueIndex, 0L)
                 currentPlayer.prepare()
             }
@@ -378,7 +424,7 @@ class MusicPlayer(private val appContext: Context) {
         _positionMs.value = positionMs
     }
 
-    fun next(streamUrl: (Track) -> String) {
+    fun next(streamUrl: (Track, Boolean) -> String) {
         if (queue.isEmpty()) return
         if (currentPlayer.hasNextMediaItem()) {
             currentPlayer.seekToNextMediaItem()
@@ -394,7 +440,7 @@ class MusicPlayer(private val appContext: Context) {
         }
     }
 
-    fun previous(streamUrl: (Track) -> String) {
+    fun previous(streamUrl: (Track, Boolean) -> String) {
         if (queue.isEmpty()) return
         if (currentPlayer.currentPosition > 3000) {
             seekTo(0)
@@ -437,7 +483,8 @@ class MusicPlayer(private val appContext: Context) {
 
                     // Reload ExoPlayer with the new shuffled order
                     streamUrlProvider?.let { urlFor ->
-                        val mediaItems = shuffledQueue.map { buildMediaItem(it, urlFor(it)) }
+                        val isCast = currentPlayer is CastPlayer
+                        val mediaItems = shuffledQueue.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
                         val wasPlaying = currentPlayer.isPlaying
                         currentPlayer.setMediaItems(mediaItems, 0, currentPlayer.currentPosition)
                         currentPlayer.prepare()
@@ -455,7 +502,8 @@ class MusicPlayer(private val appContext: Context) {
                 shuffleIndex = 0
 
                 streamUrlProvider?.let { urlFor ->
-                    val mediaItems = queue.map { buildMediaItem(it, urlFor(it)) }
+                    val isCast = currentPlayer is CastPlayer
+                    val mediaItems = queue.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
                     val wasPlaying = currentPlayer.isPlaying
                     currentPlayer.setMediaItems(mediaItems, queueIndex, currentPlayer.currentPosition)
                     currentPlayer.prepare()

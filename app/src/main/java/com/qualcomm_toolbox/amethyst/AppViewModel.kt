@@ -328,7 +328,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             override fun onSkipPrevious() = previousTrack()
         }
         musicPlayer.setPlaybackCallbacks(
-            streamUrl = { playbackUrl(it) },
+            streamUrl = { track, forceRemote -> playbackUrl(track, forceRemote) },
             onIncrementPlay = { id ->
                 if (!_offlineOnlyMode.value) {
                     client?.let { purple ->
@@ -336,7 +336,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             },
-            coverUrl = { coverUrlForTrack(it) },
+            coverUrl = { track, forceRemote -> coverUrlForTrack(track, forceRemote) },
         )
     }
 
@@ -399,19 +399,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _downloadedIds.value = offlineLibrary.getDownloadedIds(server).toSet()
     }
 
-    fun playbackUrl(track: Track): String {
+    fun playbackUrl(track: Track, forceRemote: Boolean = false): String {
         val server = currentServerUrl()
-        if (server != null) {
+        if (server != null && !forceRemote) {
             offlineLibrary.getMusicUri(server, track.id)?.let { return it.toString() }
         }
         return client?.musicUrl(track.id)
-            ?: offlineLibrary.getMusicUri(server.orEmpty(), track.id)?.toString()
+            ?: (if (!forceRemote) offlineLibrary.getMusicUri(server.orEmpty(), track.id)?.toString() else null)
             ?: ""
     }
 
-    fun coverUrlForTrack(track: Track): String? {
+    fun coverUrlForTrack(track: Track, forceRemote: Boolean = false): String? {
         val server = currentServerUrl()
-        if (server != null) {
+        if (server != null && !forceRemote) {
             offlineLibrary.getCoverUri(server, track.id)?.let { return it.toString() }
         }
         return client?.coverUrl(track.id)
@@ -848,7 +848,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         if (baseQueue.isEmpty()) return
         val index = baseQueue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
-        musicPlayer.playQueue(baseQueue, index) { playbackUrl(it) }
+        musicPlayer.playQueue(baseQueue, index) { t, fr -> playbackUrl(t, fr) }
         prefs.recordGenrePlay(track.genre)
         _recentGenres.value = prefs.recentGenrePlays
 
@@ -871,7 +871,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _error.value = getString(R.string.empty_playlist)
                     return@launch
                 }
-                musicPlayer.playQueue(tracks, 0) { playbackUrl(it) }
+                musicPlayer.playQueue(tracks, 0) { t, fr -> playbackUrl(t, fr) }
                 withContext(Dispatchers.IO) { purple.incrementPlay(tracks.first().id) }
                 openFullPlayer()
             } catch (e: Exception) {
@@ -1020,7 +1020,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun playTrackAt(index: Int) {
-        musicPlayer.playTrackAt(index) { playbackUrl(it) }
+        musicPlayer.playTrackAt(index) { t, fr -> playbackUrl(t, fr) }
     }
 
     // The ordered list currently loaded into the player (shuffled or not)
@@ -1029,7 +1029,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun togglePlayPause() = musicPlayer.togglePlayPause()
 
     fun nextTrack() {
-        musicPlayer.next { playbackUrl(it) }
+        musicPlayer.next { t, fr -> playbackUrl(t, fr) }
         if (!_offlineOnlyMode.value) {
             musicPlayer.currentTrack.value?.let { t ->
                 client?.let { purple ->
@@ -1040,7 +1040,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun previousTrack() {
-        musicPlayer.previous { playbackUrl(it) }
+        musicPlayer.previous { t, fr -> playbackUrl(t, fr) }
     }
 
     fun seekTo(ms: Long) = musicPlayer.seekTo(ms)
@@ -1065,7 +1065,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     if (idx >= 0) list.removeAt(idx)
                 }.shuffled()
                 val newQueue = listOf(currentTrack) + rest
-                musicPlayer.playQueue(newQueue, 0) { playbackUrl(it) }
+                musicPlayer.playQueue(newQueue, 0) { t, fr -> playbackUrl(t, fr) }
                 // Now enable shuffle (queue is already in shuffled order, so forceReshuffle=false)
                 musicPlayer.setShuffle(true, forceReshuffle = false)
                 return

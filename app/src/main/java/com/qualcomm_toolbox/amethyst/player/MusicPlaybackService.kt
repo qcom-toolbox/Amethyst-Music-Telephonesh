@@ -38,7 +38,7 @@ class MusicPlaybackService : MediaLibraryService() {
 
     private fun syncMediaSessionThrottled() {
         val now = System.currentTimeMillis()
-        if (now - lastSyncTime < 2000) return // 2 second throttle - critical fix
+        if (now - lastSyncTime < 500) return // 500ms throttle - faster response
         lastSyncTime = now
 
         syncMediaSession()
