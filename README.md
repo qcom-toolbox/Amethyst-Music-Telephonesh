@@ -55,7 +55,3 @@ Amethyst Music supports the following languages:
 2.  **Open in Android Studio**: Open the project folder.
 3.  **Backend Setup**: Ensure you have a compatible Purple Music or Amethyst Music server running.
 4.  **Build and Run**: Deploy the app to your device or emulator.
-
-## 📋 To-Do
-
-See Issues.
