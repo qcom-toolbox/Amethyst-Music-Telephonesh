@@ -90,7 +90,7 @@ fun SettingsScreen(
     val themes = listOf(
         ThemePreset("Amethyst", 0xFF0F0C1D, false),
         ThemePreset("Dynamic", 0xFF0F0C1D, true),
-        ThemePreset("Pure White", 0xFFFFFFFF, true),
+        ThemePreset("White Mode", 0xFFFFFFFF, true),
         ThemePreset("AMOLED", 0xFF000000, true),
         ThemePreset("Vibrant Purple", 0xFF4A148C, true),
         ThemePreset("Electric Blue", 0xFF0D47A1, true),

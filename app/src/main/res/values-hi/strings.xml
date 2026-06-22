@@ -124,4 +124,19 @@
     <string name="tracks_count">%1$d गाने</string>
     <string name="genre_other">अन्य</string>
     <string name="exit_fullscreen">पूर्ण स्क्रीन से बाहर निकलें</string>
+
+    <string name="offline_mode_active">ऑफलाइन मोड सक्रिय</string>
+    <string name="back_online">इंटरनेट बहाल। ऑनलाइन जाएं?</string>
+    <string name="go_online">ऑनलाइन जाएं</string>
+    <string name="connection_lost">कनेक्शन टूट गया। ऑफलाइन मोड पर स्विच करें?</string>
+    <string name="switch_offline">ऑफलाइन पर स्विच करें</string>
+    <string name="stay_here">यहीं रहें</string>
+    <string name="remove_from_playlist">प्लेलिस्ट से हटाएं</string>
+    <string name="audio">ऑडियो</string>
+    <string name="equalizer">इक्वलाइज़र</string>
+    <string name="presets">प्रीसेट</string>
+    <string name="reset">रीसेट</string>
+    <string name="custom">कस्टम</string>
+    <string name="up_next">अगला</string>
+    <string name="queue">कतार</string>
 </resources>

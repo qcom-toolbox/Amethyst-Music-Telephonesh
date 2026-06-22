@@ -124,4 +124,19 @@
     <string name="tracks_count">%1$d tithels</string>
     <string name="genre_other">Auter</string>
     <string name="exit_fullscreen">Sortir dal plein ecran</string>
+
+    <string name="offline_mode_active">Modus offline activ</string>
+    <string name="back_online">Internet reitrad. Ir online?</string>
+    <string name="go_online">Ir online</string>
+    <string name="connection_lost">Colliaziun persa. Midar al modus offline?</string>
+    <string name="switch_offline">Midar ad offline</string>
+    <string name="stay_here">Restar qua</string>
+    <string name="remove_from_playlist">Allontanar da la playlist</string>
+    <string name="audio">Audio</string>
+    <string name="equalizer">Equalisader</string>
+    <string name="presets">Predefiniziuns</string>
+    <string name="reset">Prender enavos</string>
+    <string name="custom">Individual</string>
+    <string name="up_next">Ils proxims titels</string>
+    <string name="queue">Cua</string>
 </resources>

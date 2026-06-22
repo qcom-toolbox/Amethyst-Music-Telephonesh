@@ -124,4 +124,19 @@
     <string name="tracks_count">%1$d 曲</string>
     <string name="genre_other">その他</string>
     <string name="exit_fullscreen">全画面表示を終了</string>
+
+    <string name="offline_mode_active">オフラインモード有効</string>
+    <string name="back_online">インターネット接続が回復しました。オンラインに切り替えますか？</string>
+    <string name="go_online">オンラインにする</string>
+    <string name="connection_lost">接続が切れました。オフラインモードに切り替えますか？</string>
+    <string name="switch_offline">オフラインに切り替え</string>
+    <string name="stay_here">このままにする</string>
+    <string name="remove_from_playlist">プレイリストから削除</string>
+    <string name="audio">オーディオ</string>
+    <string name="equalizer">イコライザー</string>
+    <string name="presets">プリセット</string>
+    <string name="reset">リセット</string>
+    <string name="custom">カスタム</string>
+    <string name="up_next">次に再生</string>
+    <string name="queue">キュー</string>
 </resources>

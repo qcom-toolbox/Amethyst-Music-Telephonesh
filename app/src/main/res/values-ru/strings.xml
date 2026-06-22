@@ -124,4 +124,19 @@
     <string name="tracks_count">%1$d треков</string>
     <string name="genre_other">Другое</string>
     <string name="exit_fullscreen">Выйти из полноэкранного режима</string>
+
+    <string name="offline_mode_active">Офлайн-режим активен</string>
+    <string name="back_online">Интернет восстановлен. Перейти в онлайн?</string>
+    <string name="go_online">Перейти в онлайн</string>
+    <string name="connection_lost">Соединение потеряно. Перейти в офлайн-режим?</string>
+    <string name="switch_offline">Перейти в офлайн</string>
+    <string name="stay_here">Остаться здесь</string>
+    <string name="remove_from_playlist">Удалить из плейлиста</string>
+    <string name="audio">Аудио</string>
+    <string name="equalizer">Эквалайзер</string>
+    <string name="presets">Пресеты</string>
+    <string name="reset">Сбросить</string>
+    <string name="custom">Пользовательский</string>
+    <string name="up_next">Далее</string>
+    <string name="queue">Очередь</string>
 </resources>

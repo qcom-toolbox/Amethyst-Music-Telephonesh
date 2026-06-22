@@ -91,9 +91,19 @@ fun FullPlayerScreen(
 
     val displayPosition = smoothedPositionMs.coerceIn(0L, durationMs)
 
-    val gradient = Brush.verticalGradient(
-        colors = listOf(AmethystGradientStart, MaterialTheme.colorScheme.background),
-    )
+    val isSolidMode = MaterialTheme.colorScheme.background == androidx.compose.ui.graphics.Color.Black ||
+            MaterialTheme.colorScheme.background == androidx.compose.ui.graphics.Color.White
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    
+    val backgroundModifier = if (isSolidMode) {
+        Modifier.background(MaterialTheme.colorScheme.background)
+    } else {
+        Modifier.background(
+            Brush.verticalGradient(
+                colors = listOf(AmethystGradientStart, MaterialTheme.colorScheme.background),
+            )
+        )
+    }
 
     // Interaction source to disable ripple on the background click consumer
     val interactionSource = remember { MutableInteractionSource() }
@@ -103,7 +113,7 @@ fun FullPlayerScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradient)
+            .then(backgroundModifier)
             .statusBarsPadding()
             .navigationBarsPadding()
             // Important: This consumes all click events to prevent background interactions
@@ -130,7 +140,7 @@ fun FullPlayerScreen(
                     Icon(
                         Icons.Default.KeyboardArrowDown,
                         contentDescription = stringResource(R.string.close_player),
-                        tint = AmethystText,
+                        tint = onSurface,
                         modifier = Modifier.size(32.dp)
                     )
                 }
@@ -154,7 +164,7 @@ fun FullPlayerScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.PlaylistAdd,
                             contentDescription = stringResource(R.string.add_to_playlist),
-                            tint = AmethystText
+                            tint = onSurface
                         )
                     }
                     IconButton(onClick = onToggleLyrics) {
@@ -197,7 +207,7 @@ fun FullPlayerScreen(
                         text = track.title,
                         fontSize = if (showLyrics) 20.sp else 24.sp,
                         fontWeight = FontWeight.Black,
-                        color = AmethystText,
+                        color = onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -229,9 +239,9 @@ fun FullPlayerScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = SliderDefaults.colors(
-                        thumbColor = AmethystText,
-                        activeTrackColor = AmethystText,
-                        inactiveTrackColor = AmethystText.copy(alpha = 0.2f),
+                        thumbColor = onSurface,
+                        activeTrackColor = onSurface,
+                        inactiveTrackColor = onSurface.copy(alpha = 0.2f),
                     )
                 )
                 Row(
@@ -280,7 +290,7 @@ fun FullPlayerScreen(
                             Icon(
                                 Icons.Default.SkipPrevious,
                                 contentDescription = stringResource(R.string.previous),
-                                tint = AmethystText,
+                                tint = onSurface,
                                 modifier = Modifier.size(40.dp)
                             )
                         }
@@ -290,7 +300,7 @@ fun FullPlayerScreen(
                                 .size(72.dp)
                                 .clickable { onPlayPause() },
                             shape = CircleShape,
-                            color = AmethystText,
+                            color = onSurface,
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -306,7 +316,7 @@ fun FullPlayerScreen(
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = stringResource(R.string.next),
-                                tint = AmethystText,
+                                tint = onSurface,
                                 modifier = Modifier.size(40.dp)
                             )
                         }
@@ -332,7 +342,7 @@ fun FullPlayerScreen(
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .background(AmethystText.copy(alpha = 0.05f))
+                        .background(onSurface.copy(alpha = 0.05f))
                         .clickable { isLyricsMaximized = !isLyricsMaximized }
                 ) {
                     if (isLoadingLyrics) {
@@ -396,7 +406,7 @@ fun FullPlayerScreen(
                             onClick = { isLyricsMaximized = false },
                             modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                         ) {
-                            Icon(Icons.Default.FullscreenExit, contentDescription = stringResource(R.string.exit_fullscreen), tint = AmethystText)
+                            Icon(Icons.Default.FullscreenExit, contentDescription = stringResource(R.string.exit_fullscreen), tint = onSurface)
                         }
                     }
                 }
@@ -415,11 +425,11 @@ fun FullPlayerScreen(
                         Icon(
                             Icons.Default.KeyboardArrowUp,
                             contentDescription = null,
-                            tint = AmethystText.copy(alpha = 0.5f)
+                            tint = onSurface.copy(alpha = 0.5f)
                         )
                         Text(
                             text = stringResource(R.string.up_next),
-                            color = AmethystText.copy(alpha = 0.5f),
+                            color = onSurface.copy(alpha = 0.5f),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -443,7 +453,7 @@ fun FullPlayerScreen(
                     modifier = Modifier.padding(16.dp),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = AmethystText
+                    color = onSurface
                 )
                 val queueListState = rememberLazyListState()
                 LaunchedEffect(currentIdx) {
@@ -458,7 +468,7 @@ fun FullPlayerScreen(
                     if (queue.isEmpty()) {
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text(stringResource(R.string.no_tracks_found), color = AmethystTextMuted)
+                                Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }

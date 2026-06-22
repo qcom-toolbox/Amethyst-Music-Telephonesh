@@ -124,4 +124,19 @@
     <string name="tracks_count">%1$d Titel</string>
     <string name="genre_other">Andere</string>
     <string name="exit_fullscreen">Vollbild verlassen</string>
+
+    <string name="offline_mode_active">Offline-Modus aktiv</string>
+    <string name="back_online">Internet wiederhergestellt. Online gehen?</string>
+    <string name="go_online">Online gehen</string>
+    <string name="connection_lost">Verbindung verloren. In den Offline-Modus wechseln?</string>
+    <string name="switch_offline">In den Offline-Modus wechseln</string>
+    <string name="stay_here">Hier bleiben</string>
+    <string name="remove_from_playlist">Aus Playlist entfernen</string>
+    <string name="audio">Audio</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="presets">Voreinstellungen</string>
+    <string name="reset">Zurücksetzen</string>
+    <string name="custom">Benutzerdefiniert</string>
+    <string name="up_next">Nächste Titel</string>
+    <string name="queue">Warteschlange</string>
 </resources>
