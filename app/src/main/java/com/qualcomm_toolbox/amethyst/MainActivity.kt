@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                                     val homePopular by vm.homePopularTracks.collectAsState()
                                     val homeHiddenGems by vm.homeHiddenGems.collectAsState()
 
-                                    MainScreen(
+                                MainScreen(
                                         vm = vm,
                                         siteName = siteName,
                                         selectedTab = selectedTab,
@@ -161,46 +161,60 @@ class MainActivity : AppCompatActivity() {
                                         offlineOnlyMode = offlineOnlyMode,
                                         currentTrack = currentTrack,
                                         isPlaying = isPlaying,
-                                        coverUrlForTrack = vm::coverUrlForTrack,
-                                        onTabSelected = vm::setSelectedTab,
-                                        onSearchChange = vm::setSearchQuery,
-                                        onTrackClick = { track ->
-                                            notificationPermission.requestIfNeeded()
-                                            vm.playTrack(track)
+                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                        onTabSelected = remember(vm) { { vm.setSelectedTab(it) } },
+                                        onSearchChange = remember(vm) { { vm.setSearchQuery(it) } },
+                                        onTrackClick = remember(vm) {
+                                            { track ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playTrack(track)
+                                            }
                                         },
-                                        onPlaylistClick = { playlist ->
-                                            notificationPermission.requestIfNeeded()
-                                            vm.playPlaylist(playlist)
+                                        onPlaylistClick = remember(vm) {
+                                            { playlist ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playPlaylist(playlist)
+                                            }
                                         },
-                                        onDownload = vm::downloadTrack,
-                                        onRemoveDownload = vm::removeDownload,
-                                        onRefresh = vm::loadLibrary,
-                                        onLogout = vm::logout,
-                                        onExitOffline = vm::exitOfflineMode,
-                                        onMiniPlayerClick = vm::openFullPlayer,
-                                        onTogglePlay = {
-                                            notificationPermission.requestIfNeeded()
-                                            vm.togglePlayPause()
+                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                        onRefresh = remember(vm) { { vm.loadLibrary() } },
+                                        onLogout = remember(vm) { { vm.logout() } },
+                                        onExitOffline = remember(vm) { { vm.exitOfflineMode() } },
+                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
+                                        onTogglePlay = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.togglePlayPause()
+                                            }
                                         },
-                                        onNextTrack = {
-                                            notificationPermission.requestIfNeeded()
-                                            vm.nextTrack()
+                                        onNextTrack = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.nextTrack()
+                                            }
                                         },
-                                        onPreviousTrack = {
-                                            notificationPermission.requestIfNeeded()
-                                            vm.previousTrack()
+                                        onPreviousTrack = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.previousTrack()
+                                            }
                                         },
-                                        onUploadTrack = { t, a, g, m, mn, c, cn ->
-                                            vm.uploadTrack(t, a, g, m, mn, c, cn)
+                                        onUploadTrack = remember(vm) {
+                                            { t, a, g, m, mn, c, cn ->
+                                                vm.uploadTrack(t, a, g, m, mn, c, cn)
+                                            }
                                         },
                                         homeRecommended = homeRecommended,
                                         homePopular = homePopular,
                                         homeHiddenGems = homeHiddenGems,
                                         backgroundColor = backgroundColor,
                                         useHarmony = useHarmony,
-                                        onThemeChange = { color, harmony ->
-                                            vm.setBackgroundColor(color)
-                                            vm.setUseHarmony(harmony)
+                                        onThemeChange = remember(vm) {
+                                            { color, harmony ->
+                                                vm.setBackgroundColor(color)
+                                                vm.setUseHarmony(harmony)
+                                            }
                                         },
                                     )
                                 }

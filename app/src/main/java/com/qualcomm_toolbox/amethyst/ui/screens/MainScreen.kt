@@ -443,7 +443,7 @@ fun MainScreen(
                     downloadingIds = downloadingIds,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = { trackToEdit = it },
                     isRefreshing = isLoading,
@@ -461,7 +461,7 @@ fun MainScreen(
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = { trackToEdit = it }
                 )
@@ -478,16 +478,18 @@ fun MainScreen(
                         onTrackClick = onTrackClick,
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
-                        onAddToPlaylist = { vm.showAddToPlaylist(it) },
-                        onRemoveFromPlaylist = { track -> vm.removeFromPlaylist(currentPlaylist!!, track) },
+                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        onRemoveFromPlaylist = remember(vm, currentPlaylist) { 
+                            { track -> vm.removeFromPlaylist(currentPlaylist!!, track) } 
+                        },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it }
                     )
                 } else {
                     PlaylistList(
                         playlists = playlists,
-                        onPlaylistClick = { vm.openPlaylist(it) },
-                        onDeletePlaylist = { vm.deletePlaylist(it) }
+                        onPlaylistClick = remember(vm) { { vm.openPlaylist(it) } },
+                        onDeletePlaylist = remember(vm) { { vm.deletePlaylist(it) } }
                     )
                 }
                 3 -> TrackList(
@@ -502,7 +504,7 @@ fun MainScreen(
                     onTrackClick = onTrackClick,
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = { vm.showAddToPlaylist(it) },
+                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = { trackToEdit = it }
                 )

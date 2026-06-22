@@ -41,6 +41,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 
 enum class AppScreen {
     Setup,
@@ -241,6 +242,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _lyrics = MutableStateFlow<String?>(null)
     val lyrics: StateFlow<String?> = _lyrics.asStateFlow()
 
+    // Cache for cover URLs to avoid repeated logic and blocking I/O
+    private val coverUrlCache = ConcurrentHashMap<Pair<Int, Boolean>, String?>()
+
     data class LyricLine(val timeMs: Long, val text: String)
     private val _parsedLyrics = MutableStateFlow<List<LyricLine>>(emptyList())
     val parsedLyrics: StateFlow<List<LyricLine>> = _parsedLyrics.asStateFlow()
@@ -407,17 +411,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (server != null && !forceRemote) {
             offlineLibrary.getMusicUri(server, track.id)?.let { return it.toString() }
         }
-        return client?.musicUrl(track.id)
-            ?: (if (!forceRemote) offlineLibrary.getMusicUri(server.orEmpty(), track.id)?.toString() else null)
-            ?: ""
+        return client?.musicUrl(track.id) ?: ""
     }
 
     fun coverUrlForTrack(track: Track, forceRemote: Boolean = false): String? {
+        val key = track.id to forceRemote
+        coverUrlCache[key]?.let { return it }
+
         val server = currentServerUrl()
-        if (server != null && !forceRemote) {
-            offlineLibrary.getCoverUri(server, track.id)?.let { return it.toString() }
+        val url = if (server != null && !forceRemote) {
+            offlineLibrary.getCoverUri(server, track.id)?.toString()
+                ?: client?.coverUrl(track.id)
+        } else {
+            client?.coverUrl(track.id)
         }
-        return client?.coverUrl(track.id)
+        
+        if (url != null) coverUrlCache[key] = url
+        return url
     }
 
     fun isDownloaded(trackId: Int): Boolean = _downloadedIds.value.contains(trackId)
@@ -474,6 +484,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun refreshCache() {
         lyricsCache.clear()
+        coverUrlCache.clear()
         loadLibrary()
     }
 
@@ -821,6 +832,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         sessionPersistence.clearCredentials()
         sessionPersistence.clearAllForServer(currentServerUrl())
         lyricsCache.clear()
+        coverUrlCache.clear()
         musicPlayer.stop()
         _tracks.value = emptyList()
         _playlists.value = emptyList()

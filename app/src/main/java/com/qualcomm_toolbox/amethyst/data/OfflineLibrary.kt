@@ -5,6 +5,7 @@ import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 class OfflineLibrary(context: Context) {
     private val rootDir = File(context.filesDir, "offline").apply { mkdirs() }
@@ -13,6 +14,23 @@ class OfflineLibrary(context: Context) {
     private val indexFile = File(rootDir, "index.json")
 
     private var entries: MutableList<OfflineEntry> = loadIndex().toMutableList()
+    
+    // Cache for faster lookup
+    private var entryMap = ConcurrentHashMap<Pair<String, Int>, OfflineEntry>()
+    private val coverUriCache = ConcurrentHashMap<Pair<String, Int>, Uri?>()
+    private val musicUriCache = ConcurrentHashMap<Pair<String, Int>, Uri?>()
+
+    init {
+        rebuildMap()
+    }
+
+    private fun rebuildMap() {
+        val newMap = ConcurrentHashMap<Pair<String, Int>, OfflineEntry>()
+        entries.forEach { newMap[it.serverUrl to it.track.id] = it }
+        entryMap = newMap
+        coverUriCache.clear()
+        musicUriCache.clear()
+    }
 
     fun getTracks(serverUrl: String): List<Track> =
         entries.filter { it.serverUrl == serverUrl }.map { it.track }
@@ -21,22 +39,33 @@ class OfflineLibrary(context: Context) {
         entries.filter { it.serverUrl == serverUrl }.map { it.track.id }
 
     fun isDownloaded(serverUrl: String, trackId: Int): Boolean =
-        entries.any { it.serverUrl == serverUrl && it.track.id == trackId }
+        entryMap.containsKey(serverUrl to trackId)
 
     fun hasTracksForServer(serverUrl: String?): Boolean =
         serverUrl != null && entries.any { it.serverUrl == serverUrl }
 
     fun getMusicUri(serverUrl: String, trackId: Int): Uri? {
-        val entry = entries.find { it.serverUrl == serverUrl && it.track.id == trackId } ?: return null
+        val key = serverUrl to trackId
+        musicUriCache[key]?.let { return it }
+        
+        val entry = entryMap[key] ?: return null
         val file = File(rootDir, entry.musicRelativePath)
-        return if (file.exists()) Uri.fromFile(file) else null
+        val uri = if (file.exists()) Uri.fromFile(file) else null
+        if (uri != null) musicUriCache[key] = uri
+        return uri
     }
 
     fun getCoverUri(serverUrl: String, trackId: Int): Uri? {
-        val entry = entries.find { it.serverUrl == serverUrl && it.track.id == trackId } ?: return null
+        val key = serverUrl to trackId
+        // We use a specific check for null as we want to cache negative results too
+        if (coverUriCache.containsKey(key)) return coverUriCache[key]
+        
+        val entry = entryMap[key] ?: return null
         val rel = entry.coverRelativePath ?: return null
         val file = File(rootDir, rel)
-        return if (file.exists()) Uri.fromFile(file) else null
+        val uri = if (file.exists()) Uri.fromFile(file) else null
+        coverUriCache[key] = uri
+        return uri
     }
 
     fun musicFileFor(trackId: Int, extension: String): File {
@@ -65,15 +94,17 @@ class OfflineLibrary(context: Context) {
                 coverRelativePath = coverRelativePath,
             ),
         )
+        rebuildMap()
         saveIndex()
     }
 
     @Synchronized
     fun remove(serverUrl: String, trackId: Int) {
-        val entry = entries.find { it.serverUrl == serverUrl && it.track.id == trackId } ?: return
+        val entry = entryMap[serverUrl to trackId] ?: return
         File(rootDir, entry.musicRelativePath).delete()
         entry.coverRelativePath?.let { File(rootDir, it).delete() }
         entries.remove(entry)
+        rebuildMap()
         saveIndex()
     }
 
@@ -87,6 +118,7 @@ class OfflineLibrary(context: Context) {
     @Synchronized
     fun reload() {
         entries = loadIndex().toMutableList()
+        rebuildMap()
     }
 
     private fun loadIndex(): List<OfflineEntry> {

@@ -50,6 +50,7 @@ fun TrackRow(
     onEditTrack: (() -> Unit)? = null,
 ) {
     var showMenu by remember { mutableStateOf(false) }
+    val placeholder = rememberVectorPainter(Icons.Default.MusicNote)
 
     Row(
         modifier = Modifier
@@ -63,8 +64,6 @@ fun TrackRow(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        val placeholder = rememberVectorPainter(Icons.Default.MusicNote)
-        
         Box(
             modifier = Modifier
                 .size(50.dp)
@@ -99,8 +98,9 @@ fun TrackRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            val subtitle = remember(track.artist, track.genre) { "${track.artist} • ${track.genre}" }
             Text(
-                text = "${track.artist} • ${track.genre}",
+                text = subtitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 maxLines = 1,
