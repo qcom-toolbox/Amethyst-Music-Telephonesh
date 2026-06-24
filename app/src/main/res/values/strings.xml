@@ -112,6 +112,7 @@
     <string name="delete_confirm_1">Are you sure you want to delete this track?</string>
     <string name="delete_confirm_2">This action is irreversible. Delete permanently?</string>
     <string name="delete_confirm_3">LAST WARNING: Absolutely sure?</string>
+    <string name="delete_confirm_4">ARE YOU ABSOLUTELY 100% SURE? THIS CANNOT BE UNDONE!</string>
     <string name="save_changes">Save Changes</string>
     <string name="metadata_updated">Metadata updated successfully</string>
     <string name="version">Version</string>

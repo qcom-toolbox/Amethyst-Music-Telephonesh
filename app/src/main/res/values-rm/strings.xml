@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">Es ti segir da vulair stizzar quest tithel?</string>
     <string name="delete_confirm_2">Quest\'acziun è irreversibla. Stizzar definitivmain?</string>
     <string name="delete_confirm_3">ULTIMA ADVERTENZA: Absolutamain segir?</string>
+    <string name="delete_confirm_4">EST ABSOLUTAMAIN SEGIR AL 100%? QUESTA ACZIUN N\'È BETG REVERSIBLA!</string>
     <string name="save_changes">Memorisar las midadas</string>
     <string name="metadata_updated">Metadatas actualisadas cun success</string>
     <string name="version">Versiun</string>

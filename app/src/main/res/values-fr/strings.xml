@@ -106,6 +106,7 @@
     <string name="delete_confirm_1">Voulez-vous vraiment supprimer ce titre ?</string>
     <string name="delete_confirm_2">Cette action est irréversible. Supprimer définitivement ?</string>
     <string name="delete_confirm_3">DERNIER AVERTISSEMENT : Êtes-vous absolument sûr ?</string>
+    <string name="delete_confirm_4">ÊTES-VOUS ABSOLUMENT SÛR À 100 % ? CETTE ACTION EST IRRÉVERSIBLE !</string>
     <string name="save_changes">Enregistrer les modifications</string>
     <string name="metadata_updated">Métadonnées mises à jour avec succès</string>
     <string name="version">Version</string>

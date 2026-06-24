@@ -36,7 +36,7 @@ fun EditTrackDialog(
     var coverUri by remember { mutableStateOf<Uri?>(null) }
     var coverName by remember { mutableStateOf("") }
     
-    var showDeleteConfirm by remember { mutableStateOf(0) } // 0: none, 1: first, 2: second, 3: last
+    var showDeleteConfirm by remember { mutableStateOf(0) } // 0: none, 1: first, 2: second, 3: third, 4: last
 
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
@@ -54,7 +54,8 @@ fun EditTrackDialog(
         val (confirmText, confirmColor) = when (showDeleteConfirm) {
             1 -> stringResource(R.string.delete_confirm_1) to MaterialTheme.colorScheme.onSurface
             2 -> stringResource(R.string.delete_confirm_2) to MaterialTheme.colorScheme.primary
-            else -> stringResource(R.string.delete_confirm_3) to androidx.compose.ui.graphics.Color.Red
+            3 -> stringResource(R.string.delete_confirm_3) to androidx.compose.ui.graphics.Color.Red
+            else -> stringResource(R.string.delete_confirm_4) to androidx.compose.ui.graphics.Color.Red
         }
 
         AlertDialog(
@@ -65,7 +66,7 @@ fun EditTrackDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (showDeleteConfirm < 3) {
+                        if (showDeleteConfirm < 4) {
                             showDeleteConfirm++
                         } else {
                             onDelete(track.id)
@@ -73,7 +74,7 @@ fun EditTrackDialog(
                         }
                     }
                 ) {
-                    Text(stringResource(R.string.delete_track), color = if (showDeleteConfirm == 3) androidx.compose.ui.graphics.Color.Red else MaterialTheme.colorScheme.primary)
+                    Text(stringResource(R.string.delete_track), color = if (showDeleteConfirm >= 3) androidx.compose.ui.graphics.Color.Red else MaterialTheme.colorScheme.primary)
                 }
             },
             dismissButton = {
@@ -234,3 +235,15 @@ private fun amethystFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     cursorColor = MaterialTheme.colorScheme.primary,
 )
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun EditTrackDialogPreview() {
+    EditTrackDialog(
+        track = Track(1, "file.mp3", "Title", "Artist", "cover.png", "Genre", 0, 180, 1),
+        genres = listOf("Genre 1", "Genre 2"),
+        onDismiss = {},
+        onSave = { _, _, _, _, _, _ -> },
+        onDelete = {}
+    )
+}

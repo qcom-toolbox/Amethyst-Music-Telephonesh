@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">क्या आप वाकई इस गाने को हटाना चाहते हैं?</string>
     <string name="delete_confirm_2">यह क्रिया अपरिवर्तनीय है। स्थायी रूप से हटाएँ?</string>
     <string name="delete_confirm_3">अंतिम चेतावनी: बिल्कुल पक्का?</string>
+    <string name="delete_confirm_4">क्या आप 100% सुनिश्चित हैं? इसे बदला नहीं जा सकता!</string>
     <string name="save_changes">बदलाव सहेजें</string>
     <string name="metadata_updated">मेटाडेटा सफलतापूर्वक अपडेट किया गया</string>
     <string name="version">संस्करण</string>

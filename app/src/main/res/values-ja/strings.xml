@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">この曲を削除してもよろしいですか？</string>
     <string name="delete_confirm_2">この操作は取り消せません。永久に削除しますか？</string>
     <string name="delete_confirm_3">最終警告：本当によろしいですか？</string>
+    <string name="delete_confirm_4">100% 確実ですか？この操作は取り消せません！</string>
     <string name="save_changes">変更を保存</string>
     <string name="metadata_updated">メタデータを更新しました</string>
     <string name="version">バージョン</string>

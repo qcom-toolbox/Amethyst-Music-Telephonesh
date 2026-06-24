@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">Sei sicuro di voler eliminare questo brano?</string>
     <string name="delete_confirm_2">Questa azione è irreversibile. Elimina permanentemente?</string>
     <string name="delete_confirm_3">ULTIMO AVVISO: Sei assolutamente sicuro?</string>
+    <string name="delete_confirm_4">SEI SICURO AL 100%? L\'AZIONE È IRREVERSIBILE!</string>
     <string name="save_changes">Salva modifiche</string>
     <string name="metadata_updated">Metadati aggiornati con successo</string>
     <string name="version">Versione</string>

@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">Вы уверены, что хотите удалить этот трек?</string>
     <string name="delete_confirm_2">Это действие необратимо. Удалить навсегда?</string>
     <string name="delete_confirm_3">ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ: Вы абсолютно уверены?</string>
+    <string name="delete_confirm_4">ВЫ УВЕРЕНЫ НА 100%? ЭТО ДЕЙСТВИЕ НЕОБРАТИМО!</string>
     <string name="save_changes">Сохранить изменения</string>
     <string name="metadata_updated">Метаданные успешно обновлены</string>
     <string name="version">Версия</string>

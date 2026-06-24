@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">Sind Sie sicher, dass Sie diesen Titel löschen möchten?</string>
     <string name="delete_confirm_2">Diese Aktion ist unwiderruflich. Endgültig löschen?</string>
     <string name="delete_confirm_3">LETZTE WARNUNG: Ganz sicher?</string>
+    <string name="delete_confirm_4">BIST DU DIR ZU 100 % SICHER? DIES KANN NICHT RÜCKGÄNGIG GEMACHT WERDEN!</string>
     <string name="save_changes">Änderungen speichern</string>
     <string name="metadata_updated">Metadaten erfolgreich aktualisiert</string>
     <string name="version">Version</string>

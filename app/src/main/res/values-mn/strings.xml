@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">Та энэ дууг устгахдаа итгэлтэй байна уу?</string>
     <string name="delete_confirm_2">Энэ үйлдэл буцаагдахгүй. Бүрмөсөн устгах уу?</string>
     <string name="delete_confirm_3">СҮҮЛЧИЙН САНАМЖ: Танд үнэхээр итгэлтэй байна уу?</string>
+    <string name="delete_confirm_4">ТАНД 100% ИТГЭЛТЭЙ БАЙНА УУ? ЭНЭ ҮЙЛДЛИЙГ БУЦААХ БОЛОМЖГҮЙ!</string>
     <string name="save_changes">Өөрчлөлтийг хадгалах</string>
     <string name="metadata_updated">Мэдээлэл амжилттай шинэчлэгдлээ</string>
     <string name="version">Хувилбар</string>

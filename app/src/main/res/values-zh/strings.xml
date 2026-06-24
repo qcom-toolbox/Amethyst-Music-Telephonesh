@@ -105,6 +105,7 @@
     <string name="delete_confirm_1">确定要删除此曲目吗？</string>
     <string name="delete_confirm_2">此操作不可逆。永久删除？</string>
     <string name="delete_confirm_3">最后警告：完全确定？</string>
+    <string name="delete_confirm_4">你真的 100% 确定吗？此操作无法撤销！</string>
     <string name="save_changes">保存更改</string>
     <string name="metadata_updated">元数据更新成功</string>
     <string name="version">版本</string>
