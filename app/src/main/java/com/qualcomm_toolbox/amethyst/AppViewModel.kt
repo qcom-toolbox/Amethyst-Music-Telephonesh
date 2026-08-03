@@ -1087,24 +1087,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleShuffle() {
         val currentlyShuffled = musicPlayer.shuffle
         if (!currentlyShuffled) {
-            // Turning shuffle ON: expand the queue to ALL server tracks (shuffled),
-            // keeping the current track playing where it is.
+            // Turning shuffle ON: expand the queue to ALL server tracks,
+            // keeping the current track playing from its current position.
             val allTracks = if (_offlineOnlyMode.value) {
                 offlineTracks.value
             } else {
                 _tracks.value
             }
-            val currentTrack = musicPlayer.currentTrack.value
-            if (allTracks.isNotEmpty() && currentTrack != null) {
-                // Build a shuffled list with current track first
-                val rest = allTracks.toMutableList().also { list ->
-                    val idx = list.indexOfFirst { it.id == currentTrack.id }
-                    if (idx >= 0) list.removeAt(idx)
-                }.shuffled()
-                val newQueue = listOf(currentTrack) + rest
-                musicPlayer.playQueue(newQueue, 0) { t, fr -> playbackUrl(t, fr) }
-                // Now enable shuffle (queue is already in shuffled order, so forceReshuffle=false)
-                musicPlayer.setShuffle(true, forceReshuffle = false)
+            if (allTracks.isNotEmpty() && musicPlayer.currentTrack.value != null) {
+                musicPlayer.expandQueueForShuffle(allTracks)
                 return
             }
         }

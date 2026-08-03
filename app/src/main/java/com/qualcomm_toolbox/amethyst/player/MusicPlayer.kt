@@ -465,6 +465,28 @@ class MusicPlayer(private val appContext: Context) {
         return loopMode
     }
 
+    fun expandQueueForShuffle(allTracks: List<Track>) {
+        val currentT = _currentTrack.value ?: return
+        if (allTracks.isEmpty()) return
+        queue = allTracks
+        queueIndex = queue.indexOfFirst { it.id == currentT.id }.coerceAtLeast(0)
+        setShuffle(true, forceReshuffle = true)
+    }
+
+    // Reorders the player's playlist around whatever is currently playing, without
+    // touching that item's own MediaSource — avoids the audible cut/rebuffer that
+    // setMediaItems() causes when it recreates the source for the playing track too.
+    private fun reorderPlayerKeepingCurrent(before: List<MediaItem>, after: List<MediaItem>) {
+        val count = currentPlayer.mediaItemCount
+        if (count == 0) return
+        val curIdx = currentPlayer.currentMediaItemIndex.coerceIn(0, count - 1)
+        if (curIdx + 1 < count) currentPlayer.removeMediaItems(curIdx + 1, count)
+        if (curIdx > 0) currentPlayer.removeMediaItems(0, curIdx)
+        // Only the currently playing item remains now, at index 0.
+        if (after.isNotEmpty()) currentPlayer.addMediaItems(1, after)
+        if (before.isNotEmpty()) currentPlayer.addMediaItems(0, before)
+    }
+
     fun setShuffle(enabled: Boolean, forceReshuffle: Boolean = false) {
         val wasEnabled = shuffle
         shuffle = enabled
@@ -481,14 +503,10 @@ class MusicPlayer(private val appContext: Context) {
                     shuffledQueue = listOf(currentT) + rest
                     shuffleIndex = 0
 
-                    // Reload ExoPlayer with the new shuffled order
                     streamUrlProvider?.let { urlFor ->
                         val isCast = currentPlayer is CastPlayer
-                        val mediaItems = shuffledQueue.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
-                        val wasPlaying = currentPlayer.isPlaying
-                        currentPlayer.setMediaItems(mediaItems, 0, currentPlayer.currentPosition)
-                        currentPlayer.prepare()
-                        if (wasPlaying) currentPlayer.play()
+                        val restItems = rest.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
+                        reorderPlayerKeepingCurrent(before = emptyList(), after = restItems)
                     }
                     _activeQueue.value = shuffledQueue
                 }
@@ -503,11 +521,9 @@ class MusicPlayer(private val appContext: Context) {
 
                 streamUrlProvider?.let { urlFor ->
                     val isCast = currentPlayer is CastPlayer
-                    val mediaItems = queue.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
-                    val wasPlaying = currentPlayer.isPlaying
-                    currentPlayer.setMediaItems(mediaItems, queueIndex, currentPlayer.currentPosition)
-                    currentPlayer.prepare()
-                    if (wasPlaying) currentPlayer.play()
+                    val before = queue.subList(0, queueIndex).map { buildMediaItem(it, urlFor(it, isCast), isCast) }
+                    val after = queue.subList(queueIndex + 1, queue.size).map { buildMediaItem(it, urlFor(it, isCast), isCast) }
+                    reorderPlayerKeepingCurrent(before, after)
                 }
                 _activeQueue.value = queue
             }
