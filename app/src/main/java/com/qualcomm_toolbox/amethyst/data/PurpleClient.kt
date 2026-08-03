@@ -130,10 +130,57 @@ class PurpleClient(
         } catch (_: Exception) {}
     }
 
-    fun fetchGenres(): List<String> = listOf(
-        "Autre", "Phonk/Funk", "Rap", "Pop", "Rock", "Electro",
-        "Hyperpop", "Nightcore"
-    )
+    /**
+     * api.php has no dedicated genres endpoint, but index.php reads the admin-managed
+     * `genres` table and renders it as `<select name="genre">` options in the upload form.
+     * That block is only rendered once index.php sees an authenticated PHP session
+     * (`$user_id` set) — a session api.php's stateless per-request auth never creates —
+     * so we log in through index.php's own login form first, then parse the same list
+     * from the page it returns, keeping the app in sync with what index.php shows.
+     */
+    fun fetchGenres(): List<String> {
+        val user = currentUsername ?: return DEFAULT_GENRES
+        val pass = currentPassword ?: return DEFAULT_GENRES
+        val body = FormBody.Builder()
+            .add("username", user)
+            .add("password", pass)
+            .add("login", "1")
+            .build()
+        val request = Request.Builder().url("$baseUrl/index.php").post(body).build()
+        return try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return DEFAULT_GENRES
+                val html = response.body?.string() ?: return DEFAULT_GENRES
+                parseGenresFromHtml(html).ifEmpty { DEFAULT_GENRES }
+            }
+        } catch (_: Exception) {
+            DEFAULT_GENRES
+        }
+    }
+
+    private fun parseGenresFromHtml(html: String): List<String> {
+        val selectBody = Regex("""<select name="genre">(.*?)</select>""", RegexOption.DOT_MATCHES_ALL)
+            .find(html)?.groupValues?.get(1) ?: return emptyList()
+        return Regex("""<option value="([^"]*)">""")
+            .findAll(selectBody)
+            .map { unescapeHtml(it.groupValues[1]) }
+            .toList()
+    }
+
+    private fun unescapeHtml(s: String): String = s
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&#039;", "'")
+
+    companion object {
+        /** Fallback if index.php is unreachable or the genres table is empty. */
+        val DEFAULT_GENRES = listOf(
+            "Autre", "Phonk/Funk", "Rap", "Pop", "Rock", "Electro",
+            "Hyperpop", "Nightcore", "Qualité inférieure"
+        )
+    }
 
     fun uploadTrack(
         title: String, artist: String, genre: String,

@@ -741,7 +741,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     } catch (_: Exception) {}
                 }
                 
-                _genres.value = purple.fetchGenres()
+                launch {
+                    try {
+                        val fetchedGenres = withContext(Dispatchers.IO) { purple.fetchGenres() }
+                        _genres.value = fetchedGenres
+                    } catch (_: Exception) {}
+                }
                 refreshHomeSections()
                 refreshOfflineState()
             } catch (e: Exception) {
