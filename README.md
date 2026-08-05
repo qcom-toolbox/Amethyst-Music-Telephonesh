@@ -15,6 +15,7 @@ Amethyst Music is a modern, Android music player client designed to connect with
 - 🎤 **Synchronized Lyrics**: Enjoy real-time, synchronized lyrics for a deeper connection with your music.
 - 🎚️ **Built-in Equalizer**: Fine-tune your audio with a 5-band equalizer and bass boost.
 - 📥 **Offline Mode**: Download your favorite tracks and listen without an internet connection.
+- 📦 **Bulk Download**: Browse your whole library from Settings to select tracks to download or remove, download everything at once, or refresh all downloaded files in one tap.
 - 🎨 **Customizable Themes**: Personalize your experience with multiple presets including AMOLED, Midnight, Forest, and Crimson, or use Dynamic colors.
 - 🌍 **Multi-language Support**: Fully translated into 11 languages.
 - 🔍 **Smart Search**: Quickly find tracks in your library.
