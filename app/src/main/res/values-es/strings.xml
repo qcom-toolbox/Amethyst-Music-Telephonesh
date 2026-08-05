@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">Eliminar de la lista de reproducción</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Ecualizador</string>
+    <string name="bulk_download">Descarga masiva</string>
+    <string name="bulk_download_hint">Toca una canción para descargarla o eliminarla</string>
+    <string name="download_all">Descargar todo</string>
+    <string name="refresh_all_downloads">Actualizar todo</string>
     <string name="presets">Ajustes preestablecidos</string>
     <string name="reset">Restablecer</string>
     <string name="custom">Personalizado</string>

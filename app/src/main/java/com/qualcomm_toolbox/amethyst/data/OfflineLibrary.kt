@@ -99,6 +99,17 @@ class OfflineLibrary(context: Context) {
     }
 
     @Synchronized
+    fun updateTrackMetadata(serverUrl: String, track: Track, coverRelativePath: String? = null): Boolean {
+        val key = serverUrl to track.id
+        val existing = entryMap[key] ?: return false
+        entries.removeAll { it.serverUrl == serverUrl && it.track.id == track.id }
+        entries.add(existing.copy(track = track, coverRelativePath = coverRelativePath ?: existing.coverRelativePath))
+        rebuildMap()
+        saveIndex()
+        return true
+    }
+
+    @Synchronized
     fun remove(serverUrl: String, trackId: Int) {
         val entry = entryMap[serverUrl to trackId] ?: return
         File(rootDir, entry.musicRelativePath).delete()

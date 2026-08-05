@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">プレイリストから削除</string>
     <string name="audio">オーディオ</string>
     <string name="equalizer">イコライザー</string>
+    <string name="bulk_download">一括ダウンロード</string>
+    <string name="bulk_download_hint">曲をタップしてダウンロードまたは削除</string>
+    <string name="download_all">すべてダウンロード</string>
+    <string name="refresh_all_downloads">すべて更新</string>
     <string name="presets">プリセット</string>
     <string name="reset">リセット</string>
     <string name="custom">カスタム</string>

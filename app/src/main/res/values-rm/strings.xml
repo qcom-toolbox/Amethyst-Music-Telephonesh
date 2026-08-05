@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">Allontanar da la playlist</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Equalisader</string>
+    <string name="bulk_download">Telechargiar en mass</string>
+    <string name="bulk_download_hint">Tutga sin il chant per al telechargiar u allontanar</string>
+    <string name="download_all">Telechargiar tut</string>
+    <string name="refresh_all_downloads">Actualisar tut</string>
     <string name="presets">Predefiniziuns</string>
     <string name="reset">Prender enavos</string>
     <string name="custom">Individual</string>

@@ -242,6 +242,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _downloadProgress = MutableStateFlow<Map<Int, Float>>(emptyMap())
     val downloadProgress: StateFlow<Map<Int, Float>> = _downloadProgress.asStateFlow()
 
+    private val _isBulkDownloading = MutableStateFlow(false)
+    val isBulkDownloading: StateFlow<Boolean> = _isBulkDownloading.asStateFlow()
+
     private val _lyrics = MutableStateFlow<String?>(null)
     val lyrics: StateFlow<String?> = _lyrics.asStateFlow()
 
@@ -260,6 +263,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showEqualizer = MutableStateFlow(false)
     val showEqualizer: StateFlow<Boolean> = _showEqualizer.asStateFlow()
+
+    private val _showBulkDownload = MutableStateFlow(false)
+    val showBulkDownload: StateFlow<Boolean> = _showBulkDownload.asStateFlow()
 
     private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
     val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
@@ -502,7 +508,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshCache() {
         lyricsCache.clear()
         coverUrlCache.clear()
-        loadLibrary()
+        loadLibrary(refreshOfflineMetadata = true)
     }
 
     fun openFullPlayer() {
@@ -520,6 +526,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeEqualizer() {
         _showEqualizer.value = false
+    }
+
+    fun openBulkDownload() {
+        _showBulkDownload.value = true
+    }
+
+    fun closeBulkDownload() {
+        _showBulkDownload.value = false
     }
 
     fun showAddToPlaylist(track: Track) {
@@ -717,7 +731,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _screen.value = AppScreen.Main
     }
 
-    fun loadLibrary() {
+    fun loadLibrary(refreshOfflineMetadata: Boolean = false) {
         if (_offlineOnlyMode.value) {
             refreshOfflineState()
             return
@@ -732,7 +746,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     purple.fetchTracks()
                 }
                 _tracks.value = trackList
-                
+
                 // 2. Fetch playlists in background
                 launch {
                     try {
@@ -740,12 +754,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         _playlists.value = playlists
                     } catch (_: Exception) {}
                 }
-                
+
                 launch {
                     try {
                         val fetchedGenres = withContext(Dispatchers.IO) { purple.fetchGenres() }
                         _genres.value = fetchedGenres
                     } catch (_: Exception) {}
+                }
+                if (refreshOfflineMetadata) {
+                    refreshDownloadedMetadata(trackList)
                 }
                 refreshHomeSections()
                 refreshOfflineState()
@@ -762,38 +779,111 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _error.value = getString(R.string.error_login_required_download)
             return
         }
-        val server = currentServerUrl() ?: return
         if (isDownloaded(track.id) || isDownloading(track.id)) return
+        viewModelScope.launch { downloadTrackInternal(track, purple) }
+    }
+
+    fun downloadAllTracks() {
+        val purple = client ?: run {
+            _error.value = getString(R.string.error_login_required_download)
+            return
+        }
+        if (_isBulkDownloading.value) return
+        val toDownload = _tracks.value.filter { !isDownloaded(it.id) && !isDownloading(it.id) }
+        if (toDownload.isEmpty()) return
 
         viewModelScope.launch {
-            _downloadingIds.update { it + track.id }
-            _downloadProgress.update { it + (track.id to 0f) }
+            _isBulkDownloading.value = true
             try {
-                withContext(Dispatchers.IO) {
-                    trackDownloader.download(
-                        httpClient = purple.okHttpClient,
-                        purple = purple,
-                        track = track,
-                        serverUrl = server,
-                        library = offlineLibrary,
-                        onProgress = { progress ->
-                            // Throttle progress updates
-                            if (progress % 0.08f < 0.01f || progress > 0.95f) {
-                                viewModelScope.launch(Dispatchers.Main) {
-                                    _downloadProgress.update { it + (track.id to progress) }
-                                }
-                            }
-                        },
-                    )
+                toDownload.forEach { track ->
+                    if (!isDownloaded(track.id) && !isDownloading(track.id)) {
+                        downloadTrackInternal(track, purple)
+                    }
                 }
-                refreshOfflineState()
-            } catch (e: PurpleException) {
-                _error.value = e.message
-            } catch (e: Exception) {
-                _error.value = getString(R.string.error_download_failed, e.message ?: "")
             } finally {
-                _downloadingIds.update { it - track.id }
-                _downloadProgress.update { it - track.id }
+                _isBulkDownloading.value = false
+            }
+        }
+    }
+
+    fun refreshAllDownloads() {
+        val purple = client ?: run {
+            _error.value = getString(R.string.error_login_required_download)
+            return
+        }
+        if (_isBulkDownloading.value) return
+        val server = currentServerUrl() ?: return
+        // Re-fetch the files using the already-cached metadata, so info shown for
+        // downloaded tracks doesn't change here — only "Refresh Cache" in Settings does that.
+        val tracksToRefresh = offlineLibrary.getTracks(server)
+        if (tracksToRefresh.isEmpty()) return
+
+        viewModelScope.launch {
+            _isBulkDownloading.value = true
+            try {
+                tracksToRefresh.forEach { track ->
+                    if (!isDownloading(track.id)) downloadTrackInternal(track, purple)
+                }
+            } finally {
+                _isBulkDownloading.value = false
+            }
+        }
+    }
+
+    private suspend fun downloadTrackInternal(track: Track, purple: PurpleClient) {
+        val server = currentServerUrl() ?: return
+        _downloadingIds.update { it + track.id }
+        _downloadProgress.update { it + (track.id to 0f) }
+        try {
+            withContext(Dispatchers.IO) {
+                trackDownloader.download(
+                    httpClient = purple.okHttpClient,
+                    purple = purple,
+                    track = track,
+                    serverUrl = server,
+                    library = offlineLibrary,
+                    onProgress = { progress ->
+                        // TrackDownloader already throttles callbacks to ~every 200ms,
+                        // so every update here is safe to forward directly.
+                        viewModelScope.launch(Dispatchers.Main) {
+                            _downloadProgress.update { it + (track.id to progress) }
+                        }
+                    },
+                )
+            }
+            refreshOfflineState()
+        } catch (e: PurpleException) {
+            _error.value = e.message
+        } catch (e: Exception) {
+            _error.value = getString(R.string.error_download_failed, e.message ?: "")
+        } finally {
+            _downloadingIds.update { it - track.id }
+            _downloadProgress.update { it - track.id }
+        }
+    }
+
+    private suspend fun refreshDownloadedMetadata(freshTracks: List<Track>) {
+        val server = currentServerUrl() ?: return
+        val purple = client ?: return
+        val downloadedIds = offlineLibrary.getDownloadedIds(server).toSet()
+        if (downloadedIds.isEmpty()) return
+        val tracksToRefresh = freshTracks.filter { downloadedIds.contains(it.id) }
+        if (tracksToRefresh.isEmpty()) return
+
+        withContext(Dispatchers.IO) {
+            tracksToRefresh.forEach { track ->
+                try {
+                    val coverFile = offlineLibrary.coverFileFor(track.id, track.cover)
+                    trackDownloader.downloadCover(purple.okHttpClient, purple.coverUrl(track.id), coverFile)
+                    val coverRelPath = if (coverFile.exists() && coverFile.length() > 0) {
+                        "covers/${track.id}.${track.cover.substringAfterLast('.', "png")}"
+                    } else {
+                        null
+                    }
+                    offlineLibrary.updateTrackMetadata(server, track, coverRelPath)
+                } catch (_: Exception) {
+                    offlineLibrary.updateTrackMetadata(server, track)
+                }
             }
         }
     }

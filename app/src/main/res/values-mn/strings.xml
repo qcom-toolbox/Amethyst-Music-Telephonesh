@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">Плейлистээс хасах</string>
     <string name="audio">Аудио</string>
     <string name="equalizer">Эквалайзер</string>
+    <string name="bulk_download">Багц татах</string>
+    <string name="bulk_download_hint">Татах эсвэл устгахын тулд дуу дээр товшино уу</string>
+    <string name="download_all">Бүгдийг татах</string>
+    <string name="refresh_all_downloads">Бүгдийг сэргээх</string>
     <string name="presets">Тохиргоонууд</string>
     <string name="reset">Шинэчлэх</string>
     <string name="custom">Өөрчилсөн</string>

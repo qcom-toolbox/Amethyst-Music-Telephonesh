@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
@@ -69,6 +70,7 @@ fun SettingsScreen(
     onThemeChange: (Long, Boolean) -> Unit,
     onRefreshCache: () -> Unit,
     onOpenEqualizer: () -> Unit,
+    onOpenBulkDownload: () -> Unit,
     isAdmin: Boolean = false,
     adminModeEnabled: Boolean = false,
     onAdminModeChange: (Boolean) -> Unit = {},
@@ -235,6 +237,12 @@ fun SettingsScreen(
             icon = Icons.Default.Refresh,
             label = stringResource(R.string.refresh_cache),
             onClick = onRefreshCache
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        SettingsItem(
+            icon = Icons.Default.Download,
+            label = stringResource(R.string.bulk_download),
+            onClick = onOpenBulkDownload
         )
 
         Spacer(modifier = Modifier.height(24.dp))

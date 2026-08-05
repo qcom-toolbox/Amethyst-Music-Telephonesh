@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">प्लेलिस्ट से हटाएं</string>
     <string name="audio">ऑडियो</string>
     <string name="equalizer">इक्वलाइज़र</string>
+    <string name="bulk_download">बल्क डाउनलोड</string>
+    <string name="bulk_download_hint">डाउनलोड करने या हटाने के लिए गाने पर टैप करें</string>
+    <string name="download_all">सभी डाउनलोड करें</string>
+    <string name="refresh_all_downloads">सभी रीफ्रेश करें</string>
     <string name="presets">प्रीसेट</string>
     <string name="reset">रीसेट</string>
     <string name="custom">कस्टम</string>

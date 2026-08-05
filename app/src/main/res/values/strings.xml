@@ -120,6 +120,10 @@
     <string name="admin">Admin</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Equalizer</string>
+    <string name="bulk_download">Bulk Download</string>
+    <string name="bulk_download_hint">Tap a song to download or remove it</string>
+    <string name="download_all">Download All</string>
+    <string name="refresh_all_downloads">Refresh All</string>
     <string name="presets">Presets</string>
     <string name="reset">Reset</string>
     <string name="custom">Custom</string>

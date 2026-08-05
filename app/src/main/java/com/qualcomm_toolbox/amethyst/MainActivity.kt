@@ -33,6 +33,7 @@ import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.qualcomm_toolbox.amethyst.data.ServerPreferences
 import com.qualcomm_toolbox.amethyst.ui.components.AddToPlaylistDialog
+import com.qualcomm_toolbox.amethyst.ui.screens.BulkDownloadScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.EqualizerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.FullPlayerScreen
 import com.qualcomm_toolbox.amethyst.ui.screens.LoginScreen
@@ -260,6 +261,34 @@ class MainActivity : AppCompatActivity() {
                                 EqualizerScreen(
                                     manager = vm.musicPlayer.equalizerManager,
                                     onClose = vm::closeEqualizer
+                                )
+                            }
+
+                            val showBulkDownload by vm.showBulkDownload.collectAsState()
+                            AnimatedVisibility(
+                                visible = showBulkDownload,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                val allTracks by vm.tracks.collectAsState()
+                                val bulkDownloadedIds by vm.downloadedIds.collectAsState()
+                                val bulkDownloadingIds by vm.downloadingIds.collectAsState()
+                                val bulkDownloadProgress by vm.downloadProgress.collectAsState()
+                                val bulkDownloadRunning by vm.isBulkDownloading.collectAsState()
+
+                                BulkDownloadScreen(
+                                    tracks = allTracks,
+                                    downloadedIds = bulkDownloadedIds,
+                                    downloadingIds = bulkDownloadingIds,
+                                    downloadProgress = bulkDownloadProgress,
+                                    isBulkDownloading = bulkDownloadRunning,
+                                    coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                    onToggleDownload = { track ->
+                                        if (vm.isDownloaded(track.id)) vm.removeDownload(track) else vm.downloadTrack(track)
+                                    },
+                                    onDownloadAll = vm::downloadAllTracks,
+                                    onRefreshAllDownloads = vm::refreshAllDownloads,
+                                    onClose = vm::closeBulkDownload,
                                 )
                             }
 

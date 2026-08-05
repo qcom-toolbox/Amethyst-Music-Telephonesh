@@ -48,6 +48,14 @@ class TrackDownloader {
         )
     }
 
+    suspend fun downloadCover(
+        httpClient: OkHttpClient,
+        url: String,
+        dest: File,
+    ) = withContext(Dispatchers.IO) {
+        downloadToFile(client = httpClient, url = url, dest = dest, onProgress = {})
+    }
+
     private fun downloadToFile(
         client: OkHttpClient,
         url: String,

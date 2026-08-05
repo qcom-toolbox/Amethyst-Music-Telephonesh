@@ -516,6 +516,7 @@ fun MainScreen(
                     onThemeChange = onThemeChange,
                     onRefreshCache = vm::refreshCache,
                     onOpenEqualizer = vm::openEqualizer,
+                    onOpenBulkDownload = vm::openBulkDownload,
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
                     onAdminModeChange = vm::setAdminModeEnabled

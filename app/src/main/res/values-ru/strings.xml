@@ -135,6 +135,10 @@
     <string name="remove_from_playlist">Удалить из плейлиста</string>
     <string name="audio">Аудио</string>
     <string name="equalizer">Эквалайзер</string>
+    <string name="bulk_download">Массовая загрузка</string>
+    <string name="bulk_download_hint">Нажмите на песню, чтобы скачать или удалить её</string>
+    <string name="download_all">Скачать все</string>
+    <string name="refresh_all_downloads">Обновить все</string>
     <string name="presets">Пресеты</string>
     <string name="reset">Сбросить</string>
     <string name="custom">Пользовательский</string>

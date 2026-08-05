@@ -135,6 +135,10 @@
     <string name="stay_here">Rester ici</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Égaliseur</string>
+    <string name="bulk_download">Téléchargement groupé</string>
+    <string name="bulk_download_hint">Touchez une chanson pour la télécharger ou la supprimer</string>
+    <string name="download_all">Tout télécharger</string>
+    <string name="refresh_all_downloads">Tout actualiser</string>
     <string name="presets">Préréglages</string>
     <string name="reset">Réinitialiser</string>
     <string name="custom">Personnalisé</string>
