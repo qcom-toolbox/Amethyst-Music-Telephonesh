@@ -97,7 +97,9 @@ class MusicPlaybackService : MediaLibraryService() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        if (MusicPlayer.activePlayer?.playWhenReady != true) {
+        syncMediaSession()
+        if (mediaSession?.player?.playWhenReady != true) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
     }

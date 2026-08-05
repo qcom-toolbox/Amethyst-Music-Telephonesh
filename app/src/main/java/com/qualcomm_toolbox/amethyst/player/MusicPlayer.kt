@@ -487,9 +487,24 @@ class MusicPlayer(private val appContext: Context) {
         if (before.isNotEmpty()) currentPlayer.addMediaItems(0, before)
     }
 
+    // CastPlayer mutates its queue asynchronously against the receiver, so the
+    // incremental remove/add sequence in reorderPlayerKeepingCurrent (which assumes
+    // ExoPlayer's synchronous local timeline) drifts out of sync with the receiver's
+    // real queue. Rebuild the whole queue atomically via setMediaItems() instead,
+    // matching the same rebuild strategy switchToPlayer() already uses for Cast.
+    private fun rebuildQueueOnCast(tracks: List<Track>, startIndex: Int, urlFor: (Track, Boolean) -> String) {
+        val wasPlaying = currentPlayer.isPlaying
+        val position = currentPlayer.currentPosition.coerceAtLeast(0L)
+        val items = tracks.map { buildMediaItem(it, urlFor(it, true), true) }
+        currentPlayer.setMediaItems(items, startIndex, position)
+        currentPlayer.prepare()
+        if (wasPlaying) currentPlayer.play()
+    }
+
     fun setShuffle(enabled: Boolean, forceReshuffle: Boolean = false) {
         val wasEnabled = shuffle
         shuffle = enabled
+        val isCast = currentPlayer is CastPlayer
 
         if (enabled) {
             if (!wasEnabled || forceReshuffle) {
@@ -504,9 +519,12 @@ class MusicPlayer(private val appContext: Context) {
                     shuffleIndex = 0
 
                     streamUrlProvider?.let { urlFor ->
-                        val isCast = currentPlayer is CastPlayer
-                        val restItems = rest.map { buildMediaItem(it, urlFor(it, isCast), isCast) }
-                        reorderPlayerKeepingCurrent(before = emptyList(), after = restItems)
+                        if (isCast) {
+                            rebuildQueueOnCast(shuffledQueue, 0, urlFor)
+                        } else {
+                            val restItems = rest.map { buildMediaItem(it, urlFor(it, false), false) }
+                            reorderPlayerKeepingCurrent(before = emptyList(), after = restItems)
+                        }
                     }
                     _activeQueue.value = shuffledQueue
                 }
@@ -520,10 +538,13 @@ class MusicPlayer(private val appContext: Context) {
                 shuffleIndex = 0
 
                 streamUrlProvider?.let { urlFor ->
-                    val isCast = currentPlayer is CastPlayer
-                    val before = queue.subList(0, queueIndex).map { buildMediaItem(it, urlFor(it, isCast), isCast) }
-                    val after = queue.subList(queueIndex + 1, queue.size).map { buildMediaItem(it, urlFor(it, isCast), isCast) }
-                    reorderPlayerKeepingCurrent(before, after)
+                    if (isCast) {
+                        rebuildQueueOnCast(queue, queueIndex, urlFor)
+                    } else {
+                        val before = queue.subList(0, queueIndex).map { buildMediaItem(it, urlFor(it, false), false) }
+                        val after = queue.subList(queueIndex + 1, queue.size).map { buildMediaItem(it, urlFor(it, false), false) }
+                        reorderPlayerKeepingCurrent(before, after)
+                    }
                 }
                 _activeQueue.value = queue
             }

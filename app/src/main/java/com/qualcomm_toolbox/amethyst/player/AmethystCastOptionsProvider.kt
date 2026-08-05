@@ -19,6 +19,8 @@ class AmethystCastOptionsProvider : OptionsProvider {
         return CastOptions.Builder()
             .setReceiverApplicationId(com.google.android.gms.cast.CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID)
             .setCastMediaOptions(mediaOptions)
+            .setStopReceiverApplicationWhenEndingSession(true)
+            .setResumeSavedSession(false)
             .build()
     }
 
