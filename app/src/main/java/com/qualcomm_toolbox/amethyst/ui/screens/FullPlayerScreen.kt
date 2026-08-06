@@ -21,7 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -459,9 +463,23 @@ fun FullPlayerScreen(
                 LaunchedEffect(currentIdx) {
                     if (currentIdx >= 0) queueListState.animateScrollToItem(currentIdx)
                 }
+                // Swallow scroll deltas the list can't consume at its bounds so a fast fling
+                // that hits the top/end doesn't bleed into the ModalBottomSheet's own drag
+                // handling, which otherwise nudges the sheet and causes a tiny visual jitter.
+                val queueNestedScrollConnection = remember {
+                    object : NestedScrollConnection {
+                        override fun onPostScroll(
+                            consumed: Offset,
+                            available: Offset,
+                            source: NestedScrollSource
+                        ): Offset = available
+                    }
+                }
                 LazyColumn(
                     state = queueListState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(queueNestedScrollConnection),
                     contentPadding = PaddingValues(bottom = 32.dp, start = 16.dp, end = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -473,7 +491,7 @@ fun FullPlayerScreen(
                         }
                     }
 
-                    itemsIndexed(queue) { index, qTrack ->
+                    itemsIndexed(queue, key = { _, qTrack -> qTrack.id }) { index, qTrack ->
                         val isCurrent = qTrack.id == track.id
                         TrackRow(
                             track = qTrack,
