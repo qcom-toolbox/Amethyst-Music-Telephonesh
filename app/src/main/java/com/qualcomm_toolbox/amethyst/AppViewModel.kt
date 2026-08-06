@@ -547,7 +547,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleLyrics() {
         val newState = !_showLyrics.value
         _showLyrics.value = newState
-        if (newState && _lyrics.value == null) {
+        if (newState) {
             musicPlayer.currentTrack.value?.let { fetchLyrics(it) }
         }
     }
