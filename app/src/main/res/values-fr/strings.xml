@@ -10,6 +10,11 @@
     <string name="remove_download">Supprimer le téléchargement</string>
     <string name="playback_channel_name">Lecture musicale</string>
     <string name="playback_channel_description">Contrôles de lecture et pochette</string>
+    <string name="download_channel_name">Téléchargements</string>
+    <string name="download_channel_description">Affiche la progression pendant le téléchargement des morceaux</string>
+    <string name="download_notification_title">Téléchargement de musique</string>
+    <string name="download_notification_progress_multi">Téléchargement de %1$d sur %2$d morceaux</string>
+    <string name="download_notification_progress_single">%1$d %% terminé</string>
 
     <string name="tab_home">Accueil</string>
     <string name="home_for_you">Pour vous</string>

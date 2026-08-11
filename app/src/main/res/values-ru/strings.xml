@@ -10,6 +10,11 @@
     <string name="remove_download">Удалить загрузку</string>
     <string name="playback_channel_name">Воспроизведение музыки</string>
     <string name="playback_channel_description">Управление воспроизведением и обложка</string>
+    <string name="download_channel_name">Загрузки</string>
+    <string name="download_channel_description">Показывает прогресс загрузки треков</string>
+    <string name="download_notification_title">Загрузка музыки</string>
+    <string name="download_notification_progress_multi">Загрузка %1$d из %2$d треков</string>
+    <string name="download_notification_progress_single">Готово на %1$d%%</string>
 
     <string name="tab_home">Главная</string>
     <string name="home_for_you">Рекомендуем вам</string>

@@ -17,6 +17,7 @@ import com.qcom_toolbox.amethyst_music.data.Track
 import com.qcom_toolbox.amethyst_music.data.TrackDownloader
 import com.qcom_toolbox.amethyst_music.player.MusicPlayer
 import com.qcom_toolbox.amethyst_music.player.PlaybackController
+import com.qcom_toolbox.amethyst_music.util.DownloadNotificationManager
 import com.qcom_toolbox.amethyst_music.util.NetworkObserver
 import com.qcom_toolbox.amethyst_music.util.NetworkStatus
 import kotlinx.coroutines.channels.Channel
@@ -49,6 +50,13 @@ enum class AppScreen {
     Main,
 }
 
+private data class DownloadNotifState(
+    val active: Boolean,
+    val total: Int,
+    val completed: Int,
+    val progressPercent: Int,
+)
+
 enum class SortOrder {
     POPULARITY,
     TITLE_ASC,
@@ -62,6 +70,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val sessionPersistence = SessionPersistence(application)
     private val offlineLibrary = OfflineLibrary(application)
     private val trackDownloader = TrackDownloader()
+    private val downloadNotificationManager = DownloadNotificationManager(application)
     private val lyricsCache = LyricsCache(application)
     private val networkObserver = NetworkObserver(application)
     private var cookieJar: PersistentCookieJar? = null
@@ -248,6 +257,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _isBulkDownloading = MutableStateFlow(false)
     val isBulkDownloading: StateFlow<Boolean> = _isBulkDownloading.asStateFlow()
 
+    // Tracks progress through the current run of downloads, for the download notification.
+    // Both reset to 0 once downloadingIds drains back to empty.
+    private val _downloadQueueTotal = MutableStateFlow(0)
+    private val _downloadQueueCompleted = MutableStateFlow(0)
+
     private val _lyrics = MutableStateFlow<String?>(null)
     val lyrics: StateFlow<String?> = _lyrics.asStateFlow()
 
@@ -297,6 +311,32 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         updatePlayerCallbacks()
         observeTrackChanges()
         observeNetwork()
+        observeDownloadNotifications()
+    }
+
+    private fun observeDownloadNotifications() {
+        viewModelScope.launch {
+            combine(
+                _downloadingIds, _downloadProgress, _downloadQueueTotal, _downloadQueueCompleted,
+            ) { downloading, progress, total, completed ->
+                val avgPercent = if (progress.isNotEmpty()) {
+                    (progress.values.average() * 100).toInt()
+                } else {
+                    0
+                }
+                DownloadNotifState(downloading.isNotEmpty(), total, completed, avgPercent)
+            }.collectLatest { state ->
+                if (!state.active) {
+                    downloadNotificationManager.clear()
+                } else {
+                    downloadNotificationManager.update(
+                        state.completed,
+                        state.total.coerceAtLeast(1),
+                        state.progressPercent,
+                    )
+                }
+            }
+        }
     }
 
     private fun observeNetwork() {
@@ -844,6 +884,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val server = currentServerUrl() ?: return
         _downloadingIds.update { it + track.id }
         _downloadProgress.update { it + (track.id to 0f) }
+        _downloadQueueTotal.update { it + 1 }
         try {
             withContext(Dispatchers.IO) {
                 trackDownloader.download(
@@ -869,6 +910,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         } finally {
             _downloadingIds.update { it - track.id }
             _downloadProgress.update { it - track.id }
+            _downloadQueueCompleted.update { it + 1 }
+            if (_downloadingIds.value.isEmpty()) {
+                _downloadQueueTotal.value = 0
+                _downloadQueueCompleted.value = 0
+            }
         }
     }
 
@@ -1221,6 +1267,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         searchJob?.cancel()
         progressJob?.cancel()
         musicPlayer.release()
+        downloadNotificationManager.clear()
         super.onCleared()
     }
 }

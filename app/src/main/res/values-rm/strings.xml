@@ -10,6 +10,11 @@
     <string name="remove_download">Allontanar telechargiada</string>
     <string name="playback_channel_name">Riproducziun musicala</string>
     <string name="playback_channel_description">Controllas da riproducziun e cuverta</string>
+    <string name="download_channel_name">Telechargiaments</string>
+    <string name="download_channel_description">Mussa il progress durant il telechargiar da tracks</string>
+    <string name="download_notification_title">Telechargiar musica</string>
+    <string name="download_notification_progress_multi">Telechargiar %1$d da %2$d tracks</string>
+    <string name="download_notification_progress_single">%1$d%% cumplettà</string>
 
     <string name="tab_home">Chasa</string>
     <string name="home_for_you">Recumandà per Te</string>
