@@ -10,6 +10,11 @@
     <string name="remove_download">Rimuovi download</string>
     <string name="playback_channel_name">Riproduzione musicale</string>
     <string name="playback_channel_description">Controlli di riproduzione e copertina</string>
+    <string name="download_channel_name">Download</string>
+    <string name="download_channel_description">Mostra l\'avanzamento durante il download dei brani</string>
+    <string name="download_notification_title">Download musica in corso</string>
+    <string name="download_notification_progress_multi">Download di %1$d di %2$d brani</string>
+    <string name="download_notification_progress_single">%1$d%% completato</string>
 
     <string name="tab_home">Home</string>
     <string name="home_for_you">Consigliati per te</string>

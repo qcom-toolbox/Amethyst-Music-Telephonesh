@@ -10,6 +10,11 @@
     <string name="remove_download">Remove download</string>
     <string name="playback_channel_name">Music playback</string>
     <string name="playback_channel_description">Playback controls and cover art</string>
+    <string name="download_channel_name">Downloads</string>
+    <string name="download_channel_description">Shows progress while tracks are downloading</string>
+    <string name="download_notification_title">Downloading music</string>
+    <string name="download_notification_progress_multi">Downloading %1$d of %2$d tracks</string>
+    <string name="download_notification_progress_single">%1$d%% complete</string>
 
     <string name="tab_home">Home</string>
     <string name="home_for_you">Recommended for You</string>

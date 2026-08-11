@@ -10,6 +10,11 @@
     <string name="remove_download">删除下载</string>
     <string name="playback_channel_name">音乐播放</string>
     <string name="playback_channel_description">播放控制与封面</string>
+    <string name="download_channel_name">下载</string>
+    <string name="download_channel_description">在曲目下载时显示进度</string>
+    <string name="download_notification_title">正在下载音乐</string>
+    <string name="download_notification_progress_multi">正在下载第 %1$d 首，共 %2$d 首</string>
+    <string name="download_notification_progress_single">已完成 %1$d%%</string>
 
     <string name="tab_home">首页</string>
     <string name="home_for_you">为您推荐</string>

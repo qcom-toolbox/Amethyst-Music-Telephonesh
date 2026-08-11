@@ -10,6 +10,11 @@
     <string name="remove_download">Таталтыг устгах</string>
     <string name="playback_channel_name">Хөгжим тоглуулах</string>
     <string name="playback_channel_description">Тоглуулах удирдлага ба ковер</string>
+    <string name="download_channel_name">Татаж авалт</string>
+    <string name="download_channel_description">Дуу татаж авах явцыг харуулна</string>
+    <string name="download_notification_title">Хөгжим татаж байна</string>
+    <string name="download_notification_progress_multi">%2$d дууны %1$d-ийг татаж байна</string>
+    <string name="download_notification_progress_single">%1$d%% дууссан</string>
 
     <string name="tab_home">Нүүр</string>
     <string name="home_for_you">Танд зориулсан</string>

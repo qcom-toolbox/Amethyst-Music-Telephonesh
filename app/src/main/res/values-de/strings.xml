@@ -10,6 +10,11 @@
     <string name="remove_download">Download entfernen</string>
     <string name="playback_channel_name">Musikwiedergabe</string>
     <string name="playback_channel_description">Wiedergabesteuerung und Cover</string>
+    <string name="download_channel_name">Downloads</string>
+    <string name="download_channel_description">Zeigt den Fortschritt beim Herunterladen von Titeln</string>
+    <string name="download_notification_title">Musik wird heruntergeladen</string>
+    <string name="download_notification_progress_multi">%1$d von %2$d Titeln wird heruntergeladen</string>
+    <string name="download_notification_progress_single">%1$d%% abgeschlossen</string>
 
     <string name="tab_home">Startseite</string>
     <string name="home_for_you">Für dich empfohlen</string>

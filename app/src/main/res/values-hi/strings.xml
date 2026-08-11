@@ -10,6 +10,11 @@
     <string name="remove_download">डाउनलोड हटाएं</string>
     <string name="playback_channel_name">म्यूजिक प्लेबैक</string>
     <string name="playback_channel_description">प्लेबैक नियंत्रण और कवर आर्ट</string>
+    <string name="download_channel_name">डाउनलोड</string>
+    <string name="download_channel_description">ट्रैक डाउनलोड होते समय प्रगति दिखाता है</string>
+    <string name="download_notification_title">संगीत डाउनलोड हो रहा है</string>
+    <string name="download_notification_progress_multi">%2$d में से %1$d ट्रैक डाउनलोड हो रहे हैं</string>
+    <string name="download_notification_progress_single">%1$d%% पूर्ण</string>
 
     <string name="tab_home">होम</string>
     <string name="home_for_you">आपके लिए</string>

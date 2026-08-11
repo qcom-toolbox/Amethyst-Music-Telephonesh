@@ -10,6 +10,11 @@
     <string name="remove_download">ダウンロードを削除</string>
     <string name="playback_channel_name">音楽再生</string>
     <string name="playback_channel_description">再生コントロールとカバーアート</string>
+    <string name="download_channel_name">ダウンロード</string>
+    <string name="download_channel_description">トラックのダウンロード中に進行状況を表示します</string>
+    <string name="download_notification_title">音楽をダウンロード中</string>
+    <string name="download_notification_progress_multi">%2$d曲中%1$d曲をダウンロード中</string>
+    <string name="download_notification_progress_single">%1$d%% 完了</string>
 
     <string name="tab_home">ホーム</string>
     <string name="home_for_you">おすすめ</string>
