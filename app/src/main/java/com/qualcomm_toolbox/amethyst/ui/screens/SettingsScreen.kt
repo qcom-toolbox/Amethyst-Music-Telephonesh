@@ -35,6 +35,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -71,6 +73,8 @@ fun SettingsScreen(
     onRefreshCache: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onOpenBulkDownload: () -> Unit,
+    defaultPlaybackSpeed: Float = 1f,
+    onDefaultPlaybackSpeedChange: (Float) -> Unit = {},
     isAdmin: Boolean = false,
     adminModeEnabled: Boolean = false,
     onAdminModeChange: (Boolean) -> Unit = {},
@@ -228,6 +232,41 @@ fun SettingsScreen(
             label = stringResource(R.string.equalizer),
             onClick = onOpenEqualizer
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(R.string.default_playback_speed), color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                    Text(text = stringResource(R.string.default_playback_speed_description), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                }
+                Text(
+                    text = formatSpeed(defaultPlaybackSpeed),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Slider(
+                value = defaultPlaybackSpeed,
+                onValueChange = { onDefaultPlaybackSpeedChange(PLAYBACK_SPEEDS.minByOrNull { s -> kotlin.math.abs(s - it) } ?: it) },
+                valueRange = 0.5f..2f,
+                steps = 5,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -227,6 +227,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _adminModeEnabled = MutableStateFlow(prefs.adminModeEnabled)
     val adminModeEnabled: StateFlow<Boolean> = _adminModeEnabled.asStateFlow()
 
+    private val _defaultPlaybackSpeed = MutableStateFlow(prefs.defaultPlaybackSpeed)
+    val defaultPlaybackSpeed: StateFlow<Float> = _defaultPlaybackSpeed.asStateFlow()
+
     private val _showFullPlayer = MutableStateFlow(false)
     val showFullPlayer: StateFlow<Boolean> = _showFullPlayer.asStateFlow()
 
@@ -284,6 +287,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(prefs.language))
+        musicPlayer.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
         prefs.serverUrl?.let { url ->
             initClient(url, prefs.trustAllCertificates)
             tryRestoreSession()
@@ -503,6 +507,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setAdminModeEnabled(enabled: Boolean) {
         prefs.adminModeEnabled = enabled
         _adminModeEnabled.value = enabled
+    }
+
+    /** Sets the default playback speed applied at the start of every future session. */
+    fun setDefaultPlaybackSpeed(speed: Float) {
+        prefs.defaultPlaybackSpeed = speed
+        _defaultPlaybackSpeed.value = speed
     }
 
     fun refreshCache() {
@@ -1173,6 +1183,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun seekTo(ms: Long) = musicPlayer.seekTo(ms)
 
     fun toggleLoop() = musicPlayer.toggleLoop()
+
+    /** Sets the playback speed for the current session only. */
+    fun setPlaybackSpeed(speed: Float) = musicPlayer.setPlaybackSpeed(speed)
 
     fun toggleShuffle() {
         val currentlyShuffled = musicPlayer.shuffle

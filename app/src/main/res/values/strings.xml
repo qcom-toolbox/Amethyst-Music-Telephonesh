@@ -78,6 +78,9 @@
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="loop">Loop</string>
+    <string name="playback_speed">Playback speed</string>
+    <string name="default_playback_speed">Default playback speed</string>
+    <string name="default_playback_speed_description">Speed applied at the start of every session</string>
     <string name="no_tracks_found">No tracks found.</string>
     <string name="connect_server">Connect your Purple Music server</string>
     <string name="server_url">Server URL</string>

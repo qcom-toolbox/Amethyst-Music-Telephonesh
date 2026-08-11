@@ -52,6 +52,7 @@ fun FullPlayerScreen(
     durationMs: Long,
     loopMode: Int,
     shuffle: Boolean,
+    playbackSpeed: Float,
     coverUrl: String?,
     lyrics: String?,
     parsedLyrics: List<AppViewModel.LyricLine>,
@@ -67,6 +68,7 @@ fun FullPlayerScreen(
     onSeek: (Long) -> Unit,
     onToggleLoop: () -> Unit,
     onToggleShuffle: () -> Unit,
+    onSpeedChange: (Float) -> Unit,
     onToggleLyrics: () -> Unit,
     onAddToPlaylist: () -> Unit,
     onPlayTrackAt: (Int) -> Unit,
@@ -77,6 +79,7 @@ fun FullPlayerScreen(
     var isLyricsMaximized by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
     var showQueue by remember { mutableStateOf(false) }
+    var showSpeedMenu by remember { mutableStateOf(false) }
 
     // Smooth position interpolation
     var smoothedPositionMs by remember(positionMs) { mutableLongStateOf(positionMs) }
@@ -164,6 +167,42 @@ fun FullPlayerScreen(
                         },
                         modifier = Modifier.padding(end = 8.dp).size(32.dp)
                     )
+                    Box {
+                        TextButton(onClick = { showSpeedMenu = true }) {
+                            Text(
+                                text = formatSpeed(playbackSpeed),
+                                color = if (playbackSpeed != 1f) MaterialTheme.colorScheme.primary else onSurface,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showSpeedMenu,
+                            onDismissRequest = { showSpeedMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.playback_speed),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            )
+                            PLAYBACK_SPEEDS.forEach { speedOption ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = formatSpeed(speedOption),
+                                            color = if (speedOption == playbackSpeed) MaterialTheme.colorScheme.primary else onSurface
+                                        )
+                                    },
+                                    onClick = {
+                                        onSpeedChange(speedOption)
+                                        showSpeedMenu = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                     IconButton(onClick = onAddToPlaylist) {
                         Icon(
                             Icons.AutoMirrored.Filled.PlaylistAdd,
@@ -523,4 +562,11 @@ private fun formatTime(ms: Long): String {
     val min = totalSec / 60
     val sec = totalSec % 60
     return "$min:${sec.toString().padStart(2, '0')}"
+}
+
+val PLAYBACK_SPEEDS = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f)
+
+fun formatSpeed(speed: Float): String {
+    val trimmed = if (speed == speed.toLong().toFloat()) speed.toLong().toString() else speed.toString()
+    return "${trimmed}x"
 }

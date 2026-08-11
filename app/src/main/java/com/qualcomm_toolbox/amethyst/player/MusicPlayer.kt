@@ -72,6 +72,7 @@ class MusicPlayer(private val appContext: Context) {
         currentPlayer = newPlayer
         currentPlayer.addListener(listener)
         currentPlayer.repeatMode = currentRepeatMode
+        currentPlayer.setPlaybackSpeed(playbackSpeed)
 
         // Rebuild only a window of media items for the new player (especially important
         // for Cast) instead of mapping the whole library synchronously.
@@ -143,6 +144,10 @@ class MusicPlayer(private val appContext: Context) {
         get() = _shuffle.value
         private set(value) { _shuffle.value = value }
 
+    private val _playbackSpeed = MutableStateFlow(1f)
+    val playbackSpeedFlow: StateFlow<Float> = _playbackSpeed.asStateFlow()
+    private val playbackSpeed: Float get() = _playbackSpeed.value
+
     private var streamUrlProvider: ((Track, Boolean) -> String)? = null
     private var incrementPlayCallback: ((Int) -> Unit)? = null
     private var coverUrlProvider: ((Track, Boolean) -> String?)? = null
@@ -182,6 +187,7 @@ class MusicPlayer(private val appContext: Context) {
             2 -> Player.REPEAT_MODE_ONE
             else -> Player.REPEAT_MODE_OFF
         }
+        exoPlayer.setPlaybackSpeed(playbackSpeed)
         exoPlayer.addAnalyticsListener(analyticsListener)
         equalizerManager.onAudioSessionIdChanged(exoPlayer.audioSessionId)
         if (isExoCurrent) {
@@ -610,6 +616,11 @@ class MusicPlayer(private val appContext: Context) {
             else -> Player.REPEAT_MODE_OFF
         }
         return loopMode
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        _playbackSpeed.value = speed
+        currentPlayer.setPlaybackSpeed(speed)
     }
 
     fun expandQueueForShuffle(allTracks: List<Track>) {

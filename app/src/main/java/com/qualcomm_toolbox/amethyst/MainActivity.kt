@@ -302,6 +302,7 @@ class MainActivity : AppCompatActivity() {
                                     val durationMs by vm.musicPlayer.durationMs.collectAsState()
                                     val loopMode by vm.musicPlayer.loopModeFlow.collectAsState()
                                     val shuffle by vm.musicPlayer.shuffleFlow.collectAsState()
+                                    val playbackSpeed by vm.musicPlayer.playbackSpeedFlow.collectAsState()
                                     val lyrics by vm.lyrics.collectAsState()
                                     val parsedLyrics by vm.parsedLyrics.collectAsState()
                                     val isLoadingLyrics by vm.isLoadingLyrics.collectAsState()
@@ -317,6 +318,7 @@ class MainActivity : AppCompatActivity() {
                                         durationMs = durationMs,
                                         loopMode = loopMode,
                                         shuffle = shuffle,
+                                        playbackSpeed = playbackSpeed,
                                         coverUrl = vm.coverUrlForTrack(track),
                                         lyrics = lyrics,
                                         parsedLyrics = parsedLyrics,
@@ -332,6 +334,7 @@ class MainActivity : AppCompatActivity() {
                                         onSeek = vm::seekTo,
                                         onToggleLoop = { vm.toggleLoop() },
                                         onToggleShuffle = { vm.toggleShuffle() },
+                                        onSpeedChange = { vm.setPlaybackSpeed(it) },
                                         onToggleLyrics = vm::toggleLyrics,
                                         onAddToPlaylist = { vm.showAddToPlaylist(track) },
                                         onPlayTrackAt = { vm.playTrackAt(it) },

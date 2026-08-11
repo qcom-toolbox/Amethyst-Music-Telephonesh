@@ -36,6 +36,11 @@ class ServerPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_USE_HARMONY, false)
         set(value) = prefs.edit().putBoolean(KEY_USE_HARMONY, value).apply()
 
+    /** Default playback speed applied at the start of every session. */
+    var defaultPlaybackSpeed: Float
+        get() = prefs.getFloat(KEY_DEFAULT_PLAYBACK_SPEED, 1f)
+        set(value) = prefs.edit().putFloat(KEY_DEFAULT_PLAYBACK_SPEED, value).apply()
+
     var language: String
         get() = prefs.getString(KEY_LANGUAGE, "fr") ?: "fr"
         set(value) {
@@ -85,6 +90,7 @@ class ServerPreferences(context: Context) {
         private const val KEY_GENRE_PLAYS = "genre_plays"
         private const val KEY_BG_COLOR = "bg_color"
         private const val KEY_USE_HARMONY = "use_harmony"
+        private const val KEY_DEFAULT_PLAYBACK_SPEED = "default_playback_speed"
 
         fun normalizeServerUrl(raw: String): String {
             var url = raw.trim()

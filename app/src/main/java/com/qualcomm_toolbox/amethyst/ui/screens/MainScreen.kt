@@ -186,6 +186,7 @@ fun MainScreen(
     val currentPlaylistTracks by vm.currentPlaylistTracks.collectAsState()
     val isAdmin by vm.isAdmin.collectAsState()
     val adminModeEnabled by vm.adminModeEnabled.collectAsState()
+    val defaultPlaybackSpeed by vm.defaultPlaybackSpeed.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
     var trackToEdit by remember { mutableStateOf<Track?>(null) }
@@ -517,6 +518,8 @@ fun MainScreen(
                     onRefreshCache = vm::refreshCache,
                     onOpenEqualizer = vm::openEqualizer,
                     onOpenBulkDownload = vm::openBulkDownload,
+                    defaultPlaybackSpeed = defaultPlaybackSpeed,
+                    onDefaultPlaybackSpeedChange = vm::setDefaultPlaybackSpeed,
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
                     onAdminModeChange = vm::setAdminModeEnabled
