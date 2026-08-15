@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">URL du serveur Purple Music</string>
     <string name="server_example">https://votre-serveur.com</string>
-    <string name="trust_all_certs">Ignorer les erreurs HTTPS</string>
-    <string name="trust_all_certs_hint">Recommandé sur Android 6 pour certificats auto-signés.</string>
     <string name="tab_offline">Hors ligne</string>
     <string name="listen_offline">Écouter hors ligne</string>
     <string name="download">Télécharger</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">Aucune piste trouvée.</string>
     <string name="connect_server">Connectez votre serveur Purple Music</string>
     <string name="server_url">URL du serveur</string>
-    <string name="trust_all_certs_m">Recommandé sur Android 6 (certificats auto-signés).</string>
-    <string name="trust_all_certs_other">Pour serveurs avec certificat auto-signé ou invalide.</string>
     <string name="connect">Se connecter</string>
     <string name="error_no_server">Aucun serveur configuré.</string>
     <string name="error_no_offline">Aucun titre téléchargé.</string>

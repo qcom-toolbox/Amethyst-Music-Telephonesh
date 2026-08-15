@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.qcom_toolbox.amethyst_music"
+    namespace = "com.amethyst_music"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.qcom_toolbox.amethyst_music"
+        applicationId = "com.amethyst_music"
         minSdk = 23
         targetSdk = 36
         versionCode = 2

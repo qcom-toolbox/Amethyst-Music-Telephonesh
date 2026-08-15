@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music サーバーURL</string>
     <string name="server_example">https://your-server.com</string>
-    <string name="trust_all_certs">HTTPSエラーを無視</string>
-    <string name="trust_all_certs_hint">自己署名証明書を使用する場合、Android 6で推奨されます。</string>
     <string name="tab_offline">オフライン</string>
     <string name="listen_offline">オフラインで聴く</string>
     <string name="download">ダウンロード</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">曲が見つかりません。</string>
     <string name="connect_server">Purple Musicサーバーに接続</string>
     <string name="server_url">サーバーURL</string>
-    <string name="trust_all_certs_m">Android 6で推奨（自己署名証明書）。</string>
-    <string name="trust_all_certs_other">自己署名または無効な証明書を持つサーバー用。</string>
     <string name="connect">接続</string>
     <string name="error_no_server">サーバーが設定されていません。</string>
     <string name="error_no_offline">ダウンロード済みの曲が見つかりません。</string>

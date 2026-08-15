@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">पर्पल म्यूजिक सर्वर URL</string>
     <string name="server_example">https://your-server.com</string>
-    <string name="trust_all_certs">HTTPS त्रुटियों को अनदेखा करें</string>
-    <string name="trust_all_certs_hint">स्व-हस्ताक्षरित प्रमाणपत्रों के लिए Android 6 पर अनुशंसित।</string>
     <string name="tab_offline">ऑफलाइन</string>
     <string name="listen_offline">ऑफलाइन सुनें</string>
     <string name="download">डाउनलोड</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">कोई गाना नहीं मिला।</string>
     <string name="connect_server">अपने पर्पल म्यूजिक सर्वर को कनेक्ट करें</string>
     <string name="server_url">सर्वर URL</string>
-    <string name="trust_all_certs_m">स्व-हस्ताक्षरित प्रमाणपत्रों के लिए Android 6 पर अनुशंसित।</string>
-    <string name="trust_all_certs_other">स्व-हस्ताक्षरित या अमान्य प्रमाणपत्र वाले सर्वर के लिए।</string>
     <string name="connect">कनेक्ट करें</string>
     <string name="error_no_server">कोई सर्वर कॉन्फ़िगर नहीं है।</string>
     <string name="error_no_offline">कोई डाउनलोड किया हुआ गाना नहीं मिला।</string>

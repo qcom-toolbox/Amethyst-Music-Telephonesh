@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music серверын URL</string>
     <string name="server_example">https://your-server.com</string>
-    <string name="trust_all_certs">HTTPS алдааг үл тоомсорлох</string>
-    <string name="trust_all_certs_hint">Android 6 дээр өөрөө гарын үсэг зурсан сертификатад санал болгож байна.</string>
     <string name="tab_offline">Офлайн</string>
     <string name="listen_offline">Офлайнаар сонсох</string>
     <string name="download">Татах</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">Зам олдсонгүй.</string>
     <string name="connect_server">Purple Music серверээ холбоно уу</string>
     <string name="server_url">Сервер URL</string>
-    <string name="trust_all_certs_m">Android 6 дээр санал болгож байна (өөрөө гарын үсэг зурсан сертификат).</string>
-    <string name="trust_all_certs_other">Өөрөө гарын үсэг зурсан эсвэл хүчингүй сертификаттай серверт.</string>
     <string name="connect">Холбох</string>
     <string name="error_no_server">Сервер тохируулаагүй байна.</string>
     <string name="error_no_offline">Татаж авсан дуу олдсонгүй.</string>

@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">URL-адрес сервера Purple Music</string>
     <string name="server_example">https://vash-server.ru</string>
-    <string name="trust_all_certs">Игнорировать ошибки HTTPS</string>
-    <string name="trust_all_certs_hint">Рекомендуется для Android 6 при использовании самоподписанных сертификатов.</string>
     <string name="tab_offline">Офлайн</string>
     <string name="listen_offline">Слушать офлайн</string>
     <string name="download">Скачать</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">Треки не найдены.</string>
     <string name="connect_server">Подключите ваш сервер Purple Music</string>
     <string name="server_url">URL сервера</string>
-    <string name="trust_all_certs_m">Рекомендуется для Android 6 (самоподписанные сертификаты).</string>
-    <string name="trust_all_certs_other">Для серверов с самоподписанным или недействительным сертификатом.</string>
     <string name="connect">Подключиться</string>
     <string name="error_no_server">Сервер не настроен.</string>
     <string name="error_no_offline">Загруженные треки не найдены.</string>
