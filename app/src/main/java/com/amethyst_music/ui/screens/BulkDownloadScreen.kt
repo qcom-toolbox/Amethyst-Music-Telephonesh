@@ -1,6 +1,7 @@
 package com.amethyst_music.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,8 +12,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -40,10 +44,13 @@ fun BulkDownloadScreen(
     downloadingIds: Set<Int>,
     downloadProgress: Map<Int, Float>,
     isBulkDownloading: Boolean,
+    isBulkDownloadPaused: Boolean = false,
     coverUrlForTrack: (Track) -> String?,
     onToggleDownload: (Track) -> Unit,
     onDownloadAll: () -> Unit,
     onRefreshAllDownloads: () -> Unit,
+    onTogglePause: () -> Unit = {},
+    onCancelAll: () -> Unit = {},
     onClose: () -> Unit,
 ) {
     BackHandler(onBack = onClose)
@@ -127,6 +134,48 @@ fun BulkDownloadScreen(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.refresh_all_downloads))
+            }
+        }
+
+        if (isBulkDownloading) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onTogglePause,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    )
+                ) {
+                    Icon(
+                        if (isBulkDownloadPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        if (isBulkDownloadPaused) stringResource(R.string.resume_downloads)
+                        else stringResource(R.string.pause_downloads)
+                    )
+                }
+                OutlinedButton(
+                    onClick = onCancelAll,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    )
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.cancel_all_downloads))
+                }
             }
         }
 

@@ -27,6 +27,9 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -78,6 +81,9 @@ fun SettingsScreen(
     isAdmin: Boolean = false,
     adminModeEnabled: Boolean = false,
     onAdminModeChange: (Boolean) -> Unit = {},
+    isOnline: Boolean = true,
+    isCheckingConnection: Boolean = false,
+    onCheckConnection: () -> Unit = {},
 ) {
     val languages = listOf(
         "en" to stringResource(R.string.language_english),
@@ -283,6 +289,41 @@ fun SettingsScreen(
             label = stringResource(R.string.bulk_download),
             onClick = onOpenBulkDownload
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Connection Section
+        SettingsSectionTitle(stringResource(R.string.connection))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .clickable(enabled = !isCheckingConnection, onClick = onCheckConnection)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (isOnline) Icons.Default.Wifi else Icons.Default.WifiOff,
+                contentDescription = null,
+                tint = if (isOnline) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(R.string.check_connection), color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                Text(
+                    text = if (isOnline) stringResource(R.string.connection_online) else stringResource(R.string.connection_offline),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp
+                )
+            }
+            if (isCheckingConnection) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -91,6 +91,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _isOnline = MutableStateFlow(true)
     val isOnline: StateFlow<Boolean> = _isOnline.asStateFlow()
 
+    private val _isCheckingConnection = MutableStateFlow(false)
+    val isCheckingConnection: StateFlow<Boolean> = _isCheckingConnection.asStateFlow()
+
     private val _isAppInForeground = MutableStateFlow(false)
     val isAppInForeground: StateFlow<Boolean> = _isAppInForeground.asStateFlow()
 
@@ -254,6 +257,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _isBulkDownloading = MutableStateFlow(false)
     val isBulkDownloading: StateFlow<Boolean> = _isBulkDownloading.asStateFlow()
 
+    private val _isBulkDownloadPaused = MutableStateFlow(false)
+    val isBulkDownloadPaused: StateFlow<Boolean> = _isBulkDownloadPaused.asStateFlow()
+
+    private var bulkDownloadJob: Job? = null
+
+    // Set while a bulk download is being torn down via cancelBulkDownload(), so the
+    // in-flight download's forced IOException isn't reported to the user as a real failure.
+    @Volatile private var isCancellingBulkDownload = false
+
     // Tracks progress through the current run of downloads, for the download notification.
     // Both reset to 0 once downloadingIds drains back to empty.
     private val _downloadQueueTotal = MutableStateFlow(0)
@@ -297,7 +309,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         get() = offlineLibrary.hasTracksForServer(prefs.serverUrl)
 
     init {
-        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(prefs.language))
+        // Only override the per-app locale if the user explicitly picked one in Settings;
+        // otherwise leave it unset so the app (and keyboard) follow the system locale.
+        if (prefs.language.isNotBlank()) {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(prefs.language))
+        }
         musicPlayer.setPlaybackSpeed(prefs.defaultPlaybackSpeed)
         prefs.serverUrl?.let { url ->
             initClient(url)
@@ -353,6 +369,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
+        }
+    }
+
+    /** Manually re-checks connectivity on demand (Settings button, pull-to-refresh in Offline tab). */
+    fun recheckConnection() {
+        if (_isCheckingConnection.value) return
+        viewModelScope.launch {
+            _isCheckingConnection.value = true
+            val online = withContext(Dispatchers.IO) {
+                networkObserver.currentStatus() == NetworkStatus.Available
+            }
+            _isOnline.value = online
+            _showNetworkMessage.trySend(
+                if (online) getString(R.string.connection_restored) else getString(R.string.still_offline)
+            )
+            _isCheckingConnection.value = false
         }
     }
 
@@ -836,19 +868,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         if (_isBulkDownloading.value) return
         val toDownload = _tracks.value.filter { !isDownloaded(it.id) && !isDownloading(it.id) }
         if (toDownload.isEmpty()) return
-
-        viewModelScope.launch {
-            _isBulkDownloading.value = true
-            try {
-                toDownload.forEach { track ->
-                    if (!isDownloaded(track.id) && !isDownloading(track.id)) {
-                        downloadTrackInternal(track, purple)
-                    }
-                }
-            } finally {
-                _isBulkDownloading.value = false
-            }
-        }
+        runBulkDownload(toDownload, purple)
     }
 
     fun refreshAllDownloads() {
@@ -862,17 +882,56 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         // downloaded tracks doesn't change here — only "Refresh Cache" in Settings does that.
         val tracksToRefresh = offlineLibrary.getTracks(server)
         if (tracksToRefresh.isEmpty()) return
+        runBulkDownload(tracksToRefresh, purple, skipIfDownloaded = false)
+    }
 
-        viewModelScope.launch {
+    private fun runBulkDownload(toDownload: List<Track>, purple: PurpleClient, skipIfDownloaded: Boolean = true) {
+        _isBulkDownloadPaused.value = false
+        bulkDownloadJob = viewModelScope.launch {
             _isBulkDownloading.value = true
             try {
-                tracksToRefresh.forEach { track ->
-                    if (!isDownloading(track.id)) downloadTrackInternal(track, purple)
+                for (track in toDownload) {
+                    while (_isBulkDownloadPaused.value && isActive) {
+                        delay(300)
+                    }
+                    if (!isActive) break
+                    val shouldSkip = isDownloading(track.id) || (skipIfDownloaded && isDownloaded(track.id))
+                    if (!shouldSkip) {
+                        downloadTrackInternal(track, purple)
+                    }
                 }
             } finally {
+                isCancellingBulkDownload = false
                 _isBulkDownloading.value = false
+                _isBulkDownloadPaused.value = false
             }
         }
+    }
+
+    /** Toggles pausing the bulk download queue after the current track finishes. */
+    fun toggleBulkDownloadPause() {
+        if (!_isBulkDownloading.value) return
+        _isBulkDownloadPaused.update { !it }
+    }
+
+    /**
+     * Force-stops a stuck or unwanted bulk download without requiring an app restart:
+     * cancels the queue, interrupts whichever file is downloading right now, and resets
+     * all download-related state back to idle.
+     */
+    fun cancelBulkDownload() {
+        if (!_isBulkDownloading.value && bulkDownloadJob == null) return
+        isCancellingBulkDownload = true
+        trackDownloader.cancelCurrent()
+        bulkDownloadJob?.cancel()
+        bulkDownloadJob = null
+        _isBulkDownloading.value = false
+        _isBulkDownloadPaused.value = false
+        _downloadingIds.value = emptySet()
+        _downloadProgress.value = emptyMap()
+        _downloadQueueTotal.value = 0
+        _downloadQueueCompleted.value = 0
+        downloadNotificationManager.clear()
     }
 
     private suspend fun downloadTrackInternal(track: Track, purple: PurpleClient) {
@@ -898,10 +957,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 )
             }
             refreshOfflineState()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: PurpleException) {
-            _error.value = e.message
+            if (!isCancellingBulkDownload) _error.value = e.message
         } catch (e: Exception) {
-            _error.value = getString(R.string.error_download_failed, e.message ?: "")
+            if (!isCancellingBulkDownload) _error.value = getString(R.string.error_download_failed, e.message ?: "")
         } finally {
             _downloadingIds.update { it - track.id }
             _downloadProgress.update { it - track.id }

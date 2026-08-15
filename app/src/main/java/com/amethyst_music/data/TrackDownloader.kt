@@ -9,6 +9,13 @@ import java.io.File
 import java.io.FileOutputStream
 
 class TrackDownloader {
+    @Volatile private var currentCall: okhttp3.Call? = null
+
+    /** Interrupts whichever file is downloading right now, if any. */
+    fun cancelCurrent() {
+        currentCall?.cancel()
+    }
+
     suspend fun download(
         httpClient: OkHttpClient,
         purple: PurpleClient,
@@ -63,37 +70,43 @@ class TrackDownloader {
         onProgress: (Float) -> Unit,
     ) {
         val request = Request.Builder().url(url).get().build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw PurpleException("Téléchargement échoué (${response.code})")
-            }
-            val body = response.body ?: throw PurpleException("Fichier vide")
-            val total = body.contentLength()
-            dest.parentFile?.mkdirs()
-            body.byteStream().use { input ->
-                BufferedOutputStream(FileOutputStream(dest)).use { output ->
-                    val buffer = ByteArray(65536) // Use a larger 64KB buffer
-                    var downloaded = 0L
-                    var read: Int
-                    var lastProgressUpdate = 0L
-                    
-                    while (input.read(buffer).also { read = it } != -1) {
-                        output.write(buffer, 0, read)
-                        downloaded += read
-                        
-                        if (total > 0) {
-                            val now = System.currentTimeMillis()
-                            // Update progress at most every 200ms to avoid saturating the UI thread
-                            if (now - lastProgressUpdate > 200) {
-                                val progress = (downloaded.toFloat() / total).coerceIn(0f, 1f)
-                                onProgress(progress)
-                                lastProgressUpdate = now
+        val call = client.newCall(request)
+        currentCall = call
+        try {
+            call.execute().use { response ->
+                if (!response.isSuccessful) {
+                    throw PurpleException("Téléchargement échoué (${response.code})")
+                }
+                val body = response.body ?: throw PurpleException("Fichier vide")
+                val total = body.contentLength()
+                dest.parentFile?.mkdirs()
+                body.byteStream().use { input ->
+                    BufferedOutputStream(FileOutputStream(dest)).use { output ->
+                        val buffer = ByteArray(65536) // Use a larger 64KB buffer
+                        var downloaded = 0L
+                        var read: Int
+                        var lastProgressUpdate = 0L
+
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                            downloaded += read
+
+                            if (total > 0) {
+                                val now = System.currentTimeMillis()
+                                // Update progress at most every 200ms to avoid saturating the UI thread
+                                if (now - lastProgressUpdate > 200) {
+                                    val progress = (downloaded.toFloat() / total).coerceIn(0f, 1f)
+                                    onProgress(progress)
+                                    lastProgressUpdate = now
+                                }
                             }
                         }
                     }
                 }
+                onProgress(1f)
             }
-            onProgress(1f)
+        } finally {
+            currentCall = null
         }
     }
 }

@@ -71,6 +71,12 @@
     <string name="connection_lost">Connection lost. Switch to offline mode?</string>
     <string name="switch_offline">Switch to Offline</string>
     <string name="stay_here">Stay Here</string>
+    <string name="connection">Connection</string>
+    <string name="check_connection">Check connection</string>
+    <string name="connection_online">You\'re online</string>
+    <string name="connection_offline">You\'re offline</string>
+    <string name="connection_restored">You\'re back online!</string>
+    <string name="still_offline">Still offline</string>
 
     <string name="now_playing">NOW PLAYING</string>
     <string name="close_player">Close player</string>
@@ -82,6 +88,7 @@
     <string name="pause">Pause</string>
     <string name="loop">Loop</string>
     <string name="playback_speed">Playback speed</string>
+    <string name="more_options">More options</string>
     <string name="default_playback_speed">Default playback speed</string>
     <string name="default_playback_speed_description">Speed applied at the start of every session</string>
     <string name="no_tracks_found">No tracks found.</string>
@@ -128,6 +135,9 @@
     <string name="bulk_download_hint">Tap a song to download or remove it</string>
     <string name="download_all">Download All</string>
     <string name="refresh_all_downloads">Refresh All</string>
+    <string name="pause_downloads">Pause</string>
+    <string name="resume_downloads">Resume</string>
+    <string name="cancel_all_downloads">Cancel All</string>
     <string name="presets">Presets</string>
     <string name="reset">Reset</string>
     <string name="custom">Custom</string>

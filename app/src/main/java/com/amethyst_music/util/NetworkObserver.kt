@@ -34,23 +34,32 @@ class NetworkObserver(context: Context) {
             }
         }
 
+        // Require the network to be validated (the system confirmed it actually reaches the
+        // internet, not just that it's connected to a router/AP with no uplink), so networks
+        // like a captive-portal Wi-Fi don't get reported as "online".
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             .build()
         connectivityManager.registerNetworkCallback(request, callback)
 
-        // Initial state
-        val isConnected = connectivityManager.activeNetwork?.let { network ->
-            connectivityManager.getNetworkCapabilities(network)
-                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        } ?: false
-        
-        launch { 
-            send(if (isConnected) NetworkStatus.Available else NetworkStatus.Unavailable) 
+        launch {
+            send(currentStatus())
         }
 
         awaitClose {
             connectivityManager.unregisterNetworkCallback(callback)
         }
     }.distinctUntilChanged()
+
+    /** Synchronously reads the current connectivity state, for on-demand rechecks. */
+    fun currentStatus(): NetworkStatus {
+        val isConnected = connectivityManager.activeNetwork?.let { network ->
+            connectivityManager.getNetworkCapabilities(network)
+        }?.let { caps ->
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } ?: false
+        return if (isConnected) NetworkStatus.Available else NetworkStatus.Unavailable
+    }
 }

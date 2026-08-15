@@ -75,6 +75,10 @@
     <string name="play">चलाएं</string>
     <string name="pause">रोकें</string>
     <string name="loop">लूप</string>
+    <string name="playback_speed">प्लेबैक गति</string>
+    <string name="more_options">और विकल्प</string>
+    <string name="default_playback_speed">डिफ़ॉल्ट प्लेबैक गति</string>
+    <string name="default_playback_speed_description">हर सत्र की शुरुआत में लागू होने वाली गति</string>
     <string name="no_tracks_found">कोई गाना नहीं मिला।</string>
     <string name="connect_server">अपने पर्पल म्यूजिक सर्वर को कनेक्ट करें</string>
     <string name="server_url">सर्वर URL</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">कनेक्शन टूट गया। ऑफलाइन मोड पर स्विच करें?</string>
     <string name="switch_offline">ऑफलाइन पर स्विच करें</string>
     <string name="stay_here">यहीं रहें</string>
+    <string name="connection">कनेक्शन</string>
+    <string name="check_connection">कनेक्शन जाँचें</string>
+    <string name="connection_online">आप ऑनलाइन हैं</string>
+    <string name="connection_offline">आप ऑफ़लाइन हैं</string>
+    <string name="connection_restored">आप फिर से ऑनलाइन हैं!</string>
+    <string name="still_offline">अभी भी ऑफ़लाइन</string>
     <string name="remove_from_playlist">प्लेलिस्ट से हटाएं</string>
     <string name="audio">ऑडियो</string>
     <string name="equalizer">इक्वलाइज़र</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">डाउनलोड करने या हटाने के लिए गाने पर टैप करें</string>
     <string name="download_all">सभी डाउनलोड करें</string>
     <string name="refresh_all_downloads">सभी रीफ्रेश करें</string>
+    <string name="pause_downloads">रोकें</string>
+    <string name="resume_downloads">फिर से शुरू करें</string>
+    <string name="cancel_all_downloads">सभी रद्द करें</string>
     <string name="presets">प्रीसेट</string>
     <string name="reset">रीसेट</string>
     <string name="custom">कस्टम</string>

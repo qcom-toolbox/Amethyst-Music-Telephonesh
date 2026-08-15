@@ -40,8 +40,9 @@ class ServerPreferences(context: Context) {
         get() = prefs.getFloat(KEY_DEFAULT_PLAYBACK_SPEED, 1f)
         set(value) = prefs.edit().putFloat(KEY_DEFAULT_PLAYBACK_SPEED, value).apply()
 
+    /** Empty string means "no explicit choice" — follow the system locale. */
     var language: String
-        get() = prefs.getString(KEY_LANGUAGE, "fr") ?: "fr"
+        get() = prefs.getString(KEY_LANGUAGE, "") ?: ""
         set(value) {
             prefs.edit().putString(KEY_LANGUAGE, value).apply()
         }

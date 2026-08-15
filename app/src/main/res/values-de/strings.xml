@@ -75,6 +75,10 @@
     <string name="play">Wiedergabe</string>
     <string name="pause">Pause</string>
     <string name="loop">Wiederholen</string>
+    <string name="playback_speed">Wiedergabegeschwindigkeit</string>
+    <string name="more_options">Weitere Optionen</string>
+    <string name="default_playback_speed">Standard-Wiedergabegeschwindigkeit</string>
+    <string name="default_playback_speed_description">Geschwindigkeit, die zu Beginn jeder Sitzung angewendet wird</string>
     <string name="no_tracks_found">Keine Titel gefunden.</string>
     <string name="connect_server">Verbinden Sie Ihren Purple Music Server</string>
     <string name="server_url">Server-URL</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">Verbindung verloren. In den Offline-Modus wechseln?</string>
     <string name="switch_offline">In den Offline-Modus wechseln</string>
     <string name="stay_here">Hier bleiben</string>
+    <string name="connection">Verbindung</string>
+    <string name="check_connection">Verbindung prüfen</string>
+    <string name="connection_online">Du bist online</string>
+    <string name="connection_offline">Du bist offline</string>
+    <string name="connection_restored">Du bist wieder online!</string>
+    <string name="still_offline">Weiterhin offline</string>
     <string name="remove_from_playlist">Aus Playlist entfernen</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Equalizer</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">Tippe auf einen Song, um ihn herunterzuladen oder zu entfernen</string>
     <string name="download_all">Alle herunterladen</string>
     <string name="refresh_all_downloads">Alle aktualisieren</string>
+    <string name="pause_downloads">Pause</string>
+    <string name="resume_downloads">Fortsetzen</string>
+    <string name="cancel_all_downloads">Alle abbrechen</string>
     <string name="presets">Voreinstellungen</string>
     <string name="reset">Zurücksetzen</string>
     <string name="custom">Benutzerdefiniert</string>

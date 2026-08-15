@@ -75,6 +75,10 @@
     <string name="play">Играть</string>
     <string name="pause">Пауза</string>
     <string name="loop">Повтор</string>
+    <string name="playback_speed">Скорость воспроизведения</string>
+    <string name="more_options">Дополнительные параметры</string>
+    <string name="default_playback_speed">Скорость воспроизведения по умолчанию</string>
+    <string name="default_playback_speed_description">Скорость, применяемая в начале каждого сеанса</string>
     <string name="no_tracks_found">Треки не найдены.</string>
     <string name="connect_server">Подключите ваш сервер Purple Music</string>
     <string name="server_url">URL сервера</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">Соединение потеряно. Перейти в офлайн-режим?</string>
     <string name="switch_offline">Перейти в офлайн</string>
     <string name="stay_here">Остаться здесь</string>
+    <string name="connection">Соединение</string>
+    <string name="check_connection">Проверить соединение</string>
+    <string name="connection_online">Вы в сети</string>
+    <string name="connection_offline">Вы не в сети</string>
+    <string name="connection_restored">Вы снова в сети!</string>
+    <string name="still_offline">Всё ещё не в сети</string>
     <string name="remove_from_playlist">Удалить из плейлиста</string>
     <string name="audio">Аудио</string>
     <string name="equalizer">Эквалайзер</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">Нажмите на песню, чтобы скачать или удалить её</string>
     <string name="download_all">Скачать все</string>
     <string name="refresh_all_downloads">Обновить все</string>
+    <string name="pause_downloads">Пауза</string>
+    <string name="resume_downloads">Продолжить</string>
+    <string name="cancel_all_downloads">Отменить все</string>
     <string name="presets">Пресеты</string>
     <string name="reset">Сбросить</string>
     <string name="custom">Пользовательский</string>
