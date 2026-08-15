@@ -75,6 +75,10 @@
     <string name="play">Тоглуулах</string>
     <string name="pause">Түр зогсоох</string>
     <string name="loop">Давтах</string>
+    <string name="playback_speed">Тоглуулах хурд</string>
+    <string name="more_options">Нэмэлт сонголтууд</string>
+    <string name="default_playback_speed">Үндсэн тоглуулах хурд</string>
+    <string name="default_playback_speed_description">Сесс бүр эхлэхэд ашиглагдах хурд</string>
     <string name="no_tracks_found">Зам олдсонгүй.</string>
     <string name="connect_server">Purple Music серверээ холбоно уу</string>
     <string name="server_url">Сервер URL</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">Холболт тасарлаа. Офлайн горимд шилжих үү?</string>
     <string name="switch_offline">Офлайн руу шилжих</string>
     <string name="stay_here">Энд үлдэх</string>
+    <string name="connection">Холболт</string>
+    <string name="check_connection">Холболт шалгах</string>
+    <string name="connection_online">Та онлайн байна</string>
+    <string name="connection_offline">Та оффлайн байна</string>
+    <string name="connection_restored">Та дахин онлайн боллоо!</string>
+    <string name="still_offline">Хараахан оффлайн байна</string>
     <string name="remove_from_playlist">Плейлистээс хасах</string>
     <string name="audio">Аудио</string>
     <string name="equalizer">Эквалайзер</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">Татах эсвэл устгахын тулд дуу дээр товшино уу</string>
     <string name="download_all">Бүгдийг татах</string>
     <string name="refresh_all_downloads">Бүгдийг сэргээх</string>
+    <string name="pause_downloads">Түр зогсоох</string>
+    <string name="resume_downloads">Үргэлжлүүлэх</string>
+    <string name="cancel_all_downloads">Бүгдийг цуцлах</string>
     <string name="presets">Тохиргоонууд</string>
     <string name="reset">Шинэчлэх</string>
     <string name="custom">Өөрчилсөн</string>

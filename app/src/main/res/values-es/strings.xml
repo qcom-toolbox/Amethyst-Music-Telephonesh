@@ -75,6 +75,10 @@
     <string name="play">Reproducir</string>
     <string name="pause">Pausa</string>
     <string name="loop">Bucle</string>
+    <string name="playback_speed">Velocidad de reproducción</string>
+    <string name="more_options">Más opciones</string>
+    <string name="default_playback_speed">Velocidad de reproducción predeterminada</string>
+    <string name="default_playback_speed_description">Velocidad aplicada al inicio de cada sesión</string>
     <string name="no_tracks_found">No se encontraron pistas.</string>
     <string name="connect_server">Conecta tu servidor Purple Music</string>
     <string name="server_url">URL del servidor</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">Conexión perdida. ¿Cambiar a modo sin conexión?</string>
     <string name="switch_offline">Cambiar a modo sin conexión</string>
     <string name="stay_here">Permanecer aquí</string>
+    <string name="connection">Conexión</string>
+    <string name="check_connection">Comprobar conexión</string>
+    <string name="connection_online">Estás en línea</string>
+    <string name="connection_offline">Estás sin conexión</string>
+    <string name="connection_restored">¡Ya estás en línea de nuevo!</string>
+    <string name="still_offline">Sigues sin conexión</string>
     <string name="remove_from_playlist">Eliminar de la lista de reproducción</string>
     <string name="audio">Audio</string>
     <string name="equalizer">Ecualizador</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">Toca una canción para descargarla o eliminarla</string>
     <string name="download_all">Descargar todo</string>
     <string name="refresh_all_downloads">Actualizar todo</string>
+    <string name="pause_downloads">Pausar</string>
+    <string name="resume_downloads">Reanudar</string>
+    <string name="cancel_all_downloads">Cancelar todo</string>
     <string name="presets">Ajustes preestablecidos</string>
     <string name="reset">Restablecer</string>
     <string name="custom">Personalizado</string>

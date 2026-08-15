@@ -75,6 +75,10 @@
     <string name="play">播放</string>
     <string name="pause">暂停</string>
     <string name="loop">循环播放</string>
+    <string name="playback_speed">播放速度</string>
+    <string name="more_options">更多选项</string>
+    <string name="default_playback_speed">默认播放速度</string>
+    <string name="default_playback_speed_description">每次会话开始时应用的速度</string>
     <string name="no_tracks_found">未找到曲目。</string>
     <string name="connect_server">连接您的 Purple Music 服务器</string>
     <string name="server_url">服务器地址</string>
@@ -133,6 +137,12 @@
     <string name="connection_lost">连接已断开。是否切换到离线模式？</string>
     <string name="switch_offline">切换到离线</string>
     <string name="stay_here">留在当前</string>
+    <string name="connection">网络连接</string>
+    <string name="check_connection">检查连接</string>
+    <string name="connection_online">您已在线</string>
+    <string name="connection_offline">您已离线</string>
+    <string name="connection_restored">已恢复在线！</string>
+    <string name="still_offline">仍处于离线状态</string>
     <string name="remove_from_playlist">从播放列表中移除</string>
     <string name="audio">音频</string>
     <string name="equalizer">均衡器</string>
@@ -140,6 +150,9 @@
     <string name="bulk_download_hint">点击歌曲以下载或取消下载</string>
     <string name="download_all">全部下载</string>
     <string name="refresh_all_downloads">全部刷新</string>
+    <string name="pause_downloads">暂停</string>
+    <string name="resume_downloads">继续</string>
+    <string name="cancel_all_downloads">取消全部</string>
     <string name="presets">预设</string>
     <string name="reset">重置</string>
     <string name="custom">自定义</string>

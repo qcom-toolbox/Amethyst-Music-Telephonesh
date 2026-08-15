@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -79,6 +80,7 @@ fun FullPlayerScreen(
     var isLyricsMaximized by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
     var showQueue by remember { mutableStateOf(false) }
+    var showMoreMenu by remember { mutableStateOf(false) }
     var showSpeedMenu by remember { mutableStateOf(false) }
 
     // Smooth position interpolation
@@ -163,17 +165,80 @@ fun FullPlayerScreen(
                         factory = { context ->
                             MediaRouteButton(context).apply {
                                 CastButtonFactory.setUpMediaRouteButton(context, this)
+                                // Force the icon to render solid white regardless of connection
+                                // state or the app's light/dark theme (the Cast library otherwise
+                                // picks a dark icon in light mode).
+                                setLayerType(
+                                    android.view.View.LAYER_TYPE_SOFTWARE,
+                                    android.graphics.Paint().apply {
+                                        colorFilter = android.graphics.ColorMatrixColorFilter(
+                                            floatArrayOf(
+                                                0f, 0f, 0f, 0f, 255f,
+                                                0f, 0f, 0f, 0f, 255f,
+                                                0f, 0f, 0f, 0f, 255f,
+                                                0f, 0f, 0f, 1f, 0f
+                                            )
+                                        )
+                                    }
+                                )
                             }
                         },
                         modifier = Modifier.padding(end = 8.dp).size(32.dp)
                     )
+                    IconButton(onClick = onToggleLyrics) {
+                        Icon(
+                            Icons.Default.Lyrics,
+                            contentDescription = stringResource(R.string.lyrics),
+                            tint = if (showLyrics) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Box {
-                        TextButton(onClick = { showSpeedMenu = true }) {
-                            Text(
-                                text = formatSpeed(playbackSpeed),
-                                color = if (playbackSpeed != 1f) MaterialTheme.colorScheme.primary else onSurface,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
+                        IconButton(onClick = { showMoreMenu = true }) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.more_options),
+                                tint = onSurface
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMoreMenu,
+                            onDismissRequest = { showMoreMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.playback_speed)) },
+                                trailingIcon = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = formatSpeed(playbackSpeed),
+                                            color = if (playbackSpeed != 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 14.sp,
+                                        )
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                            contentDescription = null,
+                                            tint = onSurface
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    showMoreMenu = false
+                                    showSpeedMenu = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.add_to_playlist)) },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.PlaylistAdd,
+                                        contentDescription = null,
+                                        tint = onSurface
+                                    )
+                                },
+                                onClick = {
+                                    showMoreMenu = false
+                                    onAddToPlaylist()
+                                }
                             )
                         }
                         DropdownMenu(
@@ -202,20 +267,6 @@ fun FullPlayerScreen(
                                 )
                             }
                         }
-                    }
-                    IconButton(onClick = onAddToPlaylist) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.PlaylistAdd,
-                            contentDescription = stringResource(R.string.add_to_playlist),
-                            tint = onSurface
-                        )
-                    }
-                    IconButton(onClick = onToggleLyrics) {
-                        Icon(
-                            Icons.Default.Lyrics,
-                            contentDescription = stringResource(R.string.lyrics),
-                            tint = if (showLyrics) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
                     }
                 }
             }

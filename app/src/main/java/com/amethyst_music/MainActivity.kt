@@ -273,6 +273,7 @@ class MainActivity : AppCompatActivity() {
                                 val bulkDownloadingIds by vm.downloadingIds.collectAsState()
                                 val bulkDownloadProgress by vm.downloadProgress.collectAsState()
                                 val bulkDownloadRunning by vm.isBulkDownloading.collectAsState()
+                                val bulkDownloadPaused by vm.isBulkDownloadPaused.collectAsState()
 
                                 BulkDownloadScreen(
                                     tracks = allTracks,
@@ -280,12 +281,15 @@ class MainActivity : AppCompatActivity() {
                                     downloadingIds = bulkDownloadingIds,
                                     downloadProgress = bulkDownloadProgress,
                                     isBulkDownloading = bulkDownloadRunning,
+                                    isBulkDownloadPaused = bulkDownloadPaused,
                                     coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
                                     onToggleDownload = { track ->
                                         if (vm.isDownloaded(track.id)) vm.removeDownload(track) else vm.downloadTrack(track)
                                     },
                                     onDownloadAll = vm::downloadAllTracks,
                                     onRefreshAllDownloads = vm::refreshAllDownloads,
+                                    onTogglePause = vm::toggleBulkDownloadPause,
+                                    onCancelAll = vm::cancelBulkDownload,
                                     onClose = vm::closeBulkDownload,
                                 )
                             }

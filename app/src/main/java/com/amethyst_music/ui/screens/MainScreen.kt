@@ -150,6 +150,7 @@ fun MainScreen(
     onThemeChange: (Long, Boolean) -> Unit = { _, _ -> },
 ) {
     val isOnline by vm.isOnline.collectAsState()
+    val isCheckingConnection by vm.isCheckingConnection.collectAsState()
     val showOfflineConfirmation by vm.showOfflineConfirmation.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -507,7 +508,9 @@ fun MainScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = { trackToEdit = it }
+                    onEditTrack = { trackToEdit = it },
+                    isRefreshing = isCheckingConnection,
+                    onRefresh = remember(vm) { { vm.recheckConnection() } },
                 )
                 4 -> SettingsScreen(
                     currentLanguage = currentLanguage,
@@ -522,7 +525,10 @@ fun MainScreen(
                     onDefaultPlaybackSpeedChange = vm::setDefaultPlaybackSpeed,
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
-                    onAdminModeChange = vm::setAdminModeEnabled
+                    onAdminModeChange = vm::setAdminModeEnabled,
+                    isOnline = isOnline,
+                    isCheckingConnection = isCheckingConnection,
+                    onCheckConnection = remember(vm) { { vm.recheckConnection() } },
                 )
             }
         }
@@ -606,6 +612,7 @@ fun FilterSortMenu(
         }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TrackList(
     tracks: List<Track>,
@@ -623,45 +630,61 @@ private fun TrackList(
     onRemoveFromPlaylist: ((Track) -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: ((Track) -> Unit)? = null,
+    isRefreshing: Boolean = false,
+    onRefresh: (() -> Unit)? = null,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
-    ) {
-        if (tracks.isEmpty()) {
-            item {
-                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val listContent = @Composable {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
+        ) {
+            if (tracks.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
             }
-        }
 
-        items(
-            items = tracks,
-            key = { it.id },           // Critical for performance
-            contentType = { "track_item" }
-        ) { track ->
-            TrackRow(
-                track = track,
-                isCurrent = track.id == currentTrack?.id,
-                isPlaying = isPlaying,
-                cover = coverUrlForTrack(track),
-                isDownloaded = downloadedIds.contains(track.id),
-                isDownloading = downloadingIds.contains(track.id),
-                downloadProgress = downloadProgress[track.id],
-                showDownloadActions = showDownloadActions,
-                onClick = { onTrackClick(track) },
-                onDownload = { onDownload(track) },
-                onRemoveDownload = { onRemoveDownload(track) },
-                onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
-                onRemoveFromPlaylist = onRemoveFromPlaylist?.let { { it(track) } },
-                adminModeEnabled = adminModeEnabled,
-                onEditTrack = onEditTrack?.let { { it(track) } },
-            )
+            items(
+                items = tracks,
+                key = { it.id },           // Critical for performance
+                contentType = { "track_item" }
+            ) { track ->
+                TrackRow(
+                    track = track,
+                    isCurrent = track.id == currentTrack?.id,
+                    isPlaying = isPlaying,
+                    cover = coverUrlForTrack(track),
+                    isDownloaded = downloadedIds.contains(track.id),
+                    isDownloading = downloadingIds.contains(track.id),
+                    downloadProgress = downloadProgress[track.id],
+                    showDownloadActions = showDownloadActions,
+                    onClick = { onTrackClick(track) },
+                    onDownload = { onDownload(track) },
+                    onRemoveDownload = { onRemoveDownload(track) },
+                    onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
+                    onRemoveFromPlaylist = onRemoveFromPlaylist?.let { { it(track) } },
+                    adminModeEnabled = adminModeEnabled,
+                    onEditTrack = onEditTrack?.let { { it(track) } },
+                )
+            }
         }
+    }
+
+    if (onRefresh != null) {
+        androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            listContent()
+        }
+    } else {
+        listContent()
     }
 }
 
