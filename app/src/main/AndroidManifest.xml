@@ -53,7 +53,7 @@
 
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.qcom_toolbox.amethyst_music.player.AmethystCastOptionsProvider" />
+            android:value="com.amethyst_music.player.AmethystCastOptionsProvider" />
     </application>
 
 </manifest>

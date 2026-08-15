@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music Server-URL</string>
     <string name="server_example">https://dein-server.de</string>
-    <string name="trust_all_certs">HTTPS-Fehler ignorieren</string>
-    <string name="trust_all_certs_hint">Empfohlen für Android 6 bei selbstsignierten Zertifikaten.</string>
     <string name="tab_offline">Offline</string>
     <string name="listen_offline">Offline anhören</string>
     <string name="download">Herunterladen</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">Keine Titel gefunden.</string>
     <string name="connect_server">Verbinden Sie Ihren Purple Music Server</string>
     <string name="server_url">Server-URL</string>
-    <string name="trust_all_certs_m">Empfohlen für Android 6 (selbstsignierte Zertifikate).</string>
-    <string name="trust_all_certs_other">Für Server mit selbstsignierten oder ungültigen Zertifikaten.</string>
     <string name="connect">Verbinden</string>
     <string name="error_no_server">Kein Server konfiguriert.</string>
     <string name="error_no_offline">Keine heruntergeladenen Titel gefunden.</string>

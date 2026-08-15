@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">Purple Music 服务器地址</string>
     <string name="server_example">https://your-server.com</string>
-    <string name="trust_all_certs">忽略 HTTPS 错误</string>
-    <string name="trust_all_certs_hint">推荐在 Android 6 上对自签名证书使用。</string>
     <string name="tab_offline">离线</string>
     <string name="listen_offline">离线收听</string>
     <string name="download">下载</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">未找到曲目。</string>
     <string name="connect_server">连接您的 Purple Music 服务器</string>
     <string name="server_url">服务器地址</string>
-    <string name="trust_all_certs_m">推荐在 Android 6 上使用（自签名证书）。</string>
-    <string name="trust_all_certs_other">适用于自签名或无效证书的服务器。</string>
     <string name="connect">连接</string>
     <string name="error_no_server">未配置服务器。</string>
     <string name="error_no_offline">未发现下载的曲目。</string>

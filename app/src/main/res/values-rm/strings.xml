@@ -2,8 +2,6 @@
     <string name="app_name">Amethyst Music</string>
     <string name="server_hint">URL dal server Purple Music</string>
     <string name="server_example">https://your-server.com</string>
-    <string name="trust_all_certs">Ignorar eras HTTPS</string>
-    <string name="trust_all_certs_hint">Recumandà sin Android 6 per certificats auto-signads.</string>
     <string name="tab_offline">Offline</string>
     <string name="listen_offline">Sutgeir offline</string>
     <string name="download">Telechargiar</string>
@@ -80,8 +78,6 @@
     <string name="no_tracks_found">Nagins titels chattads.</string>
     <string name="connect_server">Colliar Voss server Purple Music</string>
     <string name="server_url">URL dal server</string>
-    <string name="trust_all_certs_m">Recumandà sin Android 6 (certificats auto-signads).</string>
-    <string name="trust_all_certs_other">Per servers cun certificats auto-signads u nunvalids.</string>
     <string name="connect">Colliar</string>
     <string name="error_no_server">Nagin server configurà.</string>
     <string name="error_no_offline">Naginas chanzuns telechargiadas chattadas.</string>
