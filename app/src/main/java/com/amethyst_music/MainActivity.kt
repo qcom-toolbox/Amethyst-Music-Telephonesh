@@ -33,6 +33,7 @@ import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.amethyst_music.data.ServerPreferences
 import com.amethyst_music.ui.components.AddToPlaylistDialog
+import com.amethyst_music.ui.screens.ArtistScreen
 import com.amethyst_music.ui.screens.BulkDownloadScreen
 import com.amethyst_music.ui.screens.EqualizerScreen
 import com.amethyst_music.ui.screens.FullPlayerScreen
@@ -108,6 +109,10 @@ class MainActivity : AppCompatActivity() {
                 val offlineOnlyMode by vm.offlineOnlyMode.collectAsState()
                 val currentTrack by vm.musicPlayer.currentTrack.collectAsState()
                 val isPlaying by vm.musicPlayer.isPlaying.collectAsState()
+                val artistLinksEnabled by vm.artistLinksEnabled.collectAsState()
+                val onArtistClick = remember(vm, artistLinksEnabled) {
+                    { name: String -> if (artistLinksEnabled) vm.openArtistPage(name) }
+                }
 
                 val context = LocalContext.current
                 val imageLoader = remember(vm.okHttpClient()) {
@@ -234,6 +239,8 @@ class MainActivity : AppCompatActivity() {
                                                 vm.setUseHarmony(harmony)
                                             }
                                         },
+                                        onArtistClick = onArtistClick,
+                                        artistClickEnabled = artistLinksEnabled,
                                     )
                                 }
                             }
@@ -343,6 +350,62 @@ class MainActivity : AppCompatActivity() {
                                         onDownload = { vm.downloadTrack(it) },
                                         onAddToPlaylistForTrack = { vm.showAddToPlaylist(it) },
                                         coverUrlProvider = { vm.coverUrlForTrack(it) },
+                                        onArtistClick = onArtistClick,
+                                        artistClickEnabled = artistLinksEnabled,
+                                    )
+                                }
+                            }
+
+                            val selectedArtist by vm.selectedArtist.collectAsState()
+                            AnimatedVisibility(
+                                visible = selectedArtist != null,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                selectedArtist?.let { artistName ->
+                                    val artistTracks by vm.artistTracks.collectAsState()
+                                    val artistDownloadedIds by vm.downloadedIds.collectAsState()
+                                    val artistDownloadingIds by vm.downloadingIds.collectAsState()
+                                    val artistDownloadProgress by vm.downloadProgress.collectAsState()
+
+                                    ArtistScreen(
+                                        artistName = artistName,
+                                        tracks = artistTracks,
+                                        currentTrack = currentTrack,
+                                        isPlaying = isPlaying,
+                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                        downloadedIds = artistDownloadedIds,
+                                        downloadingIds = artistDownloadingIds,
+                                        downloadProgress = artistDownloadProgress,
+                                        onBack = vm::closeArtistPage,
+                                        onTrackClick = remember(vm) {
+                                            { track ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playArtistTrack(track)
+                                            }
+                                        },
+                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
+                                        onPlayPause = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.togglePlayPause()
+                                            }
+                                        },
+                                        onNext = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.nextTrack()
+                                            }
+                                        },
+                                        onPrevious = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.previousTrack()
+                                            }
+                                        },
                                     )
                                 }
                             }

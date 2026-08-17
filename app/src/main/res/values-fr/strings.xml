@@ -158,4 +158,13 @@
     <string name="custom">Personnalisé</string>
     <string name="up_next">À suivre</string>
     <string name="queue">File d\'attente</string>
+
+    <string name="back">Retour</string>
+    <string name="artist_links">Pages d\'artiste</string>
+    <string name="artist_links_hint">Touchez le nom d\'un artiste pour ouvrir sa page</string>
+    <string name="artist_links_lists">Liens d\'artiste dans les listes</string>
+    <string name="artist_links_lists_hint">Autoriser aussi dans Bibliothèque, Hors ligne et Playlists (Accueil et le lecteur plein écran ne sont pas concernés)</string>
+    <string name="loading_biography">Chargement de la biographie…</string>
+    <string name="no_description_available">Aucune description disponible.</string>
+    <string name="view_on_wikipedia">Voir sur Wikipédia ↗</string>
 </resources>

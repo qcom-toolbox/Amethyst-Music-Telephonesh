@@ -137,6 +137,8 @@ fun MainScreen(
     onRefresh: () -> Unit,
     onLogout: () -> Unit,
     onExitOffline: () -> Unit,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
     onMiniPlayerClick: () -> Unit,
     onTogglePlay: () -> Unit,
     onNextTrack: () -> Unit,
@@ -187,6 +189,11 @@ fun MainScreen(
     val currentPlaylistTracks by vm.currentPlaylistTracks.collectAsState()
     val isAdmin by vm.isAdmin.collectAsState()
     val adminModeEnabled by vm.adminModeEnabled.collectAsState()
+    val artistLinksEnabled by vm.artistLinksEnabled.collectAsState()
+    val artistLinksInListsEnabled by vm.artistLinksInListsEnabled.collectAsState()
+    // Library/Playlist/Offline lists respect the narrower "in lists" toggle; Home keeps
+    // using artistClickEnabled (the master toggle) directly.
+    val listArtistClickEnabled = artistClickEnabled && artistLinksInListsEnabled
     val defaultPlaybackSpeed by vm.defaultPlaybackSpeed.collectAsState()
 
     var showUploadDialog by remember { mutableStateOf(false) }
@@ -449,7 +456,9 @@ fun MainScreen(
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = { trackToEdit = it },
                     isRefreshing = isLoading,
-                    onRefresh = onRefresh
+                    onRefresh = onRefresh,
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
                 1 -> TrackList(
                     tracks = tracks,
@@ -465,7 +474,9 @@ fun MainScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = { trackToEdit = it }
+                    onEditTrack = { trackToEdit = it },
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = listArtistClickEnabled,
                 )
                 2 -> if (currentPlaylist != null) {
                     TrackList(
@@ -481,11 +492,13 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                        onRemoveFromPlaylist = remember(vm, currentPlaylist) { 
-                            { track -> vm.removeFromPlaylist(currentPlaylist!!, track) } 
+                        onRemoveFromPlaylist = remember(vm, currentPlaylist) {
+                            { track -> vm.removeFromPlaylist(currentPlaylist!!, track) }
                         },
                         adminModeEnabled = adminModeEnabled,
-                        onEditTrack = { trackToEdit = it }
+                        onEditTrack = { trackToEdit = it },
+                        onArtistClick = onArtistClick,
+                        artistClickEnabled = listArtistClickEnabled,
                     )
                 } else {
                     PlaylistList(
@@ -511,6 +524,8 @@ fun MainScreen(
                     onEditTrack = { trackToEdit = it },
                     isRefreshing = isCheckingConnection,
                     onRefresh = remember(vm) { { vm.recheckConnection() } },
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = listArtistClickEnabled,
                 )
                 4 -> SettingsScreen(
                     currentLanguage = currentLanguage,
@@ -526,6 +541,10 @@ fun MainScreen(
                     isAdmin = isAdmin,
                     adminModeEnabled = adminModeEnabled,
                     onAdminModeChange = vm::setAdminModeEnabled,
+                    artistLinksEnabled = artistLinksEnabled,
+                    onArtistLinksEnabledChange = vm::setArtistLinksEnabled,
+                    artistLinksInListsEnabled = artistLinksInListsEnabled,
+                    onArtistLinksInListsEnabledChange = vm::setArtistLinksInListsEnabled,
                     isOnline = isOnline,
                     isCheckingConnection = isCheckingConnection,
                     onCheckConnection = remember(vm) { { vm.recheckConnection() } },
@@ -632,6 +651,8 @@ private fun TrackList(
     onEditTrack: ((Track) -> Unit)? = null,
     isRefreshing: Boolean = false,
     onRefresh: (() -> Unit)? = null,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     val listContent = @Composable {
         LazyColumn(
@@ -670,6 +691,8 @@ private fun TrackList(
                     onRemoveFromPlaylist = onRemoveFromPlaylist?.let { { it(track) } },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = onEditTrack?.let { { it(track) } },
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
             }
         }

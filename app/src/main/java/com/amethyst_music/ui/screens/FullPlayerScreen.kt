@@ -41,6 +41,7 @@ import coil.compose.AsyncImage
 import com.amethyst_music.AppViewModel
 import com.amethyst_music.R
 import com.amethyst_music.data.Track
+import com.amethyst_music.ui.components.ArtistNameText
 import com.amethyst_music.ui.components.TrackRow
 import com.amethyst_music.ui.theme.*
 
@@ -76,6 +77,8 @@ fun FullPlayerScreen(
     onDownload: (Track) -> Unit,
     onAddToPlaylistForTrack: (Track) -> Unit,
     coverUrlProvider: (Track) -> String?,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     var isLyricsMaximized by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
@@ -305,13 +308,13 @@ fun FullPlayerScreen(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = track.artist,
+                    ArtistNameText(
+                        artist = track.artist,
+                        onArtistClick = onArtistClick,
                         fontSize = if (showLyrics) 14.sp else 16.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        enabled = artistClickEnabled,
                     )
                 }
 
@@ -598,7 +601,9 @@ fun FullPlayerScreen(
                             },
                             onDownload = { onDownload(qTrack) },
                             onRemoveDownload = { },
-                            onAddToPlaylist = { onAddToPlaylistForTrack(qTrack) }
+                            onAddToPlaylist = { onAddToPlaylistForTrack(qTrack) },
+                            onArtistClick = onArtistClick,
+                            artistClickEnabled = artistClickEnabled,
                         )
                     }
                 }
