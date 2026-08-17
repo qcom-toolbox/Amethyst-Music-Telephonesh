@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.amethyst_music.R
 import com.amethyst_music.data.Track
+import com.amethyst_music.ui.components.ArtistNameText
 import com.amethyst_music.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +61,8 @@ fun HomeScreen(
     onEditTrack: ((Track) -> Unit)? = null,
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -82,7 +85,9 @@ fun HomeScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = onEditTrack
+                    onEditTrack = onEditTrack,
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
             }
             item {
@@ -97,7 +102,9 @@ fun HomeScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = onEditTrack
+                    onEditTrack = onEditTrack,
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
             }
             item {
@@ -112,7 +119,9 @@ fun HomeScreen(
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = onEditTrack
+                    onEditTrack = onEditTrack,
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
             }
         }
@@ -132,6 +141,8 @@ fun HomeSection(
     onAddToPlaylist: ((Track) -> Unit)?,
     adminModeEnabled: Boolean,
     onEditTrack: ((Track) -> Unit)?,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     if (tracks.isEmpty()) return
 
@@ -158,7 +169,9 @@ fun HomeSection(
                     onRemoveDownload = { onRemoveDownload(track) },
                     onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
                     adminModeEnabled = adminModeEnabled,
-                    onEditTrack = onEditTrack?.let { { it(track) } }
+                    onEditTrack = onEditTrack?.let { { it(track) } },
+                    onArtistClick = onArtistClick,
+                    artistClickEnabled = artistClickEnabled,
                 )
             }
         }
@@ -178,6 +191,8 @@ fun HomeTrackCard(
     onAddToPlaylist: (() -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: (() -> Unit)? = null,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
@@ -279,12 +294,12 @@ fun HomeTrackCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Text(
-            text = track.artist,
+        ArtistNameText(
+            artist = track.artist,
+            onArtistClick = onArtistClick,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            enabled = artistClickEnabled,
         )
     }
 }

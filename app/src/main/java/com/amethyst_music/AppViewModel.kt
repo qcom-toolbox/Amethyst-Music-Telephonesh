@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
+import com.amethyst_music.data.ArtistUtils
 import com.amethyst_music.data.LyricsCache
 import com.amethyst_music.data.OfflineLibrary
 import com.amethyst_music.data.PersistentCookieJar
@@ -239,6 +240,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _adminModeEnabled = MutableStateFlow(prefs.adminModeEnabled)
     val adminModeEnabled: StateFlow<Boolean> = _adminModeEnabled.asStateFlow()
 
+    private val _artistLinksEnabled = MutableStateFlow(prefs.artistLinksEnabled)
+    val artistLinksEnabled: StateFlow<Boolean> = _artistLinksEnabled.asStateFlow()
+
+    private val _artistLinksInListsEnabled = MutableStateFlow(prefs.artistLinksInListsEnabled)
+    val artistLinksInListsEnabled: StateFlow<Boolean> = _artistLinksInListsEnabled.asStateFlow()
+
     private val _defaultPlaybackSpeed = MutableStateFlow(prefs.defaultPlaybackSpeed)
     val defaultPlaybackSpeed: StateFlow<Float> = _defaultPlaybackSpeed.asStateFlow()
 
@@ -292,6 +299,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showBulkDownload = MutableStateFlow(false)
     val showBulkDownload: StateFlow<Boolean> = _showBulkDownload.asStateFlow()
+
+    private val _selectedArtist = MutableStateFlow<String?>(null)
+    val selectedArtist: StateFlow<String?> = _selectedArtist.asStateFlow()
+
+    val artistTracks: StateFlow<List<Track>> = combine(
+        _selectedArtist, _tracks, _offlineTracks, _offlineOnlyMode
+    ) { name, tracks, offline, offlineMode ->
+        if (name == null) return@combine emptyList()
+        val source = if (offlineMode) offline else tracks
+        source.filter { ArtistUtils.trackBelongsToArtist(it.artist, name, currentLangCode()) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
     val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
@@ -424,6 +442,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun currentServerUrl(): String? = prefs.serverUrl
+
+    /** UI language code for artist-name entity decoding, e.g. artist page matching. */
+    private fun currentLangCode(): String =
+        _language.value.ifBlank { java.util.Locale.getDefault().language }
 
     private fun updatePlayerCallbacks() {
         PlaybackHolder.controller = object : PlaybackController {
@@ -578,6 +600,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _adminModeEnabled.value = enabled
     }
 
+    fun setArtistLinksEnabled(enabled: Boolean) {
+        prefs.artistLinksEnabled = enabled
+        _artistLinksEnabled.value = enabled
+    }
+
+    fun setArtistLinksInListsEnabled(enabled: Boolean) {
+        prefs.artistLinksInListsEnabled = enabled
+        _artistLinksInListsEnabled.value = enabled
+    }
+
     /** Sets the default playback speed applied at the start of every future session. */
     fun setDefaultPlaybackSpeed(speed: Float) {
         prefs.defaultPlaybackSpeed = speed
@@ -613,6 +645,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeBulkDownload() {
         _showBulkDownload.value = false
+    }
+
+    fun openArtistPage(name: String) {
+        _selectedArtist.value = name
+    }
+
+    fun closeArtistPage() {
+        _selectedArtist.value = null
     }
 
     fun showAddToPlaylist(track: Track) {
@@ -1085,6 +1125,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             3 -> filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
             else -> filteredTracks.value.ifEmpty { tracks.value }
         }
+        playFromQueue(baseQueue, track)
+    }
+
+    /** Plays a track from the currently open artist page, queuing the rest of that artist's tracks. */
+    fun playArtistTrack(track: Track) {
+        playFromQueue(artistTracks.value, track)
+    }
+
+    private fun playFromQueue(baseQueue: List<Track>, track: Track) {
         if (baseQueue.isEmpty()) return
         val index = baseQueue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
         musicPlayer.playQueue(baseQueue, index) { t, fr -> playbackUrl(t, fr) }

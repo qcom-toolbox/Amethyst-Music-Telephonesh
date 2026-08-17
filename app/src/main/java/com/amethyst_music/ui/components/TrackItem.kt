@@ -48,6 +48,8 @@ fun TrackRow(
     onRemoveFromPlaylist: (() -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: (() -> Unit)? = null,
+    onArtistClick: (String) -> Unit = {},
+    artistClickEnabled: Boolean = true,
 ) {
     var showMenu by remember { mutableStateOf(false) }
     val placeholder = rememberVectorPainter(Icons.Default.MusicNote)
@@ -98,13 +100,13 @@ fun TrackRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            val subtitle = remember(track.artist, track.genre) { "${track.artist} • ${track.genre}" }
-            Text(
-                text = subtitle,
+            ArtistNameText(
+                artist = track.artist,
+                onArtistClick = onArtistClick,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                suffix = " • ${track.genre}",
+                enabled = artistClickEnabled,
             )
             if (isDownloading && downloadProgress != null) {
                 LinearProgressIndicator(

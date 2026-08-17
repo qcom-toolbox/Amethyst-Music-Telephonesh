@@ -81,6 +81,10 @@ fun SettingsScreen(
     isAdmin: Boolean = false,
     adminModeEnabled: Boolean = false,
     onAdminModeChange: (Boolean) -> Unit = {},
+    artistLinksEnabled: Boolean = true,
+    onArtistLinksEnabledChange: (Boolean) -> Unit = {},
+    artistLinksInListsEnabled: Boolean = true,
+    onArtistLinksInListsEnabledChange: (Boolean) -> Unit = {},
     isOnline: Boolean = true,
     isCheckingConnection: Boolean = false,
     onCheckConnection: () -> Unit = {},
@@ -289,6 +293,68 @@ fun SettingsScreen(
             label = stringResource(R.string.bulk_download),
             onClick = onOpenBulkDownload
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Artist Pages Section
+        SettingsSectionTitle(stringResource(R.string.tab_library))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(R.string.artist_links), color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                Text(text = stringResource(R.string.artist_links_hint), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+            }
+            Switch(
+                checked = artistLinksEnabled,
+                onCheckedChange = onArtistLinksEnabledChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.outline,
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            val listToggleAlpha = if (artistLinksEnabled) 1f else 0.5f
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.artist_links_lists),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = listToggleAlpha),
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = stringResource(R.string.artist_links_lists_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = listToggleAlpha),
+                    fontSize = 12.sp
+                )
+            }
+            Switch(
+                checked = artistLinksInListsEnabled,
+                onCheckedChange = onArtistLinksInListsEnabledChange,
+                enabled = artistLinksEnabled,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.outline,
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

@@ -27,6 +27,20 @@ class ServerPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_ADMIN_MODE_ENABLED, false)
         set(value) = prefs.edit().putBoolean(KEY_ADMIN_MODE_ENABLED, value).apply()
 
+    /** Whether tapping an artist name opens their artist page. */
+    var artistLinksEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ARTIST_LINKS_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_ARTIST_LINKS_ENABLED, value).apply()
+
+    /**
+     * Whether tapping an artist name is also active in the Library, Offline, and Playlist
+     * track lists specifically. Home and the full-screen player are unaffected by this and
+     * only follow [artistLinksEnabled].
+     */
+    var artistLinksInListsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ARTIST_LINKS_IN_LISTS_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_ARTIST_LINKS_IN_LISTS_ENABLED, value).apply()
+
     var backgroundColor: Long
         get() = prefs.getLong(KEY_BG_COLOR, 0xFF0F0C1D)
         set(value) = prefs.edit().putLong(KEY_BG_COLOR, value).apply()
@@ -76,6 +90,8 @@ class ServerPreferences(context: Context) {
         private const val KEY_LANGUAGE = "language"
         private const val KEY_IS_ADMIN = "is_admin"
         private const val KEY_ADMIN_MODE_ENABLED = "admin_mode_enabled"
+        private const val KEY_ARTIST_LINKS_ENABLED = "artist_links_enabled"
+        private const val KEY_ARTIST_LINKS_IN_LISTS_ENABLED = "artist_links_in_lists_enabled"
         private const val KEY_GENRE_PLAYS = "genre_plays"
         private const val KEY_BG_COLOR = "bg_color"
         private const val KEY_USE_HARMONY = "use_harmony"
