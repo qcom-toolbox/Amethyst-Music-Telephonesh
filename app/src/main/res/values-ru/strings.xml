@@ -39,6 +39,8 @@
 
     <string name="language">Язык</string>
     <string name="theme_selection">Тема приложения</string>
+    <string name="dynamic_theme_full_player_only">Динамический фон на полном экране</string>
+    <string name="dynamic_theme_full_player_only_hint">Работает с любой темой</string>
     <string name="language_english">Английский</string>
     <string name="language_french">Французский</string>
     <string name="language_german">Немецкий</string>

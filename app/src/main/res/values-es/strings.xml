@@ -39,6 +39,8 @@
 
     <string name="language">Idioma</string>
     <string name="theme_selection">Tema de la aplicación</string>
+    <string name="dynamic_theme_full_player_only">Fondo dinámico en pantalla completa</string>
+    <string name="dynamic_theme_full_player_only_hint">Funciona con cualquier tema</string>
     <string name="language_english">Inglés</string>
     <string name="language_french">Francés</string>
     <string name="language_german">Alemán</string>

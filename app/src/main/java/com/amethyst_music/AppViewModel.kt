@@ -18,6 +18,7 @@ import com.amethyst_music.data.Track
 import com.amethyst_music.data.TrackDownloader
 import com.amethyst_music.player.MusicPlayer
 import com.amethyst_music.player.PlaybackController
+import com.amethyst_music.ui.theme.AlbumArtColorExtractor
 import com.amethyst_music.util.DownloadNotificationManager
 import com.amethyst_music.util.NetworkObserver
 import com.amethyst_music.util.NetworkStatus
@@ -234,6 +235,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _useHarmony = MutableStateFlow(prefs.useHarmony)
     val useHarmony: StateFlow<Boolean> = _useHarmony.asStateFlow()
 
+    private val _dynamicThemeEnabled = MutableStateFlow(prefs.dynamicThemeEnabled)
+    val dynamicThemeEnabled: StateFlow<Boolean> = _dynamicThemeEnabled.asStateFlow()
+
+    private val _dynamicThemeFullPlayerOnly = MutableStateFlow(prefs.dynamicThemeFullPlayerOnly)
+    val dynamicThemeFullPlayerOnly: StateFlow<Boolean> = _dynamicThemeFullPlayerOnly.asStateFlow()
+
+    // Color extracted from the current track's album art via Palette, for the "Dynamic" theme.
+    private val _dynamicAlbumColor = MutableStateFlow<Long?>(null)
+    val dynamicAlbumColor: StateFlow<Long?> = _dynamicAlbumColor.asStateFlow()
+
     private val _isAdmin = MutableStateFlow(prefs.isAdmin)
     val isAdmin: StateFlow<Boolean> = _isAdmin.asStateFlow()
 
@@ -433,6 +444,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+        viewModelScope.launch {
+            musicPlayer.currentTrack.collectLatest { track ->
+                val coverUrl = track?.let { coverUrlForTrack(it) }
+                _dynamicAlbumColor.value = if (coverUrl != null) {
+                    withContext(Dispatchers.IO) {
+                        AlbumArtColorExtractor.extractBackgroundColor(getApplication<Application>(), okHttpClient(), coverUrl)
+                    }
+                } else {
+                    null
+                }
+            }
+        }
     }
 
     fun okHttpClient() = client?.okHttpClient
@@ -593,6 +616,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setUseHarmony(enabled: Boolean) {
         prefs.useHarmony = enabled
         _useHarmony.value = enabled
+    }
+
+    fun setDynamicThemeEnabled(enabled: Boolean) {
+        prefs.dynamicThemeEnabled = enabled
+        _dynamicThemeEnabled.value = enabled
+    }
+
+    fun setDynamicThemeFullPlayerOnly(enabled: Boolean) {
+        prefs.dynamicThemeFullPlayerOnly = enabled
+        _dynamicThemeFullPlayerOnly.value = enabled
     }
 
     fun setAdminModeEnabled(enabled: Boolean) {

@@ -45,6 +45,15 @@ object ThemeUtils {
         return Color(ColorUtils.HSLToColor(hsl))
     }
 
+    /** A brighter variant of [base], used as the top of a background gradient (e.g. full-screen player). */
+    fun deriveGradientTop(base: Color): Color {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(base.toArgb(), hsl)
+        hsl[2] = (hsl[2] + 0.15f).coerceIn(0f, 0.55f)
+        hsl[1] = (hsl[1] * 1.1f).coerceIn(0f, 1f)
+        return Color(ColorUtils.HSLToColor(hsl))
+    }
+
     fun derivePanel(base: Color): Color {
         if (base.toArgb() == 0xFFFFFFFF.toInt()) return AmethystPanelLight
         

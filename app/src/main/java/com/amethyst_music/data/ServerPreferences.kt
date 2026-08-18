@@ -49,6 +49,16 @@ class ServerPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_USE_HARMONY, false)
         set(value) = prefs.edit().putBoolean(KEY_USE_HARMONY, value).apply()
 
+    /** Whether the "Dynamic" theme preset (color extracted from the current album art) is active. */
+    var dynamicThemeEnabled: Boolean
+        get() = prefs.getBoolean(KEY_DYNAMIC_THEME_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_DYNAMIC_THEME_ENABLED, value).apply()
+
+    /** When true, the dynamic album-art color only tints the full-screen player, not the whole app. */
+    var dynamicThemeFullPlayerOnly: Boolean
+        get() = prefs.getBoolean(KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY, false)
+        set(value) = prefs.edit().putBoolean(KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY, value).apply()
+
     /** Default playback speed applied at the start of every session. */
     var defaultPlaybackSpeed: Float
         get() = prefs.getFloat(KEY_DEFAULT_PLAYBACK_SPEED, 1f)
@@ -95,6 +105,8 @@ class ServerPreferences(context: Context) {
         private const val KEY_GENRE_PLAYS = "genre_plays"
         private const val KEY_BG_COLOR = "bg_color"
         private const val KEY_USE_HARMONY = "use_harmony"
+        private const val KEY_DYNAMIC_THEME_ENABLED = "dynamic_theme_enabled"
+        private const val KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY = "dynamic_theme_full_player_only"
         private const val KEY_DEFAULT_PLAYBACK_SPEED = "default_playback_speed"
 
         fun normalizeServerUrl(raw: String): String {

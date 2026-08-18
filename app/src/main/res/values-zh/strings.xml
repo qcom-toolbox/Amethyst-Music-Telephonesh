@@ -39,6 +39,8 @@
 
     <string name="language">语言</string>
     <string name="theme_selection">主题选择</string>
+    <string name="dynamic_theme_full_player_only">全屏播放器中的动态背景</string>
+    <string name="dynamic_theme_full_player_only_hint">适用于任何主题</string>
     <string name="language_english">英语</string>
     <string name="language_french">法语</string>
     <string name="language_german">德语</string>
