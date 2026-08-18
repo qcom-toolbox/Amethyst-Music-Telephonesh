@@ -39,6 +39,8 @@
 
     <string name="language">Lingua</string>
     <string name="theme_selection">Tema da l\'app</string>
+    <string name="dynamic_theme_full_player_only">Fund dinamic en il player a maletg entir</string>
+    <string name="dynamic_theme_full_player_only_hint">Funcziuna cun mintga tema</string>
     <string name="language_english">Englais</string>
     <string name="language_french">Franzos</string>
     <string name="language_german">Tudestg</string>

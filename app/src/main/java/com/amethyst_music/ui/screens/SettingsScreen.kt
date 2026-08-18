@@ -62,7 +62,8 @@ import com.amethyst_music.ui.theme.*
 data class ThemePreset(
     val name: String,
     val backgroundColor: Long,
-    val useHarmony: Boolean
+    val useHarmony: Boolean,
+    val isDynamic: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +73,10 @@ fun SettingsScreen(
     onLanguageChange: (String) -> Unit,
     currentBackgroundColor: Long,
     currentUseHarmony: Boolean,
-    onThemeChange: (Long, Boolean) -> Unit,
+    currentDynamicThemeEnabled: Boolean = false,
+    onThemeChange: (Long, Boolean, Boolean) -> Unit,
+    currentDynamicThemeFullPlayerOnly: Boolean = false,
+    onDynamicThemeFullPlayerOnlyChange: (Boolean) -> Unit = {},
     onRefreshCache: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onOpenBulkDownload: () -> Unit,
@@ -105,7 +109,7 @@ fun SettingsScreen(
 
     val themes = listOf(
         ThemePreset("Amethyst", 0xFF0F0C1D, false),
-        ThemePreset("Dynamic", 0xFF0F0C1D, true),
+        ThemePreset("Dynamic", 0xFF0F0C1D, true, isDynamic = true),
         ThemePreset("White Mode", 0xFFFFFFFF, true),
         ThemePreset("AMOLED", 0xFF000000, true),
         ThemePreset("Vibrant Purple", 0xFF4A148C, true),
@@ -196,10 +200,12 @@ fun SettingsScreen(
             contentPadding = PaddingValues(horizontal = 4.dp)
         ) {
             items(themes) { preset ->
-                val isSelected = preset.backgroundColor == currentBackgroundColor && preset.useHarmony == currentUseHarmony
+                val isSelected = preset.backgroundColor == currentBackgroundColor &&
+                    preset.useHarmony == currentUseHarmony &&
+                    preset.isDynamic == currentDynamicThemeEnabled
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable { onThemeChange(preset.backgroundColor, preset.useHarmony) }
+                    modifier = Modifier.clickable { onThemeChange(preset.backgroundColor, preset.useHarmony, preset.isDynamic) }
                 ) {
                     Box(
                         modifier = Modifier
@@ -231,6 +237,39 @@ fun SettingsScreen(
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.dynamic_theme_full_player_only),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp
+                )
+                Text(
+                    text = stringResource(R.string.dynamic_theme_full_player_only_hint),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 12.sp
+                )
+            }
+            Switch(
+                checked = currentDynamicThemeFullPlayerOnly,
+                onCheckedChange = onDynamicThemeFullPlayerOnlyChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.outline,
+                )
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))

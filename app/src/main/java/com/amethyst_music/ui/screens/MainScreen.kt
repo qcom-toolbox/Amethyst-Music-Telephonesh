@@ -149,7 +149,7 @@ fun MainScreen(
     homeHiddenGems: List<Track> = emptyList(),
     backgroundColor: Long = 0xFF0F0C1D,
     useHarmony: Boolean = true,
-    onThemeChange: (Long, Boolean) -> Unit = { _, _ -> },
+    onThemeChange: (Long, Boolean, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val isOnline by vm.isOnline.collectAsState()
     val isCheckingConnection by vm.isCheckingConnection.collectAsState()
@@ -527,28 +527,35 @@ fun MainScreen(
                     onArtistClick = onArtistClick,
                     artistClickEnabled = listArtistClickEnabled,
                 )
-                4 -> SettingsScreen(
-                    currentLanguage = currentLanguage,
-                    onLanguageChange = vm::setLanguage,
-                    currentBackgroundColor = backgroundColor,
-                    currentUseHarmony = useHarmony,
-                    onThemeChange = onThemeChange,
-                    onRefreshCache = vm::refreshCache,
-                    onOpenEqualizer = vm::openEqualizer,
-                    onOpenBulkDownload = vm::openBulkDownload,
-                    defaultPlaybackSpeed = defaultPlaybackSpeed,
-                    onDefaultPlaybackSpeedChange = vm::setDefaultPlaybackSpeed,
-                    isAdmin = isAdmin,
-                    adminModeEnabled = adminModeEnabled,
-                    onAdminModeChange = vm::setAdminModeEnabled,
-                    artistLinksEnabled = artistLinksEnabled,
-                    onArtistLinksEnabledChange = vm::setArtistLinksEnabled,
-                    artistLinksInListsEnabled = artistLinksInListsEnabled,
-                    onArtistLinksInListsEnabledChange = vm::setArtistLinksInListsEnabled,
-                    isOnline = isOnline,
-                    isCheckingConnection = isCheckingConnection,
-                    onCheckConnection = remember(vm) { { vm.recheckConnection() } },
-                )
+                4 -> {
+                    val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
+                    val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
+                    SettingsScreen(
+                        currentLanguage = currentLanguage,
+                        onLanguageChange = vm::setLanguage,
+                        currentBackgroundColor = backgroundColor,
+                        currentUseHarmony = useHarmony,
+                        currentDynamicThemeEnabled = dynamicThemeEnabled,
+                        onThemeChange = onThemeChange,
+                        currentDynamicThemeFullPlayerOnly = dynamicThemeFullPlayerOnly,
+                        onDynamicThemeFullPlayerOnlyChange = vm::setDynamicThemeFullPlayerOnly,
+                        onRefreshCache = vm::refreshCache,
+                        onOpenEqualizer = vm::openEqualizer,
+                        onOpenBulkDownload = vm::openBulkDownload,
+                        defaultPlaybackSpeed = defaultPlaybackSpeed,
+                        onDefaultPlaybackSpeedChange = vm::setDefaultPlaybackSpeed,
+                        isAdmin = isAdmin,
+                        adminModeEnabled = adminModeEnabled,
+                        onAdminModeChange = vm::setAdminModeEnabled,
+                        artistLinksEnabled = artistLinksEnabled,
+                        onArtistLinksEnabledChange = vm::setArtistLinksEnabled,
+                        artistLinksInListsEnabled = artistLinksInListsEnabled,
+                        onArtistLinksInListsEnabledChange = vm::setArtistLinksInListsEnabled,
+                        isOnline = isOnline,
+                        isCheckingConnection = isCheckingConnection,
+                        onCheckConnection = remember(vm) { { vm.recheckConnection() } },
+                    )
+                }
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.amethyst_music.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -79,6 +81,8 @@ fun FullPlayerScreen(
     coverUrlProvider: (Track) -> String?,
     onArtistClick: (String) -> Unit = {},
     artistClickEnabled: Boolean = true,
+    useDynamicBackground: Boolean = false,
+    albumArtColor: androidx.compose.ui.graphics.Color? = null,
 ) {
     var isLyricsMaximized by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
@@ -103,16 +107,34 @@ fun FullPlayerScreen(
 
     val displayPosition = smoothedPositionMs.coerceIn(0L, durationMs)
 
-    val isSolidMode = MaterialTheme.colorScheme.background == androidx.compose.ui.graphics.Color.Black ||
-            MaterialTheme.colorScheme.background == androidx.compose.ui.graphics.Color.White
+    // Whether this screen's background should follow the current album art, independent of
+    // which base theme is selected — the "full-screen player only" setting works on any theme.
+    val showAlbumArtBackground = useDynamicBackground && albumArtColor != null
+    val targetPlayerBackground = if (showAlbumArtBackground) albumArtColor!! else MaterialTheme.colorScheme.background
+    val isSolidMode = targetPlayerBackground == androidx.compose.ui.graphics.Color.Black ||
+            targetPlayerBackground == androidx.compose.ui.graphics.Color.White
     val onSurface = MaterialTheme.colorScheme.onSurface
-    
+
+    // Animate the color itself so switching tracks (or the album palette finishing extraction)
+    // cross-fades instead of snapping abruptly.
+    val animatedPlayerBackground by animateColorAsState(
+        targetValue = targetPlayerBackground,
+        animationSpec = tween(durationMillis = 700),
+        label = "playerBackground",
+    )
+    val targetGradientTop = if (showAlbumArtBackground) ThemeUtils.deriveGradientTop(albumArtColor!!) else AmethystGradientStart
+    val animatedGradientTop by animateColorAsState(
+        targetValue = targetGradientTop,
+        animationSpec = tween(durationMillis = 700),
+        label = "playerGradientTop",
+    )
+
     val backgroundModifier = if (isSolidMode) {
-        Modifier.background(MaterialTheme.colorScheme.background)
+        Modifier.background(animatedPlayerBackground)
     } else {
         Modifier.background(
             Brush.verticalGradient(
-                colors = listOf(AmethystGradientStart, MaterialTheme.colorScheme.background),
+                colors = listOf(animatedGradientTop, animatedPlayerBackground),
             )
         )
     }

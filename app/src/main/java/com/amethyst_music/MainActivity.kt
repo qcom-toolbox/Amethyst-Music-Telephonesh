@@ -6,6 +6,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -62,10 +64,24 @@ class MainActivity : AppCompatActivity() {
             val vm: AppViewModel = viewModel()
             val backgroundColor by vm.backgroundColor.collectAsState()
             val useHarmony by vm.useHarmony.collectAsState()
+            val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
+            val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
+            val dynamicAlbumColor by vm.dynamicAlbumColor.collectAsState()
 
-            androidx.compose.runtime.LaunchedEffect(backgroundColor) {
-                val colorInt = backgroundColor.toInt()
-                val isLight = ThemeUtils.isLight(ComposeColor(backgroundColor))
+            // The color actually rendered app-wide: the extracted album art color when the
+            // "Dynamic" theme is selected, otherwise the persisted preset color. The
+            // full-screen-player-only toggle is purely additive (it can turn on album-art
+            // coloring in the player even when a different theme is active) and must never
+            // suppress the app-wide "Dynamic" theme.
+            val effectiveBackgroundColor = if (dynamicThemeEnabled && dynamicAlbumColor != null) {
+                dynamicAlbumColor!!
+            } else {
+                backgroundColor
+            }
+
+            androidx.compose.runtime.LaunchedEffect(effectiveBackgroundColor) {
+                val colorInt = effectiveBackgroundColor.toInt()
+                val isLight = ThemeUtils.isLight(ComposeColor(effectiveBackgroundColor))
                 enableEdgeToEdge(
                     statusBarStyle = if (isLight) SystemBarStyle.light(colorInt, colorInt) else SystemBarStyle.dark(colorInt),
                     navigationBarStyle = if (isLight) SystemBarStyle.light(colorInt, colorInt) else SystemBarStyle.dark(colorInt),
@@ -75,9 +91,17 @@ class MainActivity : AppCompatActivity() {
                     isAppearanceLightNavigationBars = isLight
                 }
             }
-            
+
+            // Smoothly cross-fade the theme's base color instead of snapping when the
+            // dynamic (album-art) color changes between tracks.
+            val animatedBackgroundColor by animateColorAsState(
+                targetValue = ComposeColor(effectiveBackgroundColor),
+                animationSpec = tween(durationMillis = 700),
+                label = "themeBackgroundColor",
+            )
+
             AmethystMusicTheme(
-                backgroundColor = ComposeColor(backgroundColor),
+                backgroundColor = animatedBackgroundColor,
                 useHarmony = useHarmony
             ) {
                 val lifecycleOwner = LocalLifecycleOwner.current
@@ -135,7 +159,7 @@ class MainActivity : AppCompatActivity() {
                 CompositionLocalProvider(LocalImageLoader provides imageLoader) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
-                        color = ComposeColor(backgroundColor),
+                        color = animatedBackgroundColor,
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             when (screen) {
@@ -234,9 +258,10 @@ class MainActivity : AppCompatActivity() {
                                         backgroundColor = backgroundColor,
                                         useHarmony = useHarmony,
                                         onThemeChange = remember(vm) {
-                                            { color, harmony ->
+                                            { color, harmony, isDynamic ->
                                                 vm.setBackgroundColor(color)
                                                 vm.setUseHarmony(harmony)
+                                                vm.setDynamicThemeEnabled(isDynamic)
                                             }
                                         },
                                         onArtistClick = onArtistClick,
@@ -352,6 +377,8 @@ class MainActivity : AppCompatActivity() {
                                         coverUrlProvider = { vm.coverUrlForTrack(it) },
                                         onArtistClick = onArtistClick,
                                         artistClickEnabled = artistLinksEnabled,
+                                        useDynamicBackground = dynamicThemeEnabled || dynamicThemeFullPlayerOnly,
+                                        albumArtColor = dynamicAlbumColor?.let { ComposeColor(it) },
                                     )
                                 }
                             }

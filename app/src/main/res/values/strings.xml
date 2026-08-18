@@ -39,6 +39,8 @@
 
     <string name="language">Language</string>
     <string name="theme_selection">App Theme</string>
+    <string name="dynamic_theme_full_player_only">Dynamic Background in Full-Screen Player</string>
+    <string name="dynamic_theme_full_player_only_hint">Works with any theme</string>
     <string name="language_english">English</string>
     <string name="language_french">French</string>
     <string name="language_german">German</string>

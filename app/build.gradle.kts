@@ -15,7 +15,7 @@ android {
         applicationId = "com.amethyst_music"
         minSdk = 23
         targetSdk = 36
-        versionCode = 4
+        versionCode = 5
         versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.okhttp)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.palette)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.datasource.okhttp)
     implementation(libs.androidx.media3.session)

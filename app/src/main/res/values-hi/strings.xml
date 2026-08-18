@@ -39,6 +39,8 @@
 
     <string name="language">भाषा</string>
     <string name="theme_selection">ऐप थीम</string>
+    <string name="dynamic_theme_full_player_only">फ़ुल-स्क्रीन प्लेयर में डायनामिक बैकग्राउंड</string>
+    <string name="dynamic_theme_full_player_only_hint">किसी भी थीम के साथ काम करता है</string>
     <string name="language_english">अंग्रेज़ी</string>
     <string name="language_french">फ़्रेंच</string>
     <string name="language_german">जर्मन</string>
