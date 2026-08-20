@@ -3,12 +3,17 @@ package com.amethyst_music.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -250,16 +255,22 @@ fun MainScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Column {
-                if (currentTrack != null) {
-                    MiniPlayerBar(
-                        track = currentTrack,
-                        isPlaying = isPlaying,
-                        coverUrl = coverUrlForTrack(currentTrack),
-                        onClick = onMiniPlayerClick,
-                        onPlayPause = onTogglePlay,
-                        onNext = onNextTrack,
-                        onPrevious = onPreviousTrack,
-                    )
+                AnimatedVisibility(
+                    visible = currentTrack != null,
+                    enter = expandVertically(animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
+                    exit = shrinkVertically(animationSpec = tween(220)) + fadeOut(animationSpec = tween(220)),
+                ) {
+                    currentTrack?.let { track ->
+                        MiniPlayerBar(
+                            track = track,
+                            isPlaying = isPlaying,
+                            coverUrl = coverUrlForTrack(track),
+                            onClick = onMiniPlayerClick,
+                            onPlayPause = onTogglePlay,
+                            onNext = onNextTrack,
+                            onPrevious = onPreviousTrack,
+                        )
+                    }
                 }
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surface,

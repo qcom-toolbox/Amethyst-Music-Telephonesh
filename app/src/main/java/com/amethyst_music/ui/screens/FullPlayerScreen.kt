@@ -1,8 +1,14 @@
 package com.amethyst_music.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -422,12 +428,21 @@ fun FullPlayerScreen(
                             color = onSurface,
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                    contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                                    tint = MaterialTheme.colorScheme.background,
-                                    modifier = Modifier.size(36.dp)
-                                )
+                                AnimatedContent(
+                                    targetState = isPlaying,
+                                    transitionSpec = {
+                                        (scaleIn(animationSpec = tween(150)) + fadeIn(animationSpec = tween(150)))
+                                            .togetherWith(scaleOut(animationSpec = tween(150)) + fadeOut(animationSpec = tween(150)))
+                                    },
+                                    label = "playPauseIcon",
+                                ) { playing ->
+                                    Icon(
+                                        imageVector = if (playing) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        contentDescription = if (playing) stringResource(R.string.pause) else stringResource(R.string.play),
+                                        tint = MaterialTheme.colorScheme.background,
+                                        modifier = Modifier.size(36.dp)
+                                    )
+                                }
                             }
                         }
 
