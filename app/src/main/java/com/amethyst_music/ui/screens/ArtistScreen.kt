@@ -55,7 +55,6 @@ import com.amethyst_music.R
 import com.amethyst_music.data.ArtistBio
 import com.amethyst_music.data.Track
 import com.amethyst_music.data.WikipediaClient
-import com.amethyst_music.ui.components.MiniPlayerBar
 import com.amethyst_music.ui.components.TrackRow
 import com.amethyst_music.ui.components.currentAppLanguage
 import kotlinx.coroutines.Dispatchers
@@ -89,6 +88,10 @@ fun ArtistScreen(
     onPrevious: () -> Unit = {},
     adminModeEnabled: Boolean = false,
     onEditTrack: ((Track) -> Unit)? = null,
+    offlineOnlyMode: Boolean = false,
+    selectedTab: Int = 1,
+    onTabSelected: (Int) -> Unit = {},
+    onClosePlaylist: () -> Unit = {},
 ) {
     BackHandler(onBack = onBack)
 
@@ -163,17 +166,19 @@ fun ArtistScreen(
                 }
             }
         }
-        if (currentTrack != null) {
-            MiniPlayerBar(
-                track = currentTrack,
-                isPlaying = isPlaying,
-                coverUrl = coverUrlForTrack(currentTrack),
-                onClick = onMiniPlayerClick,
-                onPlayPause = onPlayPause,
-                onNext = onNext,
-                onPrevious = onPrevious,
-            )
-        }
+        AppBottomBar(
+            currentTrack = currentTrack,
+            isPlaying = isPlaying,
+            coverUrlForTrack = coverUrlForTrack,
+            onMiniPlayerClick = onMiniPlayerClick,
+            onTogglePlay = onPlayPause,
+            onNextTrack = onNext,
+            onPreviousTrack = onPrevious,
+            offlineOnlyMode = offlineOnlyMode,
+            selectedTab = selectedTab,
+            onTabSelected = onTabSelected,
+            onClosePlaylist = onClosePlaylist,
+        )
     }
 }
 

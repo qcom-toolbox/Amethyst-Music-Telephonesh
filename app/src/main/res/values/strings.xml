@@ -159,6 +159,8 @@
     <string name="keep_current">Keep current</string>
     <string name="tracks_count">%1$d tracks</string>
     <string name="search_albums_header">Albums</string>
+    <string name="search_artists_header">Artists</string>
+    <string name="search_songs_header">Songs</string>
     <string name="genre_other">Other</string>
     <string name="exit_fullscreen">Exit Fullscreen</string>
     <string name="up_next">Up Next</string>

@@ -86,6 +86,7 @@
     <string name="connect_server">Purple Musicサーバーに接続</string>
     <string name="server_url">サーバーURL</string>
     <string name="connect">接続</string>
+    <string name="no_server_create_own">サーバーがない場合は自分で作成できます</string>
     <string name="error_no_server">サーバーが設定されていません。</string>
     <string name="error_no_offline">ダウンロード済みの曲が見つかりません。</string>
     <string name="error_login_required_download">ダウンロードするにはログインが必要です。</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">現在のまま</string>
     <string name="tracks_count">%1$d 曲</string>
     <string name="search_albums_header">アルバム</string>
+    <string name="search_artists_header">アーティスト</string>
+    <string name="search_songs_header">曲</string>
     <string name="genre_other">その他</string>
     <string name="exit_fullscreen">全画面表示を終了</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">カスタム</string>
     <string name="up_next">次に再生</string>
     <string name="queue">キュー</string>
+    <string name="back">戻る</string>
+    <string name="artist_links">アーティストページ</string>
+    <string name="artist_links_hint">アーティスト名をタップするとページが開きます</string>
+    <string name="artist_links_lists">リスト内のアーティストリンク</string>
+    <string name="artist_links_lists_hint">ライブラリ、オフライン、プレイリストでも許可します（ホームとフルスクリーンプレーヤーには影響しません）</string>
+    <string name="loading_biography">経歴を読み込み中…</string>
+    <string name="no_description_available">説明はありません。</string>
+    <string name="view_on_wikipedia">Wikipediaで見る ↗</string>
 </resources>

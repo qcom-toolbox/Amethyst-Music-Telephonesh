@@ -389,6 +389,15 @@ class MainActivity : AppCompatActivity() {
                                                 vm.previousTrack()
                                             }
                                         },
+                                        offlineOnlyMode = offlineOnlyMode,
+                                        selectedTab = selectedTab,
+                                        onTabSelected = remember(vm) {
+                                            { tab ->
+                                                vm.closeArtistPage()
+                                                vm.setSelectedTab(tab)
+                                            }
+                                        },
+                                        onClosePlaylist = remember(vm) { { vm.closePlaylist() } },
                                     )
                                 }
                             }

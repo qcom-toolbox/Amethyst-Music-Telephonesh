@@ -63,6 +63,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -107,10 +108,12 @@ import coil.compose.LocalImageLoader
 import com.amethyst_music.AppViewModel
 import com.amethyst_music.SortOrder
 import com.amethyst_music.data.AlbumSummary
+import com.amethyst_music.data.ArtistSummary
 import com.amethyst_music.data.Playlist
 import com.amethyst_music.data.Track
 import com.amethyst_music.ui.components.AddToPlaylistDialog
 import com.amethyst_music.ui.components.AlbumRow
+import com.amethyst_music.ui.components.ArtistRow
 import com.amethyst_music.ui.components.CreatePlaylistDialog
 import com.amethyst_music.ui.components.MiniPlayerBar
 import androidx.compose.material.icons.filled.Edit
@@ -420,6 +423,7 @@ fun MainScreen(
                 )
                 1 -> {
                     val filteredAlbums by vm.filteredAlbums.collectAsState()
+                    val filteredArtists by vm.filteredArtists.collectAsState()
                     TrackList(
                         tracks = tracks,
                         currentTrack = currentTrack,
@@ -435,7 +439,12 @@ fun MainScreen(
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it },
-                        onArtistClick = onArtistClick,
+                        onArtistClick = remember(onArtistClick, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                onArtistClick(name)
+                            }
+                        },
                         artistClickEnabled = listArtistClickEnabled,
                         albums = filteredAlbums,
                         onAlbumClick = remember(vm, focusManager) {
@@ -444,6 +453,7 @@ fun MainScreen(
                                 vm.openAlbumPage(name)
                             }
                         },
+                        artists = filteredArtists,
                     )
                 }
                 2 -> if (currentPlaylist != null) {
@@ -477,6 +487,7 @@ fun MainScreen(
                 }
                 3 -> {
                     val filteredOfflineAlbums by vm.filteredOfflineAlbums.collectAsState()
+                    val filteredOfflineArtists by vm.filteredOfflineArtists.collectAsState()
                     TrackList(
                         tracks = offlineTracks,
                         currentTrack = currentTrack,
@@ -494,7 +505,12 @@ fun MainScreen(
                         onEditTrack = { trackToEdit = it },
                         isRefreshing = isCheckingConnection,
                         onRefresh = remember(vm) { { vm.recheckConnection() } },
-                        onArtistClick = onArtistClick,
+                        onArtistClick = remember(onArtistClick, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                onArtistClick(name)
+                            }
+                        },
                         artistClickEnabled = listArtistClickEnabled,
                         albums = filteredOfflineAlbums,
                         onAlbumClick = remember(vm, focusManager) {
@@ -503,6 +519,7 @@ fun MainScreen(
                                 vm.openAlbumPage(name)
                             }
                         },
+                        artists = filteredOfflineArtists,
                     )
                 }
                 4 -> {
@@ -572,15 +589,21 @@ fun AppBottomBar(
             exit = shrinkVertically(animationSpec = tween(220)) + fadeOut(animationSpec = tween(220)),
         ) {
             currentTrack?.let { track ->
-                MiniPlayerBar(
-                    track = track,
-                    isPlaying = isPlaying,
-                    coverUrl = coverUrlForTrack(track),
-                    onClick = onMiniPlayerClick,
-                    onPlayPause = onTogglePlay,
-                    onNext = onNextTrack,
-                    onPrevious = onPreviousTrack,
-                )
+                Column {
+                    MiniPlayerBar(
+                        track = track,
+                        isPlaying = isPlaying,
+                        coverUrl = coverUrlForTrack(track),
+                        onClick = onMiniPlayerClick,
+                        onPlayPause = onTogglePlay,
+                        onNext = onNextTrack,
+                        onPrevious = onPreviousTrack,
+                    )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
             }
         }
         NavigationBar(
@@ -705,6 +728,17 @@ fun FilterSortMenu(
         }
 }
 
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text = text,
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TrackList(
@@ -729,7 +763,13 @@ private fun TrackList(
     artistClickEnabled: Boolean = true,
     albums: List<AlbumSummary> = emptyList(),
     onAlbumClick: (String) -> Unit = {},
+    artists: List<ArtistSummary> = emptyList(),
 ) {
+    // Section headers only make sense once there's more than one kind of result to tell apart —
+    // i.e. while actively searching. Plain browsing (no query) never populates artists/albums,
+    // so the "Songs" header stays hidden and the list looks exactly as it did before.
+    val hasResultSections = artists.isNotEmpty() || albums.isNotEmpty()
+
     val listContent = @Composable {
         LazyColumn(
             modifier = Modifier
@@ -738,15 +778,22 @@ private fun TrackList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
         ) {
+            if (artists.isNotEmpty()) {
+                item {
+                    SectionHeader(stringResource(R.string.search_artists_header))
+                }
+                items(artists, key = { "artist_${it.name}" }, contentType = { "artist_item" }) { artist ->
+                    ArtistRow(
+                        artist = artist,
+                        cover = coverUrlForTrack(artist.coverTrack),
+                        onClick = { onArtistClick(artist.name) },
+                    )
+                }
+            }
+
             if (albums.isNotEmpty()) {
                 item {
-                    Text(
-                        text = stringResource(R.string.search_albums_header),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
-                    )
+                    SectionHeader(stringResource(R.string.search_albums_header))
                 }
                 items(albums, key = { "album_${it.name}" }, contentType = { "album_item" }) { album ->
                     AlbumRow(
@@ -757,11 +804,17 @@ private fun TrackList(
                 }
             }
 
-            if (tracks.isEmpty() && albums.isEmpty()) {
+            if (tracks.isEmpty() && !hasResultSections) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
+                }
+            }
+
+            if (tracks.isNotEmpty() && hasResultSections) {
+                item {
+                    SectionHeader(stringResource(R.string.search_songs_header))
                 }
             }
 

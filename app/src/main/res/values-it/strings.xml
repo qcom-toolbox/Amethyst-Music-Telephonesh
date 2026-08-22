@@ -86,6 +86,7 @@
     <string name="connect_server">Connetti il tuo server Purple Music</string>
     <string name="server_url">URL del server</string>
     <string name="connect">Connetti</string>
+    <string name="no_server_create_own">Non hai un server? Creane uno</string>
     <string name="error_no_server">Nessun server configurato.</string>
     <string name="error_no_offline">Nessun brano scaricato trovato.</string>
     <string name="error_login_required_download">Accesso richiesto per scaricare.</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">Mantieni attuale</string>
     <string name="tracks_count">%1$d brani</string>
     <string name="search_albums_header">Album</string>
+    <string name="search_artists_header">Artisti</string>
+    <string name="search_songs_header">Brani</string>
     <string name="genre_other">Altro</string>
     <string name="exit_fullscreen">Esci da schermo intero</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">Personalizzato</string>
     <string name="up_next">Prossimi brani</string>
     <string name="queue">Coda</string>
+    <string name="back">Indietro</string>
+    <string name="artist_links">Pagine artista</string>
+    <string name="artist_links_hint">Tocca il nome di un artista per aprire la sua pagina</string>
+    <string name="artist_links_lists">Link artista negli elenchi</string>
+    <string name="artist_links_lists_hint">Consentilo anche in Libreria, Offline e Playlist (Home e il player a schermo intero non sono interessati)</string>
+    <string name="loading_biography">Caricamento biografia…</string>
+    <string name="no_description_available">Nessuna descrizione disponibile.</string>
+    <string name="view_on_wikipedia">Vedi su Wikipedia ↗</string>
 </resources>

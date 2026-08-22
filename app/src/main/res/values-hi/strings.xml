@@ -86,6 +86,7 @@
     <string name="connect_server">अपने पर्पल म्यूजिक सर्वर को कनेक्ट करें</string>
     <string name="server_url">सर्वर URL</string>
     <string name="connect">कनेक्ट करें</string>
+    <string name="no_server_create_own">सर्वर नहीं है? अपना बनाएं</string>
     <string name="error_no_server">कोई सर्वर कॉन्फ़िगर नहीं है।</string>
     <string name="error_no_offline">कोई डाउनलोड किया हुआ गाना नहीं मिला।</string>
     <string name="error_login_required_download">डाउनलोड करने के लिए लॉगिन आवश्यक है।</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">वर्तमान रखें</string>
     <string name="tracks_count">%1$d गाने</string>
     <string name="search_albums_header">एल्बम</string>
+    <string name="search_artists_header">कलाकार</string>
+    <string name="search_songs_header">गाने</string>
     <string name="genre_other">अन्य</string>
     <string name="exit_fullscreen">पूर्ण स्क्रीन से बाहर निकलें</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">कस्टम</string>
     <string name="up_next">अगला</string>
     <string name="queue">कतार</string>
+    <string name="back">वापस</string>
+    <string name="artist_links">कलाकार पेज</string>
+    <string name="artist_links_hint">किसी कलाकार का पेज खोलने के लिए उसका नाम टैप करें</string>
+    <string name="artist_links_lists">सूचियों में कलाकार लिंक</string>
+    <string name="artist_links_lists_hint">इसे लाइब्रेरी, ऑफ़लाइन और प्लेलिस्ट में भी अनुमति दें (होम और फ़ुल-स्क्रीन प्लेयर प्रभावित नहीं होते)</string>
+    <string name="loading_biography">जीवनी लोड हो रही है…</string>
+    <string name="no_description_available">कोई विवरण उपलब्ध नहीं है।</string>
+    <string name="view_on_wikipedia">विकिपीडिया पर देखें ↗</string>
 </resources>
