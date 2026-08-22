@@ -75,6 +75,7 @@
     <string name="previous">前の曲</string>
     <string name="next">次の曲</string>
     <string name="play">再生</string>
+    <string name="play_all">すべて再生</string>
     <string name="pause">一時停止</string>
     <string name="loop">ループ</string>
     <string name="playback_speed">再生速度</string>
@@ -122,6 +123,7 @@
     <string name="label_title">タイトル</string>
     <string name="label_artist">アーティスト</string>
     <string name="label_genre">ジャンル</string>
+    <string name="label_album">アルバム</string>
     <string name="label_music">音楽</string>
     <string name="label_cover_art">カバーアート</string>
     <string name="no_file_selected">ファイルが選択されていません</string>
@@ -130,6 +132,7 @@
     <string name="no_playlists_available">利用可能なプレイリストはありません。</string>
     <string name="keep_current">現在のまま</string>
     <string name="tracks_count">%1$d 曲</string>
+    <string name="search_albums_header">アルバム</string>
     <string name="genre_other">その他</string>
     <string name="exit_fullscreen">全画面表示を終了</string>
 

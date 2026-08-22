@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.TextUnit
 import com.amethyst_music.data.ArtistUtils
 
 private const val ARTIST_TAG = "artist"
+private const val SUFFIX_TAG = "suffix"
 
 /** Current app UI language ("en", "fr", …), following per-app locale overrides. */
 @Composable
@@ -43,6 +44,7 @@ fun ArtistNameText(
     maxLines: Int = 1,
     overflow: TextOverflow = TextOverflow.Ellipsis,
     suffix: String? = null,
+    onSuffixClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
     val lang = currentAppLanguage()
@@ -51,7 +53,8 @@ fun ArtistNameText(
     }
     if (names.isEmpty()) return
 
-    val annotated = remember(names, suffix) {
+    val suffixClickable = onSuffixClick != null
+    val annotated = remember(names, suffix, suffixClickable) {
         buildAnnotatedString {
             names.forEachIndexed { index, name ->
                 pushStringAnnotation(tag = ARTIST_TAG, annotation = name)
@@ -59,7 +62,15 @@ fun ArtistNameText(
                 pop()
                 if (index != names.lastIndex) append(", ")
             }
-            suffix?.let { append(it) }
+            suffix?.let {
+                if (suffixClickable) {
+                    pushStringAnnotation(tag = SUFFIX_TAG, annotation = it)
+                    append(it)
+                    pop()
+                } else {
+                    append(it)
+                }
+            }
         }
     }
 
@@ -84,6 +95,10 @@ fun ArtistNameText(
             onClick = { offset ->
                 annotated.getStringAnnotations(tag = ARTIST_TAG, start = offset, end = offset)
                     .firstOrNull()?.let { onArtistClick(it.item) }
+                if (onSuffixClick != null) {
+                    annotated.getStringAnnotations(tag = SUFFIX_TAG, start = offset, end = offset)
+                        .firstOrNull()?.let { onSuffixClick() }
+                }
             }
         )
     } else {

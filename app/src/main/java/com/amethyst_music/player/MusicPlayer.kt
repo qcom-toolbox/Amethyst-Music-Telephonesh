@@ -153,6 +153,15 @@ class MusicPlayer(private val appContext: Context) {
     private var coverUrlProvider: ((Track, Boolean) -> String?)? = null
     private var lastClient: OkHttpClient? = null
 
+    // Supplies more tracks to keep playing once the active queue naturally runs out (e.g. a
+    // short artist/album queue), instead of just stopping. Returning an empty list preserves
+    // the old stop-at-the-end behavior.
+    private var queueExhaustedProvider: (() -> List<Track>)? = null
+
+    fun setQueueExhaustedProvider(provider: (() -> List<Track>)?) {
+        queueExhaustedProvider = provider
+    }
+
     // --- Windowed queue loading -------------------------------------------------
     // Building a MediaItem per track resolves stream/cover URLs (disk I/O for the
     // offline library), so doing it for an entire library up front is what stalls
@@ -264,11 +273,18 @@ class MusicPlayer(private val appContext: Context) {
         override fun onPlaybackStateChanged(state: Int) {
             if (state == Player.STATE_ENDED) {
                 // ExoPlayer playlist exhausted – handled natively by repeatMode.
-                // If repeatMode is OFF, we stop service.
+                // If repeatMode is OFF, try to keep playback going with more tracks first,
+                // and only actually stop if none are offered.
                 if (currentPlayer.repeatMode == Player.REPEAT_MODE_OFF) {
-                    currentPlayer.pause()
-                    _isPlaying.value = false
-                    stopPlaybackService()
+                    val provider = streamUrlProvider
+                    val more = queueExhaustedProvider?.invoke().orEmpty()
+                    if (more.isNotEmpty() && provider != null) {
+                        appendAndContinue(more, provider)
+                    } else {
+                        currentPlayer.pause()
+                        _isPlaying.value = false
+                        stopPlaybackService()
+                    }
                 }
             }
         }
@@ -317,7 +333,7 @@ class MusicPlayer(private val appContext: Context) {
             .setDisplayTitle(track.title)
             .setArtist(track.artist)
             .setSubtitle(track.artist)
-            .setAlbumTitle(track.genre)
+            .setAlbumTitle(track.album ?: track.genre)
             .setStation("Amethyst Music")
             .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
             .setIsPlayable(true)
@@ -491,6 +507,26 @@ class MusicPlayer(private val appContext: Context) {
 
         _isPlaying.value = true
         startPlaybackService()
+    }
+
+    // Appends more tracks to whichever list is currently active and resumes playback into
+    // them — called when the queue has just played its last track and would otherwise stop.
+    private fun appendAndContinue(tracks: List<Track>, streamUrl: (Track, Boolean) -> String) {
+        if (shuffle) {
+            shuffledQueue = shuffledQueue + tracks
+            _activeQueue.value = shuffledQueue
+        } else {
+            queue = queue + tracks
+            _activeQueue.value = queue
+        }
+
+        val isCast = currentPlayer is CastPlayer
+        val items = tracks.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
+        currentPlayer.addMediaItems(items)
+        currentPlayer.seekToNextMediaItem()
+        currentPlayer.play()
+        startPlaybackService()
+        scheduleWindowMaintenance()
     }
 
     fun playTrackAt(index: Int, streamUrl: (Track, Boolean) -> String) {

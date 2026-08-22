@@ -75,6 +75,7 @@
     <string name="previous">पिछला</string>
     <string name="next">अगला</string>
     <string name="play">चलाएं</string>
+    <string name="play_all">सभी चलाएं</string>
     <string name="pause">रोकें</string>
     <string name="loop">लूप</string>
     <string name="playback_speed">प्लेबैक गति</string>
@@ -122,6 +123,7 @@
     <string name="label_title">शीर्षक</string>
     <string name="label_artist">कलाकार</string>
     <string name="label_genre">शैली</string>
+    <string name="label_album">एल्बम</string>
     <string name="label_music">संगीत</string>
     <string name="label_cover_art">कवर आर्ट</string>
     <string name="no_file_selected">कोई फ़ाइल चुनी नहीं गई</string>
@@ -130,6 +132,7 @@
     <string name="no_playlists_available">कोई प्लेलिस्ट उपलब्ध नहीं है।</string>
     <string name="keep_current">वर्तमान रखें</string>
     <string name="tracks_count">%1$d गाने</string>
+    <string name="search_albums_header">एल्बम</string>
     <string name="genre_other">अन्य</string>
     <string name="exit_fullscreen">पूर्ण स्क्रीन से बाहर निकलें</string>
 

@@ -174,7 +174,7 @@ class PurpleClient(
     }
 
     fun uploadTrack(
-        title: String, artist: String, genre: String,
+        title: String, artist: String, genre: String, album: String,
         musicBytes: ByteArray, musicName: String,
         coverBytes: ByteArray?, coverName: String?
     ) {
@@ -185,6 +185,7 @@ class PurpleClient(
             .addFormDataPart("title", title)
             .addFormDataPart("artist", artist)
             .addFormDataPart("genre", genre)
+            .addFormDataPart("album", album)
 
         currentUsername?.let { builder.addFormDataPart("username", it) }
         currentPassword?.let { builder.addFormDataPart("password", it) }
@@ -222,6 +223,7 @@ class PurpleClient(
         title: String,
         artist: String,
         genre: String,
+        album: String,
         newCoverBytes: ByteArray?,
         newCoverName: String?
     ) {
@@ -231,6 +233,7 @@ class PurpleClient(
             .addFormDataPart("title", title)
             .addFormDataPart("artist", artist)
             .addFormDataPart("new_genre", genre)
+            .addFormDataPart("new_album", album)
 
         currentUsername?.let { builder.addFormDataPart("username", it) }
         currentPassword?.let { builder.addFormDataPart("password", it) }

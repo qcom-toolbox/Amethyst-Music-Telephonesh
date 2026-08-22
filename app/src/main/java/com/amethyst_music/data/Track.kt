@@ -12,6 +12,8 @@ data class Track(
     val playCount: Int,
     val duration: Int,
     val uploaderId: Int,
+    val albumId: Int? = null,
+    val album: String? = null,
 ) {
     companion object {
         fun fromJson(obj: JSONObject): Track = Track(
@@ -23,7 +25,9 @@ data class Track(
             genre = obj.optString("genre").ifBlank { "Autre" },
             playCount = obj.optInt("play_count", 0),
             duration = obj.optInt("duration", 0),
-            uploaderId = obj.optInt("uploader_id", 0)
+            uploaderId = obj.optInt("uploader_id", 0),
+            albumId = if (obj.isNull("album_id")) null else obj.optInt("album_id"),
+            album = if (obj.isNull("album")) null else obj.optString("album").ifBlank { null },
         )
     }
 }

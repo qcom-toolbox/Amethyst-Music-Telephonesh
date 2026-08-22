@@ -75,6 +75,7 @@
     <string name="previous">Precedent</string>
     <string name="next">Proxim</string>
     <string name="play">Riproducir</string>
+    <string name="play_all">Riproducir tuts</string>
     <string name="pause">Pausa</string>
     <string name="loop">Repetir</string>
     <string name="playback_speed">Sveltezza da riproducziun</string>
@@ -122,6 +123,7 @@
     <string name="label_title">Titel</string>
     <string name="label_artist">Artist</string>
     <string name="label_genre">Genre</string>
+    <string name="label_album">Album</string>
     <string name="label_music">Musica</string>
     <string name="label_cover_art">Cuverta</string>
     <string name="no_file_selected">Nagina datoteca tschernida</string>
@@ -130,6 +132,7 @@
     <string name="no_playlists_available">Naginas playlists disponiblas.</string>
     <string name="keep_current">Mantegnair actual</string>
     <string name="tracks_count">%1$d tithels</string>
+    <string name="search_albums_header">Albums</string>
     <string name="genre_other">Auter</string>
     <string name="exit_fullscreen">Sortir dal plein ecran</string>
 
