@@ -10,6 +10,16 @@ object ThemeUtils {
         return color.luminance() > 0.5f
     }
 
+    /** True when [color]'s RGB channels are close enough together to read as grayscale. HSL
+     * saturation is unreliable for this near the lightness extremes — its denominator shrinks
+     * toward 0 or 1, so a few units of compression noise in an otherwise black/white color can
+     * read back as high saturation despite looking neutral. Raw channel spread doesn't have
+     * that distortion. */
+    private fun isAchromatic(color: Color, threshold: Float = 0.08f): Boolean {
+        val spread = maxOf(color.red, color.green, color.blue) - minOf(color.red, color.green, color.blue)
+        return spread < threshold
+    }
+
     fun deriveAccent(base: Color): Color {
         // If the background is pure black, use white as accent for AMOLED theme
         if (base.toArgb() == 0xFF000000.toInt()) {
@@ -24,7 +34,12 @@ object ThemeUtils {
         val isLight = isLight(base)
         val hsl = FloatArray(3)
         ColorUtils.colorToHSL(base.toArgb(), hsl)
-        
+
+        // Judged from the raw RGB (see isAchromatic) and captured before the saturation boost
+        // below, which otherwise always lands at 0.5+ regardless of the input and would defeat
+        // an HSL-saturation-based check here every time.
+        val wasAchromatic = isAchromatic(base)
+
         if (isLight) {
             // For light backgrounds, we want a darker, more saturated accent
             hsl[1] = (hsl[1] + 0.5f).coerceIn(0.6f, 1.0f)
@@ -34,14 +49,14 @@ object ThemeUtils {
             hsl[1] = (hsl[1] + 0.4f).coerceIn(0.5f, 0.9f)
             hsl[2] = (hsl[2] + 0.5f).coerceIn(0.6f, 0.85f)
         }
-        
+
         // If the base is very desaturated (grayscale), give it a slight purple/blue hue
-        if (hsl[1] < 0.1f) {
+        if (wasAchromatic) {
             hsl[0] = 270f // Purple hue
             hsl[1] = 0.6f
             if (isLight) hsl[2] = 0.4f
         }
-        
+
         return Color(ColorUtils.HSLToColor(hsl))
     }
 

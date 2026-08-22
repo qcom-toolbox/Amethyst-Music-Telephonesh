@@ -86,6 +86,7 @@
     <string name="connect_server">Подключите ваш сервер Purple Music</string>
     <string name="server_url">URL сервера</string>
     <string name="connect">Подключиться</string>
+    <string name="no_server_create_own">Нет сервера? Создайте свой</string>
     <string name="error_no_server">Сервер не настроен.</string>
     <string name="error_no_offline">Загруженные треки не найдены.</string>
     <string name="error_login_required_download">Для загрузки требуется вход в систему.</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">Оставить текущую</string>
     <string name="tracks_count">%1$d треков</string>
     <string name="search_albums_header">Альбомы</string>
+    <string name="search_artists_header">Исполнители</string>
+    <string name="search_songs_header">Треки</string>
     <string name="genre_other">Другое</string>
     <string name="exit_fullscreen">Выйти из полноэкранного режима</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">Пользовательский</string>
     <string name="up_next">Далее</string>
     <string name="queue">Очередь</string>
+    <string name="back">Назад</string>
+    <string name="artist_links">Страницы исполнителей</string>
+    <string name="artist_links_hint">Нажмите на имя исполнителя, чтобы открыть его страницу</string>
+    <string name="artist_links_lists">Ссылки на исполнителей в списках</string>
+    <string name="artist_links_lists_hint">Также разрешить в Библиотеке, Офлайн и Плейлистах (Главная и полноэкранный плеер не затрагиваются)</string>
+    <string name="loading_biography">Загрузка биографии…</string>
+    <string name="no_description_available">Описание недоступно.</string>
+    <string name="view_on_wikipedia">Смотреть в Википедии ↗</string>
 </resources>

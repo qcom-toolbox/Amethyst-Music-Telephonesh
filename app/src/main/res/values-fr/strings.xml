@@ -86,6 +86,7 @@
     <string name="connect_server">Connectez votre serveur Purple Music</string>
     <string name="server_url">URL du serveur</string>
     <string name="connect">Se connecter</string>
+    <string name="no_server_create_own">Pas de serveur ? Créez le vôtre</string>
     <string name="error_no_server">Aucun serveur configuré.</string>
     <string name="error_no_offline">Aucun titre téléchargé.</string>
     <string name="error_login_required_download">Connexion requise pour télécharger.</string>
@@ -134,6 +135,8 @@
     <string name="keep_current">Garder l\'actuelle</string>
     <string name="tracks_count">%1$d titres</string>
     <string name="search_albums_header">Albums</string>
+    <string name="search_artists_header">Artistes</string>
+    <string name="search_songs_header">Titres</string>
     <string name="genre_other">Autre</string>
     <string name="exit_fullscreen">Quitter le plein écran</string>
 

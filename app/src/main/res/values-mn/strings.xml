@@ -86,6 +86,7 @@
     <string name="connect_server">Purple Music серверээ холбоно уу</string>
     <string name="server_url">Сервер URL</string>
     <string name="connect">Холбох</string>
+    <string name="no_server_create_own">Сервергүй юу? Өөрийн сервер үүсгээрэй</string>
     <string name="error_no_server">Сервер тохируулаагүй байна.</string>
     <string name="error_no_offline">Татаж авсан дуу олдсонгүй.</string>
     <string name="error_login_required_download">Татаж авахын тулд нэвтрэх шаардлагатай.</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">Одоогийнхоор үлдээх</string>
     <string name="tracks_count">%1$d дуу</string>
     <string name="search_albums_header">Цомгууд</string>
+    <string name="search_artists_header">Дуучид</string>
+    <string name="search_songs_header">Дуунууд</string>
     <string name="genre_other">Бусад</string>
     <string name="exit_fullscreen">Бүтэн дэлгэцээс гарах</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">Өөрчилсөн</string>
     <string name="up_next">Дараагийнх</string>
     <string name="queue">Дараалал</string>
+    <string name="back">Буцах</string>
+    <string name="artist_links">Дуучны хуудас</string>
+    <string name="artist_links_hint">Дуучны хуудсыг нээхийн тулд түүний нэрийг товшино уу</string>
+    <string name="artist_links_lists">Жагсаалт дахь дуучны холбоос</string>
+    <string name="artist_links_lists_hint">Сан, Офлайн, Тоглуулах жагсаалтад ч мөн зөвшөөрөх (Нүүр хуудас болон бүтэн дэлгэцийн тоглуулагчид нөлөөлөхгүй)</string>
+    <string name="loading_biography">Намтар ачаалж байна…</string>
+    <string name="no_description_available">Тайлбар алга байна.</string>
+    <string name="view_on_wikipedia">Википедиа дээр үзэх ↗</string>
 </resources>

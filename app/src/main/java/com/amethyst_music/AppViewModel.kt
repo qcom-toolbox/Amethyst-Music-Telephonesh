@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
 import com.amethyst_music.data.AlbumSummary
+import com.amethyst_music.data.ArtistSummary
 import com.amethyst_music.data.ArtistUtils
 import com.amethyst_music.data.LyricsCache
 import com.amethyst_music.data.OfflineLibrary
@@ -220,6 +221,47 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val filteredOfflineAlbums: StateFlow<List<AlbumSummary>> = combine(
         _offlineTracks, _searchQuery
     ) { tracks, query -> matchingAlbums(tracks, query) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Groups tracks by individual (split) artist name matching the current search query, for
+     * the "artist" result card shown above search results — mirrors [matchingAlbums].
+     *
+     * Grouped case-insensitively so name-casing variants across tracks (e.g. "s3rl" on one
+     * upload, "S3RL" on another) collapse into a single result instead of two — matching the
+     * case-insensitive comparison [ArtistUtils.trackBelongsToArtist] already uses when opening
+     * an artist page. The casing used by the most tracks wins as the display name, so one
+     * inconsistently-tagged track doesn't override how the artist is usually styled. */
+    private fun matchingArtists(tracks: List<Track>, query: String): List<ArtistSummary> {
+        val q = query.trim()
+        if (q.isEmpty()) return emptyList()
+        val lang = currentLangCode()
+        val tracksByKey = LinkedHashMap<String, MutableList<Track>>()
+        val nameCountsByKey = HashMap<String, MutableMap<String, Int>>()
+        tracks.forEach { track ->
+            ArtistUtils.splitArtistNames(ArtistUtils.fixEntities(track.artist, lang)).forEach { name ->
+                val key = name.lowercase()
+                tracksByKey.getOrPut(key) { mutableListOf() }.add(track)
+                val counts = nameCountsByKey.getOrPut(key) { mutableMapOf() }
+                counts[name] = (counts[name] ?: 0) + 1
+            }
+        }
+        return tracksByKey
+            .filterKeys { it.contains(q, ignoreCase = true) }
+            .map { (key, ts) ->
+                val displayName = nameCountsByKey.getValue(key).maxBy { it.value }.key
+                ArtistSummary(displayName, ts.size, ts.maxBy { it.id })
+            }
+            .sortedBy { it.name.lowercase() }
+    }
+
+    val filteredArtists: StateFlow<List<ArtistSummary>> = combine(
+        _tracks, _searchQuery
+    ) { tracks, query -> matchingArtists(tracks, query) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val filteredOfflineArtists: StateFlow<List<ArtistSummary>> = combine(
+        _offlineTracks, _searchQuery
+    ) { tracks, query -> matchingArtists(tracks, query) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedTab = MutableStateFlow(0)

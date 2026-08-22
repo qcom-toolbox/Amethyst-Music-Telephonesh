@@ -86,6 +86,7 @@
     <string name="connect_server">连接您的 Purple Music 服务器</string>
     <string name="server_url">服务器地址</string>
     <string name="connect">连接</string>
+    <string name="no_server_create_own">没有服务器？创建自己的</string>
     <string name="error_no_server">未配置服务器。</string>
     <string name="error_no_offline">未发现下载的曲目。</string>
     <string name="error_login_required_download">登录后即可下载。</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">保持当前</string>
     <string name="tracks_count">%1$d 首曲目</string>
     <string name="search_albums_header">专辑</string>
+    <string name="search_artists_header">艺术家</string>
+    <string name="search_songs_header">曲目</string>
     <string name="genre_other">其他</string>
     <string name="exit_fullscreen">退出全屏</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">自定义</string>
     <string name="up_next">即将播放</string>
     <string name="queue">队列</string>
+    <string name="back">返回</string>
+    <string name="artist_links">艺术家页面</string>
+    <string name="artist_links_hint">点击艺术家姓名可打开其页面</string>
+    <string name="artist_links_lists">列表中的艺术家链接</string>
+    <string name="artist_links_lists_hint">也在媒体库、离线和播放列表中启用（主页和全屏播放器不受影响）</string>
+    <string name="loading_biography">正在加载简介…</string>
+    <string name="no_description_available">暂无简介。</string>
+    <string name="view_on_wikipedia">在维基百科上查看 ↗</string>
 </resources>

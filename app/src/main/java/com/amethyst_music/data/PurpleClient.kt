@@ -154,16 +154,9 @@ class PurpleClient(
             .find(html)?.groupValues?.get(1) ?: return emptyList()
         return Regex("""<option value="([^"]*)">""")
             .findAll(selectBody)
-            .map { unescapeHtml(it.groupValues[1]) }
+            .map { HtmlEntities.decode(it.groupValues[1]) }
             .toList()
     }
-
-    private fun unescapeHtml(s: String): String = s
-        .replace("&amp;", "&")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&quot;", "\"")
-        .replace("&#039;", "'")
 
     companion object {
         /** Fallback if index.php is unreachable or the genres table is empty. */

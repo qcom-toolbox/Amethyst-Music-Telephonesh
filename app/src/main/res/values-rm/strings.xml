@@ -86,6 +86,7 @@
     <string name="connect_server">Colliar Voss server Purple Music</string>
     <string name="server_url">URL dal server</string>
     <string name="connect">Colliar</string>
+    <string name="no_server_create_own">Nagin server? Creescha in agen</string>
     <string name="error_no_server">Nagin server configurà.</string>
     <string name="error_no_offline">Naginas chanzuns telechargiadas chattadas.</string>
     <string name="error_login_required_download">Annunzia necessaria per telechargiar.</string>
@@ -133,6 +134,8 @@
     <string name="keep_current">Mantegnair actual</string>
     <string name="tracks_count">%1$d tithels</string>
     <string name="search_albums_header">Albums</string>
+    <string name="search_artists_header">Artists</string>
+    <string name="search_songs_header">Tithels</string>
     <string name="genre_other">Auter</string>
     <string name="exit_fullscreen">Sortir dal plein ecran</string>
 
@@ -163,4 +166,12 @@
     <string name="custom">Individual</string>
     <string name="up_next">Ils proxims titels</string>
     <string name="queue">Cua</string>
+    <string name="back">Enavos</string>
+    <string name="artist_links">Paginas d\'artist</string>
+    <string name="artist_links_hint">Tutgar il num d\'in artist per avrir sia pagina</string>
+    <string name="artist_links_lists">Colliaziuns d\'artist en glistas</string>
+    <string name="artist_links_lists_hint">Permetter quai era en Biblioteca, Offline e Glistas da reproducziun (Actualitad ed il reproductur en maletg entir n\'èn betg pertutgads)</string>
+    <string name="loading_biography">Chargiar la biografia…</string>
+    <string name="no_description_available">Nagina descripziun disponibla.</string>
+    <string name="view_on_wikipedia">Vesair sin Wikipedia ↗</string>
 </resources>
