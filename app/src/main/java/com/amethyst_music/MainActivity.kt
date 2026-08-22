@@ -35,6 +35,7 @@ import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.amethyst_music.data.ServerPreferences
 import com.amethyst_music.ui.components.AddToPlaylistDialog
+import com.amethyst_music.ui.screens.AlbumScreen
 import com.amethyst_music.ui.screens.ArtistScreen
 import com.amethyst_music.ui.screens.BulkDownloadScreen
 import com.amethyst_music.ui.screens.EqualizerScreen
@@ -248,8 +249,8 @@ class MainActivity : AppCompatActivity() {
                                             }
                                         },
                                         onUploadTrack = remember(vm) {
-                                            { t, a, g, m, mn, c, cn ->
-                                                vm.uploadTrack(t, a, g, m, mn, c, cn)
+                                            { t, a, g, al, m, mn, c, cn ->
+                                                vm.uploadTrack(t, a, g, al, m, mn, c, cn)
                                             }
                                         },
                                         homeRecommended = homeRecommended,
@@ -326,6 +327,151 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
 
+                            val selectedArtist by vm.selectedArtist.collectAsState()
+                            AnimatedVisibility(
+                                visible = selectedArtist != null,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                selectedArtist?.let { artistName ->
+                                    val artistTracks by vm.artistTracks.collectAsState()
+                                    val artistDownloadedIds by vm.downloadedIds.collectAsState()
+                                    val artistDownloadingIds by vm.downloadingIds.collectAsState()
+                                    val artistDownloadProgress by vm.downloadProgress.collectAsState()
+
+                                    ArtistScreen(
+                                        artistName = artistName,
+                                        tracks = artistTracks,
+                                        currentTrack = currentTrack,
+                                        isPlaying = isPlaying,
+                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                        downloadedIds = artistDownloadedIds,
+                                        downloadingIds = artistDownloadingIds,
+                                        downloadProgress = artistDownloadProgress,
+                                        onBack = vm::closeArtistPage,
+                                        onTrackClick = remember(vm) {
+                                            { track ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playArtistTrack(track)
+                                            }
+                                        },
+                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onPlayAll = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllArtistTracks(shuffled = false)
+                                            }
+                                        },
+                                        onPlayRandom = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllArtistTracks(shuffled = true)
+                                            }
+                                        },
+                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
+                                        onPlayPause = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.togglePlayPause()
+                                            }
+                                        },
+                                        onNext = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.nextTrack()
+                                            }
+                                        },
+                                        onPrevious = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.previousTrack()
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+
+                            val selectedAlbum by vm.selectedAlbum.collectAsState()
+                            AnimatedVisibility(
+                                visible = selectedAlbum != null,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                selectedAlbum?.let { albumName ->
+                                    val albumTracks by vm.albumTracks.collectAsState()
+                                    val albumDownloadedIds by vm.downloadedIds.collectAsState()
+                                    val albumDownloadingIds by vm.downloadingIds.collectAsState()
+                                    val albumDownloadProgress by vm.downloadProgress.collectAsState()
+
+                                    AlbumScreen(
+                                        albumName = albumName,
+                                        tracks = albumTracks,
+                                        currentTrack = currentTrack,
+                                        isPlaying = isPlaying,
+                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                        downloadedIds = albumDownloadedIds,
+                                        downloadingIds = albumDownloadingIds,
+                                        downloadProgress = albumDownloadProgress,
+                                        onBack = vm::closeAlbumPage,
+                                        onTrackClick = remember(vm) {
+                                            { track ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAlbumTrack(track)
+                                            }
+                                        },
+                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onPlayAll = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllAlbumTracks(shuffled = false)
+                                            }
+                                        },
+                                        onPlayRandom = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllAlbumTracks(shuffled = true)
+                                            }
+                                        },
+                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
+                                        onPlayPause = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.togglePlayPause()
+                                            }
+                                        },
+                                        onNext = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.nextTrack()
+                                            }
+                                        },
+                                        onPrevious = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.previousTrack()
+                                            }
+                                        },
+                                        offlineOnlyMode = offlineOnlyMode,
+                                        selectedTab = selectedTab,
+                                        onTabSelected = remember(vm) {
+                                            { tab ->
+                                                vm.closeAlbumPage()
+                                                vm.setSelectedTab(tab)
+                                            }
+                                        },
+                                        onClosePlaylist = remember(vm) { { vm.closePlaylist() } },
+                                    )
+                                }
+                            }
+
+                            // Declared last so it draws on top of the artist/album overlays above —
+                            // opening it from a mini-player inside one of those screens (which stays
+                            // visible, since opening the player doesn't close them) must not leave it
+                            // hidden behind them.
                             AnimatedVisibility(
                                 visible = showFullPlayer && currentTrack != null,
                                 enter = slideInVertically(initialOffsetY = { it }),
@@ -375,64 +521,21 @@ class MainActivity : AppCompatActivity() {
                                         onDownload = { vm.downloadTrack(it) },
                                         onAddToPlaylistForTrack = { vm.showAddToPlaylist(it) },
                                         coverUrlProvider = { vm.coverUrlForTrack(it) },
-                                        onArtistClick = onArtistClick,
+                                        onArtistClick = remember(vm, onArtistClick) {
+                                            { name ->
+                                                vm.closeFullPlayer()
+                                                onArtistClick(name)
+                                            }
+                                        },
                                         artistClickEnabled = artistLinksEnabled,
+                                        onAlbumClick = remember(vm) {
+                                            { name ->
+                                                vm.closeFullPlayer()
+                                                vm.openAlbumPage(name)
+                                            }
+                                        },
                                         useDynamicBackground = dynamicThemeEnabled || dynamicThemeFullPlayerOnly,
                                         albumArtColor = dynamicAlbumColor?.let { ComposeColor(it) },
-                                    )
-                                }
-                            }
-
-                            val selectedArtist by vm.selectedArtist.collectAsState()
-                            AnimatedVisibility(
-                                visible = selectedArtist != null,
-                                enter = slideInVertically(initialOffsetY = { it }),
-                                exit = slideOutVertically(targetOffsetY = { it })
-                            ) {
-                                selectedArtist?.let { artistName ->
-                                    val artistTracks by vm.artistTracks.collectAsState()
-                                    val artistDownloadedIds by vm.downloadedIds.collectAsState()
-                                    val artistDownloadingIds by vm.downloadingIds.collectAsState()
-                                    val artistDownloadProgress by vm.downloadProgress.collectAsState()
-
-                                    ArtistScreen(
-                                        artistName = artistName,
-                                        tracks = artistTracks,
-                                        currentTrack = currentTrack,
-                                        isPlaying = isPlaying,
-                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
-                                        downloadedIds = artistDownloadedIds,
-                                        downloadingIds = artistDownloadingIds,
-                                        downloadProgress = artistDownloadProgress,
-                                        onBack = vm::closeArtistPage,
-                                        onTrackClick = remember(vm) {
-                                            { track ->
-                                                notificationPermission.requestIfNeeded()
-                                                vm.playArtistTrack(track)
-                                            }
-                                        },
-                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
-                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
-                                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
-                                        onPlayPause = remember(vm) {
-                                            {
-                                                notificationPermission.requestIfNeeded()
-                                                vm.togglePlayPause()
-                                            }
-                                        },
-                                        onNext = remember(vm) {
-                                            {
-                                                notificationPermission.requestIfNeeded()
-                                                vm.nextTrack()
-                                            }
-                                        },
-                                        onPrevious = remember(vm) {
-                                            {
-                                                notificationPermission.requestIfNeeded()
-                                                vm.previousTrack()
-                                            }
-                                        },
                                     )
                                 }
                             }

@@ -27,11 +27,12 @@ fun EditTrackDialog(
     track: Track,
     genres: List<String>,
     onDismiss: () -> Unit,
-    onSave: (id: Int, title: String, artist: String, genre: String, cover: ByteArray?, coverName: String?) -> Unit,
+    onSave: (id: Int, title: String, artist: String, genre: String, album: String, cover: ByteArray?, coverName: String?) -> Unit,
     onDelete: (id: Int) -> Unit
 ) {
     var title by remember { mutableStateOf(track.title) }
     var artist by remember { mutableStateOf(track.artist) }
+    var album by remember { mutableStateOf(track.album ?: "") }
     var genre by remember { mutableStateOf(track.genre) }
     var coverUri by remember { mutableStateOf<Uri?>(null) }
     var coverName by remember { mutableStateOf("") }
@@ -112,6 +113,15 @@ fun EditTrackDialog(
                     colors = amethystFieldColors(),
                     singleLine = true
                 )
+                OutlinedTextField(
+                    value = album,
+                    onValueChange = { album = it },
+                    label = { Text(stringResource(R.string.label_album)) },
+                    placeholder = { Text(stringResource(R.string.optional)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = amethystFieldColors(),
+                    singleLine = true
+                )
 
                 ExposedDropdownMenuBox(
                     expanded = isExpanded,
@@ -185,6 +195,7 @@ fun EditTrackDialog(
                         title,
                         artist,
                         genre,
+                        album,
                         cData?.first,
                         cData?.second
                     )
@@ -243,7 +254,7 @@ fun EditTrackDialogPreview() {
         track = Track(1, "file.mp3", "Title", "Artist", "cover.png", "Genre", 0, 180, 1),
         genres = listOf("Genre 1", "Genre 2"),
         onDismiss = {},
-        onSave = { _, _, _, _, _, _ -> },
+        onSave = { _, _, _, _, _, _, _ -> },
         onDelete = {}
     )
 }

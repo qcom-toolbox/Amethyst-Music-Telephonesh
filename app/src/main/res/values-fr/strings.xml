@@ -75,6 +75,7 @@
     <string name="previous">Précédent</string>
     <string name="next">Suivant</string>
     <string name="play">Lecture</string>
+    <string name="play_all">Tout lire</string>
     <string name="pause">Pause</string>
     <string name="loop">Boucle</string>
     <string name="playback_speed">Vitesse de lecture</string>
@@ -123,6 +124,7 @@
     <string name="label_title">Titre</string>
     <string name="label_artist">Artiste</string>
     <string name="label_genre">Genre</string>
+    <string name="label_album">Album</string>
     <string name="label_music">Musique</string>
     <string name="label_cover_art">Pochette</string>
     <string name="no_file_selected">Aucun fichier</string>
@@ -131,6 +133,7 @@
     <string name="no_playlists_available">Aucune playlist disponible.</string>
     <string name="keep_current">Garder l\'actuelle</string>
     <string name="tracks_count">%1$d titres</string>
+    <string name="search_albums_header">Albums</string>
     <string name="genre_other">Autre</string>
     <string name="exit_fullscreen">Quitter le plein écran</string>
 

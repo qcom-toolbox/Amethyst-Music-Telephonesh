@@ -87,6 +87,7 @@ fun FullPlayerScreen(
     coverUrlProvider: (Track) -> String?,
     onArtistClick: (String) -> Unit = {},
     artistClickEnabled: Boolean = true,
+    onAlbumClick: (String) -> Unit = {},
     useDynamicBackground: Boolean = false,
     albumArtColor: androidx.compose.ui.graphics.Color? = null,
 ) {
@@ -342,6 +343,8 @@ fun FullPlayerScreen(
                         fontSize = if (showLyrics) 14.sp else 16.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
+                        suffix = track.album?.let { " • $it" },
+                        onSuffixClick = track.album?.let { album -> { onAlbumClick(album) } },
                         enabled = artistClickEnabled,
                     )
                 }

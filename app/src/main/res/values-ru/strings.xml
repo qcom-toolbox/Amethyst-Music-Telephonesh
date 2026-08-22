@@ -75,6 +75,7 @@
     <string name="previous">Предыдущий</string>
     <string name="next">Следующий</string>
     <string name="play">Играть</string>
+    <string name="play_all">Воспроизвести все</string>
     <string name="pause">Пауза</string>
     <string name="loop">Повтор</string>
     <string name="playback_speed">Скорость воспроизведения</string>
@@ -122,6 +123,7 @@
     <string name="label_title">Название</string>
     <string name="label_artist">Исполнитель</string>
     <string name="label_genre">Жанр</string>
+    <string name="label_album">Альбом</string>
     <string name="label_music">Музыка</string>
     <string name="label_cover_art">Обложка</string>
     <string name="no_file_selected">Файл не выбран</string>
@@ -130,6 +132,7 @@
     <string name="no_playlists_available">Плейлисты недоступны.</string>
     <string name="keep_current">Оставить текущую</string>
     <string name="tracks_count">%1$d треков</string>
+    <string name="search_albums_header">Альбомы</string>
     <string name="genre_other">Другое</string>
     <string name="exit_fullscreen">Выйти из полноэкранного режима</string>
 

@@ -75,6 +75,7 @@
     <string name="previous">Anterior</string>
     <string name="next">Siguiente</string>
     <string name="play">Reproducir</string>
+    <string name="play_all">Reproducir todo</string>
     <string name="pause">Pausa</string>
     <string name="loop">Bucle</string>
     <string name="playback_speed">Velocidad de reproducción</string>
@@ -122,6 +123,7 @@
     <string name="label_title">Título</string>
     <string name="label_artist">Artista</string>
     <string name="label_genre">Género</string>
+    <string name="label_album">Álbum</string>
     <string name="label_music">Música</string>
     <string name="label_cover_art">Portada</string>
     <string name="no_file_selected">Ningún archivo seleccionado</string>
@@ -130,6 +132,7 @@
     <string name="no_playlists_available">No hay listas de reproducción disponibles.</string>
     <string name="keep_current">Mantener actual</string>
     <string name="tracks_count">%1$d pistas</string>
+    <string name="search_albums_header">Álbumes</string>
     <string name="genre_other">Otro</string>
     <string name="exit_fullscreen">Salir de pantalla completa</string>
 

@@ -89,6 +89,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import com.amethyst_music.R
 import androidx.compose.ui.draw.clip
@@ -105,9 +106,11 @@ import coil.compose.AsyncImage
 import coil.compose.LocalImageLoader
 import com.amethyst_music.AppViewModel
 import com.amethyst_music.SortOrder
+import com.amethyst_music.data.AlbumSummary
 import com.amethyst_music.data.Playlist
 import com.amethyst_music.data.Track
 import com.amethyst_music.ui.components.AddToPlaylistDialog
+import com.amethyst_music.ui.components.AlbumRow
 import com.amethyst_music.ui.components.CreatePlaylistDialog
 import com.amethyst_music.ui.components.MiniPlayerBar
 import androidx.compose.material.icons.filled.Edit
@@ -148,7 +151,7 @@ fun MainScreen(
     onTogglePlay: () -> Unit,
     onNextTrack: () -> Unit,
     onPreviousTrack: () -> Unit,
-    onUploadTrack: (String, String, String, ByteArray, String, ByteArray?, String?) -> Unit,
+    onUploadTrack: (String, String, String, String, ByteArray, String, ByteArray?, String?) -> Unit,
     homeRecommended: List<Track> = emptyList(),
     homePopular: List<Track> = emptyList(),
     homeHiddenGems: List<Track> = emptyList(),
@@ -160,6 +163,7 @@ fun MainScreen(
     val isCheckingConnection by vm.isCheckingConnection.collectAsState()
     val showOfflineConfirmation by vm.showOfflineConfirmation.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
 
     if (showOfflineConfirmation) {
         AlertDialog(
@@ -217,8 +221,8 @@ fun MainScreen(
         UploadDialog(
             genres = genres,
             onDismiss = { showUploadDialog = false },
-            onUpload = { t, a, g, m, mn, c, cn ->
-                onUploadTrack(t, a, g, m, mn, c, cn)
+            onUpload = { t, a, g, al, m, mn, c, cn ->
+                onUploadTrack(t, a, g, al, m, mn, c, cn)
                 showUploadDialog = false
             }
         )
@@ -239,8 +243,8 @@ fun MainScreen(
             track = track,
             genres = genres,
             onDismiss = { trackToEdit = null },
-            onSave = { id, title, artist, genre, cover, coverName ->
-                vm.editTrack(id, title, artist, genre, cover, coverName)
+            onSave = { id, title, artist, genre, album, cover, coverName ->
+                vm.editTrack(id, title, artist, genre, album, cover, coverName)
                 trackToEdit = null
             },
             onDelete = { id ->
@@ -254,76 +258,19 @@ fun MainScreen(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Column {
-                AnimatedVisibility(
-                    visible = currentTrack != null,
-                    enter = expandVertically(animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
-                    exit = shrinkVertically(animationSpec = tween(220)) + fadeOut(animationSpec = tween(220)),
-                ) {
-                    currentTrack?.let { track ->
-                        MiniPlayerBar(
-                            track = track,
-                            isPlaying = isPlaying,
-                            coverUrl = coverUrlForTrack(track),
-                            onClick = onMiniPlayerClick,
-                            onPlayPause = onTogglePlay,
-                            onNext = onNextTrack,
-                            onPrevious = onPreviousTrack,
-                        )
-                    }
-                }
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ) {
-                    if (!offlineOnlyMode) {
-                        NavigationBarItem(
-                            selected = selectedTab == 0,
-                            onClick = { onTabSelected(0) },
-                            icon = { Icon(Icons.Default.MusicNote, contentDescription = null) },
-                            label = { Text(stringResource(R.string.tab_home)) },
-                            colors = navColors(),
-                        )
-                        NavigationBarItem(
-                            selected = selectedTab == 1,
-                            onClick = { 
-                                vm.closePlaylist()
-                                onTabSelected(1) 
-                            },
-                            icon = { Icon(Icons.Default.LibraryMusic, contentDescription = null) },
-                            label = { Text(stringResource(R.string.tab_library)) },
-                            colors = navColors(),
-                        )
-                        NavigationBarItem(
-                            selected = selectedTab == 2,
-                            onClick = { onTabSelected(2) },
-                            icon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
-                            label = { Text(stringResource(R.string.tab_playlists)) },
-                            colors = navColors(),
-                        )
-                    }
-                    NavigationBarItem(
-                        selected = selectedTab == 3,
-                        onClick = { 
-                            vm.closePlaylist()
-                            onTabSelected(3) 
-                        },
-                        icon = { Icon(Icons.Default.Download, contentDescription = null) },
-                        label = { Text(stringResource(R.string.tab_offline)) },
-                        colors = navColors(),
-                    )
-                    NavigationBarItem(
-                        selected = selectedTab == 4,
-                        onClick = { 
-                            vm.closePlaylist()
-                            onTabSelected(4) 
-                        },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-                        label = { Text(stringResource(R.string.tab_settings)) },
-                        colors = navColors(),
-                    )
-                }
-            }
+            AppBottomBar(
+                currentTrack = currentTrack,
+                isPlaying = isPlaying,
+                coverUrlForTrack = coverUrlForTrack,
+                onMiniPlayerClick = onMiniPlayerClick,
+                onTogglePlay = onTogglePlay,
+                onNextTrack = onNextTrack,
+                onPreviousTrack = onPreviousTrack,
+                offlineOnlyMode = offlineOnlyMode,
+                selectedTab = selectedTab,
+                onTabSelected = onTabSelected,
+                onClosePlaylist = { vm.closePlaylist() },
+            )
         },
     ) { padding ->
         Column(
@@ -471,24 +418,34 @@ fun MainScreen(
                     onArtistClick = onArtistClick,
                     artistClickEnabled = artistClickEnabled,
                 )
-                1 -> TrackList(
-                    tracks = tracks,
-                    currentTrack = currentTrack,
-                    isPlaying = isPlaying,
-                    downloadedIds = downloadedIds,
-                    downloadingIds = downloadingIds,
-                    downloadProgress = downloadProgress,
-                    coverUrlForTrack = coverUrlForTrack,
-                    showDownloadActions = true,
-                    onTrackClick = onTrackClick,
-                    onDownload = onDownload,
-                    onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                    adminModeEnabled = adminModeEnabled,
-                    onEditTrack = { trackToEdit = it },
-                    onArtistClick = onArtistClick,
-                    artistClickEnabled = listArtistClickEnabled,
-                )
+                1 -> {
+                    val filteredAlbums by vm.filteredAlbums.collectAsState()
+                    TrackList(
+                        tracks = tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        downloadedIds = downloadedIds,
+                        downloadingIds = downloadingIds,
+                        downloadProgress = downloadProgress,
+                        coverUrlForTrack = coverUrlForTrack,
+                        showDownloadActions = true,
+                        onTrackClick = onTrackClick,
+                        onDownload = onDownload,
+                        onRemoveDownload = onRemoveDownload,
+                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = { trackToEdit = it },
+                        onArtistClick = onArtistClick,
+                        artistClickEnabled = listArtistClickEnabled,
+                        albums = filteredAlbums,
+                        onAlbumClick = remember(vm, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                vm.openAlbumPage(name)
+                            }
+                        },
+                    )
+                }
                 2 -> if (currentPlaylist != null) {
                     TrackList(
                         tracks = currentPlaylistTracks,
@@ -518,26 +475,36 @@ fun MainScreen(
                         onDeletePlaylist = remember(vm) { { vm.deletePlaylist(it) } }
                     )
                 }
-                3 -> TrackList(
-                    tracks = offlineTracks,
-                    currentTrack = currentTrack,
-                    isPlaying = isPlaying,
-                    downloadedIds = downloadedIds,
-                    downloadingIds = downloadingIds,
-                    downloadProgress = downloadProgress,
-                    coverUrlForTrack = coverUrlForTrack,
-                    showDownloadActions = true,
-                    onTrackClick = onTrackClick,
-                    onDownload = onDownload,
-                    onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                    adminModeEnabled = adminModeEnabled,
-                    onEditTrack = { trackToEdit = it },
-                    isRefreshing = isCheckingConnection,
-                    onRefresh = remember(vm) { { vm.recheckConnection() } },
-                    onArtistClick = onArtistClick,
-                    artistClickEnabled = listArtistClickEnabled,
-                )
+                3 -> {
+                    val filteredOfflineAlbums by vm.filteredOfflineAlbums.collectAsState()
+                    TrackList(
+                        tracks = offlineTracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        downloadedIds = downloadedIds,
+                        downloadingIds = downloadingIds,
+                        downloadProgress = downloadProgress,
+                        coverUrlForTrack = coverUrlForTrack,
+                        showDownloadActions = true,
+                        onTrackClick = onTrackClick,
+                        onDownload = onDownload,
+                        onRemoveDownload = onRemoveDownload,
+                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = { trackToEdit = it },
+                        isRefreshing = isCheckingConnection,
+                        onRefresh = remember(vm) { { vm.recheckConnection() } },
+                        onArtistClick = onArtistClick,
+                        artistClickEnabled = listArtistClickEnabled,
+                        albums = filteredOfflineAlbums,
+                        onAlbumClick = remember(vm, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                vm.openAlbumPage(name)
+                            }
+                        },
+                    )
+                }
                 4 -> {
                     val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
                     val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
@@ -580,6 +547,95 @@ private fun navColors() = NavigationBarItemDefaults.colors(
     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
     indicatorColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
 )
+
+/** The mini-player + tab bar shown at the bottom of every screen — extracted so secondary
+ * screens (e.g. [com.amethyst_music.ui.screens.AlbumScreen]) look and navigate identically to
+ * the main Library/Home/etc. tabs instead of the stripped-down bar those screens used before. */
+@Composable
+fun AppBottomBar(
+    currentTrack: Track?,
+    isPlaying: Boolean,
+    coverUrlForTrack: (Track) -> String?,
+    onMiniPlayerClick: () -> Unit,
+    onTogglePlay: () -> Unit,
+    onNextTrack: () -> Unit,
+    onPreviousTrack: () -> Unit,
+    offlineOnlyMode: Boolean,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    onClosePlaylist: () -> Unit = {},
+) {
+    Column {
+        AnimatedVisibility(
+            visible = currentTrack != null,
+            enter = expandVertically(animationSpec = tween(220)) + fadeIn(animationSpec = tween(220)),
+            exit = shrinkVertically(animationSpec = tween(220)) + fadeOut(animationSpec = tween(220)),
+        ) {
+            currentTrack?.let { track ->
+                MiniPlayerBar(
+                    track = track,
+                    isPlaying = isPlaying,
+                    coverUrl = coverUrlForTrack(track),
+                    onClick = onMiniPlayerClick,
+                    onPlayPause = onTogglePlay,
+                    onNext = onNextTrack,
+                    onPrevious = onPreviousTrack,
+                )
+            }
+        }
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            if (!offlineOnlyMode) {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { onTabSelected(0) },
+                    icon = { Icon(Icons.Default.MusicNote, contentDescription = null) },
+                    label = { Text(stringResource(R.string.tab_home)) },
+                    colors = navColors(),
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = {
+                        onClosePlaylist()
+                        onTabSelected(1)
+                    },
+                    icon = { Icon(Icons.Default.LibraryMusic, contentDescription = null) },
+                    label = { Text(stringResource(R.string.tab_library)) },
+                    colors = navColors(),
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { onTabSelected(2) },
+                    icon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null) },
+                    label = { Text(stringResource(R.string.tab_playlists)) },
+                    colors = navColors(),
+                )
+            }
+            NavigationBarItem(
+                selected = selectedTab == 3,
+                onClick = {
+                    onClosePlaylist()
+                    onTabSelected(3)
+                },
+                icon = { Icon(Icons.Default.Download, contentDescription = null) },
+                label = { Text(stringResource(R.string.tab_offline)) },
+                colors = navColors(),
+            )
+            NavigationBarItem(
+                selected = selectedTab == 4,
+                onClick = {
+                    onClosePlaylist()
+                    onTabSelected(4)
+                },
+                icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                label = { Text(stringResource(R.string.tab_settings)) },
+                colors = navColors(),
+            )
+        }
+    }
+}
 
 @Composable
 fun FilterSortMenu(
@@ -671,6 +727,8 @@ private fun TrackList(
     onRefresh: (() -> Unit)? = null,
     onArtistClick: (String) -> Unit = {},
     artistClickEnabled: Boolean = true,
+    albums: List<AlbumSummary> = emptyList(),
+    onAlbumClick: (String) -> Unit = {},
 ) {
     val listContent = @Composable {
         LazyColumn(
@@ -680,7 +738,26 @@ private fun TrackList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
         ) {
-            if (tracks.isEmpty()) {
+            if (albums.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.search_albums_header),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp),
+                    )
+                }
+                items(albums, key = { "album_${it.name}" }, contentType = { "album_item" }) { album ->
+                    AlbumRow(
+                        album = album,
+                        cover = coverUrlForTrack(album.coverTrack),
+                        onClick = { onAlbumClick(album.name) },
+                    )
+                }
+            }
+
+            if (tracks.isEmpty() && albums.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -808,10 +885,11 @@ private fun PlaylistList(
 fun UploadDialog(
     genres: List<String>,
     onDismiss: () -> Unit,
-    onUpload: (title: String, artist: String, genre: String, music: ByteArray, musicName: String, cover: ByteArray?, coverName: String?) -> Unit
+    onUpload: (title: String, artist: String, genre: String, album: String, music: ByteArray, musicName: String, cover: ByteArray?, coverName: String?) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var artist by remember { mutableStateOf("") }
+    var album by remember { mutableStateOf("") }
     val defaultGenre = stringResource(R.string.genre_other)
     var genre by remember { mutableStateOf(defaultGenre) }
     var musicUri by remember { mutableStateOf<android.net.Uri?>(null) }
@@ -834,10 +912,12 @@ fun UploadDialog(
                     retriever.setDataSource(context, it)
                     val mTitle = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE)
                     val mArtist = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                    val mAlbum = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM)
                     retriever.release()
 
                     if (!mTitle.isNullOrBlank()) title = mTitle
                     if (!mArtist.isNullOrBlank()) artist = mArtist
+                    if (!mAlbum.isNullOrBlank()) album = mAlbum
                 } catch (_: Exception) {}
 
                 // Fallback to filename parsing
@@ -887,6 +967,15 @@ fun UploadDialog(
                     value = artist,
                     onValueChange = { artist = it },
                     label = { Text(stringResource(R.string.label_artist)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = amethystFieldColors(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = album,
+                    onValueChange = { album = it },
+                    label = { Text(stringResource(R.string.label_album)) },
+                    placeholder = { Text(stringResource(R.string.optional)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = amethystFieldColors(),
                     singleLine = true
@@ -977,6 +1066,7 @@ fun UploadDialog(
                                 title,
                                 artist,
                                 genre,
+                                album,
                                 mData.first,
                                 mData.second,
                                 cData?.first,

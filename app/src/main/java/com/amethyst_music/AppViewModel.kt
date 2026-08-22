@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
+import com.amethyst_music.data.AlbumSummary
 import com.amethyst_music.data.ArtistUtils
 import com.amethyst_music.data.LyricsCache
 import com.amethyst_music.data.OfflineLibrary
@@ -197,6 +198,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /** Groups tracks that share [Track.album] and match the current search query, for the
+     * "album" result card shown above search results — mirrors how artist matches surface via
+     * per-row tappable names, but albums have no per-track precedent so they get their own row. */
+    private fun matchingAlbums(tracks: List<Track>, query: String): List<AlbumSummary> {
+        val q = query.trim()
+        if (q.isEmpty()) return emptyList()
+        return tracks
+            .filter { !it.album.isNullOrBlank() }
+            .groupBy { it.album!! }
+            .filterKeys { it.contains(q, ignoreCase = true) }
+            .map { (name, ts) -> AlbumSummary(name, ts.size, ts.maxBy { it.id }) }
+            .sortedBy { it.name.lowercase() }
+    }
+
+    val filteredAlbums: StateFlow<List<AlbumSummary>> = combine(
+        _tracks, _searchQuery
+    ) { tracks, query -> matchingAlbums(tracks, query) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val filteredOfflineAlbums: StateFlow<List<AlbumSummary>> = combine(
+        _offlineTracks, _searchQuery
+    ) { tracks, query -> matchingAlbums(tracks, query) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
 
@@ -322,6 +347,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         source.filter { ArtistUtils.trackBelongsToArtist(it.artist, name, currentLangCode()) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    private val _selectedAlbum = MutableStateFlow<String?>(null)
+    val selectedAlbum: StateFlow<String?> = _selectedAlbum.asStateFlow()
+
+    val albumTracks: StateFlow<List<Track>> = combine(
+        _selectedAlbum, _tracks, _offlineTracks, _offlineOnlyMode
+    ) { name, tracks, offline, offlineMode ->
+        if (name == null) return@combine emptyList()
+        val source = if (offlineMode) offline else tracks
+        source.filter { it.album == name }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private val _trackToAddToPlaylist = MutableStateFlow<Track?>(null)
     val trackToAddToPlaylist: StateFlow<Track?> = _trackToAddToPlaylist.asStateFlow()
 
@@ -333,6 +369,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private var searchJob: Job? = null
     private var progressJob: Job? = null
+
+    // When a queue started from an artist/album page runs out, keep playing instead of
+    // stopping by topping it up with random tracks — off for library/playlist queues, which
+    // are expected to actually stop at the end. See setQueueExhaustedProvider() wiring below.
+    private var autoContinueWithRandom = false
 
     val hasOfflineLibrary: Boolean
         get() = offlineLibrary.hasTracksForServer(prefs.serverUrl)
@@ -486,6 +527,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             },
             coverUrl = { track, forceRemote -> coverUrlForTrack(track, forceRemote) },
         )
+        musicPlayer.setQueueExhaustedProvider {
+            if (!autoContinueWithRandom) {
+                emptyList()
+            } else {
+                val pool = if (_offlineOnlyMode.value) _offlineTracks.value else _tracks.value
+                pool.shuffled().take(20)
+            }
+        }
     }
 
     private fun initClient(url: String) {
@@ -686,6 +735,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeArtistPage() {
         _selectedArtist.value = null
+    }
+
+    fun openAlbumPage(name: String) {
+        _selectedAlbum.value = name
+    }
+
+    fun closeAlbumPage() {
+        _selectedAlbum.value = null
     }
 
     fun showAddToPlaylist(track: Track) {
@@ -1077,6 +1134,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         title: String,
         artist: String,
         genre: String,
+        album: String,
         musicBytes: ByteArray,
         musicName: String,
         coverBytes: ByteArray?,
@@ -1093,6 +1151,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         title = title,
                         artist = artist,
                         genre = genre,
+                        album = album,
                         musicBytes = musicBytes,
                         musicName = musicName,
                         coverBytes = coverBytes,
@@ -1152,6 +1211,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun playTrack(track: Track) {
+        autoContinueWithRandom = false
         val currentTab = _selectedTab.value
         val baseQueue = when (currentTab) {
             0 -> _tracks.value.shuffled() // Home: always random, changes each click
@@ -1163,7 +1223,34 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Plays a track from the currently open artist page, queuing the rest of that artist's tracks. */
     fun playArtistTrack(track: Track) {
+        autoContinueWithRandom = true
         playFromQueue(artistTracks.value, track)
+    }
+
+    /** Plays a track from the currently open album page, queuing the rest of that album's tracks. */
+    fun playAlbumTrack(track: Track) {
+        autoContinueWithRandom = true
+        playFromQueue(albumTracks.value, track)
+    }
+
+    /** "Play All" / "Play Random" on the artist page — starts from the first (or a random)
+     * track and, once this short queue runs out, keeps going with random library tracks. */
+    fun playAllArtistTracks(shuffled: Boolean) {
+        val list = artistTracks.value
+        if (list.isEmpty()) return
+        autoContinueWithRandom = true
+        val ordered = if (shuffled) list.shuffled() else list
+        playFromQueue(ordered, ordered.first())
+    }
+
+    /** "Play All" / "Play Random" on the album page — same as [playAllArtistTracks] but for
+     * the currently open album's tracks. */
+    fun playAllAlbumTracks(shuffled: Boolean) {
+        val list = albumTracks.value
+        if (list.isEmpty()) return
+        autoContinueWithRandom = true
+        val ordered = if (shuffled) list.shuffled() else list
+        playFromQueue(ordered, ordered.first())
     }
 
     private fun playFromQueue(baseQueue: List<Track>, track: Track) {
@@ -1182,6 +1269,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun playPlaylist(playlist: Playlist) {
         val purple = client ?: return
+        autoContinueWithRandom = false
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -1304,6 +1392,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         title: String,
         artist: String,
         genre: String,
+        album: String,
         newCover: ByteArray?,
         newCoverName: String?
     ) {
@@ -1312,7 +1401,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             try {
                 withContext(Dispatchers.IO) {
-                    purple.editTrack(trackId, title, artist, genre, newCover, newCoverName)
+                    purple.editTrack(trackId, title, artist, genre, album, newCover, newCoverName)
                 }
                 loadLibrary()
             } catch (e: Exception) {

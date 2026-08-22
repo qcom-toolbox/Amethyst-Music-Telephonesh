@@ -87,6 +87,7 @@
     <string name="previous">Previous</string>
     <string name="next">Next</string>
     <string name="play">Play</string>
+    <string name="play_all">Play All</string>
     <string name="pause">Pause</string>
     <string name="loop">Loop</string>
     <string name="playback_speed">Playback speed</string>
@@ -97,6 +98,7 @@
     <string name="connect_server">Connect your Purple Music server</string>
     <string name="server_url">Server URL</string>
     <string name="connect">Connect</string>
+    <string name="no_server_create_own">Don\'t have a server? Create your own</string>
     <string name="error_no_server">No server configured.</string>
     <string name="error_no_offline">No downloaded tracks found.</string>
     <string name="error_login_required_download">Login required to download.</string>
@@ -147,6 +149,7 @@
     <string name="label_title">Title</string>
     <string name="label_artist">Artist</string>
     <string name="label_genre">Genre</string>
+    <string name="label_album">Album</string>
     <string name="label_music">Music</string>
     <string name="label_cover_art">Cover Art</string>
     <string name="no_file_selected">No file selected</string>
@@ -155,6 +158,7 @@
     <string name="no_playlists_available">No playlists available.</string>
     <string name="keep_current">Keep current</string>
     <string name="tracks_count">%1$d tracks</string>
+    <string name="search_albums_header">Albums</string>
     <string name="genre_other">Other</string>
     <string name="exit_fullscreen">Exit Fullscreen</string>
     <string name="up_next">Up Next</string>
