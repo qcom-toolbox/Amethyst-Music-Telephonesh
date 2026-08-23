@@ -106,6 +106,19 @@
     <string name="track_added">Titel zur Playlist hinzugefügt</string>
     <string name="delete_playlist">Playlist löschen</string>
     <string name="empty_playlist">Diese playlist ist leer.</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="done">Fertig</string>
+    <string name="public_playlist">Öffentliche Playlist</string>
+    <string name="private_playlist">Private Playlist</string>
+    <string name="make_public">Öffentlich machen</string>
+    <string name="make_private">Privat machen</string>
+    <string name="add_song">Titel hinzufügen</string>
+    <string name="add_songs">Titel hinzufügen</string>
+    <string name="no_songs_available_to_add">Alle Titel sind bereits in dieser Playlist.</string>
+    <string name="move_up">Nach oben</string>
+    <string name="move_down">Nach unten</string>
+    <string name="remove_track">Entfernen</string>
+    <string name="reorder_track">Ziehen zum Neuordnen</string>
 
     <string name="admin_mode">Admin-Modus aktivieren</string>
     <string name="admin_mode_hint">Ermöglicht das Bearbeiten von Metadaten und das Löschen von Songs.</string>

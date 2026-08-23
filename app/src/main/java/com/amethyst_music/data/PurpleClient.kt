@@ -274,11 +274,49 @@ class PurpleClient(
         return ids.mapNotNull { allTracks[it] }
     }
 
-    fun createPlaylist(name: String) {
-        val resp = postRequest("playlist_create", mapOf("name" to name))
+    fun createPlaylist(name: String, isPublic: Boolean = true) {
+        val resp = postRequest("playlist_create", mapOf("name" to name, "is_public" to if (isPublic) "1" else "0"))
         val json = JSONObject(resp)
         if (json.optString("status") == "error") {
             throw PurpleException(json.optString("message", "Failed to create playlist"))
+        }
+    }
+
+    fun renamePlaylist(playlistId: Int, newName: String) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "rename",
+            "new_name" to newName
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to rename playlist"))
+        }
+    }
+
+    fun setPlaylistVisibility(playlistId: Int, isPublic: Boolean) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "visibility",
+            "is_public" to if (isPublic) "1" else "0"
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to change playlist visibility"))
+        }
+    }
+
+    /** [songIds] must be a permutation of the playlist's current tracks — the server rejects
+     * any call that adds or removes tracks through this mode. */
+    fun reorderPlaylist(playlistId: Int, songIds: List<Int>) {
+        val resp = postRequest("playlist_mod", mapOf(
+            "playlist_id" to playlistId.toString(),
+            "mode" to "reorder",
+            "song_ids" to songIds.joinToString(",")
+        ))
+        val json = JSONObject(resp)
+        if (json.optString("status") == "error") {
+            throw PurpleException(json.optString("message", "Failed to reorder playlist"))
         }
     }
 

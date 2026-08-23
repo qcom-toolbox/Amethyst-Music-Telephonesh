@@ -106,6 +106,19 @@
     <string name="track_added">プレイリストに曲を追加しました</string>
     <string name="delete_playlist">プレイリストを削除</string>
     <string name="empty_playlist">このプレイリストは空です。</string>
+    <string name="edit">編集</string>
+    <string name="done">完了</string>
+    <string name="public_playlist">公開プレイリスト</string>
+    <string name="private_playlist">非公開プレイリスト</string>
+    <string name="make_public">公開にする</string>
+    <string name="make_private">非公開にする</string>
+    <string name="add_song">曲を追加</string>
+    <string name="add_songs">曲を追加</string>
+    <string name="no_songs_available_to_add">すべての曲はすでにこのプレイリストにあります。</string>
+    <string name="move_up">上に移動</string>
+    <string name="move_down">下に移動</string>
+    <string name="remove_track">削除</string>
+    <string name="reorder_track">ドラッグして並べ替え</string>
 
     <string name="admin_mode">管理モードを有効にする</string>
     <string name="admin_mode_hint">曲のメタデータの編集や削除を許可します。</string>
