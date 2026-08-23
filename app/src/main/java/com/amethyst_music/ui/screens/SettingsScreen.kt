@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -93,6 +94,11 @@ fun SettingsScreen(
     isCheckingConnection: Boolean = false,
     onCheckConnection: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val versionDisplay = remember {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.1"
+    }
+
     val languages = listOf(
         "en" to stringResource(R.string.language_english),
         "fr" to stringResource(R.string.language_french),
@@ -464,7 +470,7 @@ fun SettingsScreen(
         // Version Section
         SettingsSectionTitle(stringResource(R.string.version))
         Text(
-            text = "1.1",
+            text = versionDisplay,
             color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             modifier = Modifier
