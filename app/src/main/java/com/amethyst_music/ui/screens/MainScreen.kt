@@ -1,6 +1,5 @@
 package com.amethyst_music.ui.screens
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -14,10 +13,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +30,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +41,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
@@ -54,7 +53,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -118,11 +116,10 @@ import com.amethyst_music.ui.components.CreatePlaylistDialog
 import com.amethyst_music.ui.components.MiniPlayerBar
 import androidx.compose.material.icons.filled.Edit
 import com.amethyst_music.ui.components.EditTrackDialog
+import com.amethyst_music.ui.components.PlaylistCard
 import com.amethyst_music.ui.components.TrackRow
 import com.amethyst_music.ui.components.PlayingVisualizer
 import com.amethyst_music.ui.theme.AmethystBorder
-import com.amethyst_music.ui.theme.AmethystPrimary
-import com.amethyst_music.ui.theme.AmethystText
 import com.amethyst_music.ui.theme.AmethystTextMuted
 
 @Composable
@@ -197,8 +194,6 @@ fun MainScreen(
     val downloadProgress by vm.downloadProgress.collectAsState()
     val currentLanguage by vm.language.collectAsState()
     val genres by vm.genres.collectAsState()
-    val currentPlaylist by vm.currentPlaylist.collectAsState()
-    val currentPlaylistTracks by vm.currentPlaylistTracks.collectAsState()
     val isAdmin by vm.isAdmin.collectAsState()
     val adminModeEnabled by vm.adminModeEnabled.collectAsState()
     val artistLinksEnabled by vm.artistLinksEnabled.collectAsState()
@@ -216,10 +211,6 @@ fun MainScreen(
     val selectedGenres by vm.selectedGenres.collectAsState()
     val sortOrder by vm.sortOrder.collectAsState()
 
-    BackHandler(enabled = currentPlaylist != null && selectedTab == 2) {
-        vm.closePlaylist()
-    }
-
     if (showUploadDialog) {
         UploadDialog(
             genres = genres,
@@ -234,8 +225,8 @@ fun MainScreen(
     if (showPlaylistCreateDialog) {
         CreatePlaylistDialog(
             onDismiss = { showPlaylistCreateDialog = false },
-            onCreate = { name ->
-                vm.createPlaylist(name)
+            onCreate = { name, isPublic ->
+                vm.createPlaylist(name, isPublic)
                 showPlaylistCreateDialog = false
             }
         )
@@ -297,12 +288,6 @@ fun MainScreen(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f),
                 )
-                
-                if (currentPlaylist != null && selectedTab == 2) {
-                    IconButton(onClick = { vm.closePlaylist() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = AmethystTextMuted)
-                    }
-                }
 
                 if (offlineOnlyMode) {
                     if (isOnline) {
@@ -351,7 +336,7 @@ fun MainScreen(
                 }
             }
 
-            if (selectedTab == 1 || selectedTab == 3) {
+            if (selectedTab == 0 || selectedTab == 1 || selectedTab == 3) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -368,7 +353,7 @@ fun MainScreen(
                         shape = RoundedCornerShape(50),
                         colors = amethystFieldColors(),
                     )
-                    if (selectedTab == 1) {
+                    if (selectedTab == 0 || selectedTab == 1) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Box {
                             IconButton(onClick = { showFilterMenu = true }) {
@@ -403,24 +388,62 @@ fun MainScreen(
             }
 
             when (selectedTab) {
-                0 -> HomeScreen(
-                    recommended = homeRecommended,
-                    popular = homePopular,
-                    hiddenGems = homeHiddenGems,
-                    coverUrlForTrack = coverUrlForTrack,
-                    onTrackClick = onTrackClick,
-                    downloadedIds = downloadedIds,
-                    downloadingIds = downloadingIds,
-                    onDownload = onDownload,
-                    onRemoveDownload = onRemoveDownload,
-                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                    adminModeEnabled = adminModeEnabled,
-                    onEditTrack = { trackToEdit = it },
-                    isRefreshing = isLoading,
-                    onRefresh = onRefresh,
-                    onArtistClick = onArtistClick,
-                    artistClickEnabled = artistClickEnabled,
-                )
+                0 -> if (searchQuery.isBlank()) {
+                    HomeScreen(
+                        recommended = homeRecommended,
+                        popular = homePopular,
+                        hiddenGems = homeHiddenGems,
+                        coverUrlForTrack = coverUrlForTrack,
+                        onTrackClick = onTrackClick,
+                        downloadedIds = downloadedIds,
+                        downloadingIds = downloadingIds,
+                        onDownload = onDownload,
+                        onRemoveDownload = onRemoveDownload,
+                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = { trackToEdit = it },
+                        isRefreshing = isLoading,
+                        onRefresh = onRefresh,
+                        onArtistClick = onArtistClick,
+                        artistClickEnabled = artistClickEnabled,
+                    )
+                } else {
+                    // Typing in Home's search box swaps the curated rows for the same
+                    // Songs/Albums/Artists search results Library shows for the same query.
+                    val filteredAlbums by vm.filteredAlbums.collectAsState()
+                    val filteredArtists by vm.filteredArtists.collectAsState()
+                    TrackList(
+                        tracks = tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        downloadedIds = downloadedIds,
+                        downloadingIds = downloadingIds,
+                        downloadProgress = downloadProgress,
+                        coverUrlForTrack = coverUrlForTrack,
+                        showDownloadActions = true,
+                        onTrackClick = onTrackClick,
+                        onDownload = onDownload,
+                        onRemoveDownload = onRemoveDownload,
+                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = { trackToEdit = it },
+                        onArtistClick = remember(onArtistClick, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                onArtistClick(name)
+                            }
+                        },
+                        artistClickEnabled = listArtistClickEnabled,
+                        albums = filteredAlbums,
+                        onAlbumClick = remember(vm, focusManager) {
+                            { name ->
+                                focusManager.clearFocus()
+                                vm.openAlbumPage(name)
+                            }
+                        },
+                        artists = filteredArtists,
+                    )
+                }
                 1 -> {
                     val filteredAlbums by vm.filteredAlbums.collectAsState()
                     val filteredArtists by vm.filteredArtists.collectAsState()
@@ -456,31 +479,13 @@ fun MainScreen(
                         artists = filteredArtists,
                     )
                 }
-                2 -> if (currentPlaylist != null) {
-                    TrackList(
-                        tracks = currentPlaylistTracks,
-                        currentTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        downloadedIds = downloadedIds,
-                        downloadingIds = downloadingIds,
-                        downloadProgress = downloadProgress,
-                        coverUrlForTrack = coverUrlForTrack,
-                        showDownloadActions = true,
-                        onTrackClick = onTrackClick,
-                        onDownload = onDownload,
-                        onRemoveDownload = onRemoveDownload,
-                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                        onRemoveFromPlaylist = remember(vm, currentPlaylist) {
-                            { track -> vm.removeFromPlaylist(currentPlaylist!!, track) }
-                        },
-                        adminModeEnabled = adminModeEnabled,
-                        onEditTrack = { trackToEdit = it },
-                        onArtistClick = onArtistClick,
-                        artistClickEnabled = listArtistClickEnabled,
-                    )
-                } else {
-                    PlaylistList(
+                2 -> {
+                    val allTracks by vm.tracks.collectAsState()
+                    PlaylistGrid(
                         playlists = playlists,
+                        allTracks = allTracks,
+                        coverUrlForTrack = coverUrlForTrack,
+                        canDeletePlaylist = remember(vm) { { vm.canEditPlaylist(it) } },
                         onPlaylistClick = remember(vm) { { vm.openPlaylist(it) } },
                         onDeletePlaylist = remember(vm) { { vm.deletePlaylist(it) } }
                     )
@@ -859,10 +864,14 @@ private fun TrackList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+/** Grid of playlist cards with a 4-cover mosaic each — tapping one opens
+ * [com.amethyst_music.ui.screens.PlaylistScreen] instead of playing it directly. */
 @Composable
-private fun PlaylistList(
+private fun PlaylistGrid(
     playlists: List<Playlist>,
+    allTracks: List<Track>,
+    coverUrlForTrack: (Track) -> String?,
+    canDeletePlaylist: (Playlist) -> Boolean,
     onPlaylistClick: (Playlist) -> Unit,
     onDeletePlaylist: (Playlist) -> Unit,
 ) {
@@ -872,63 +881,27 @@ private fun PlaylistList(
         }
         return
     }
-    LazyColumn(
+    val tracksById = remember(allTracks) { allTracks.associateBy { it.id } }
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         contentPadding = PaddingValues(bottom = 80.dp),
     ) {
-        items(playlists, key = { it.id }) { playlist ->
-            var showMenu by remember { mutableStateOf(false) }
-
-            Box {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .combinedClickable(
-                            onClick = { onPlaylistClick(playlist) },
-                            onLongClick = { showMenu = true }
-                        )
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.PlaylistPlay,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp),
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(playlist.name, fontWeight = FontWeight.Bold, color = AmethystText)
-                        Text(
-                            stringResource(R.string.tracks_count, playlist.songIds.size),
-                            color = AmethystTextMuted,
-                            fontSize = 13.sp,
-                        )
-                    }
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = null, tint = AmethystTextMuted)
-                    }
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.delete_playlist), color = AmethystText) },
-                        onClick = {
-                            onDeletePlaylist(playlist)
-                            showMenu = false
-                        },
-                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = AmethystText) }
-                    )
-                }
+        gridItems(playlists, key = { it.id }) { playlist ->
+            val covers = remember(playlist.songIds, allTracks) {
+                playlist.songIds.take(8).mapNotNull { tracksById[it] }.map { coverUrlForTrack(it) }
             }
+            PlaylistCard(
+                playlist = playlist,
+                covers = covers,
+                onClick = { onPlaylistClick(playlist) },
+                onDelete = if (canDeletePlaylist(playlist)) { { onDeletePlaylist(playlist) } } else null,
+            )
         }
     }
 }

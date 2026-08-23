@@ -409,6 +409,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentPlaylistTracks = MutableStateFlow<List<Track>>(emptyList())
     val currentPlaylistTracks: StateFlow<List<Track>> = _currentPlaylistTracks.asStateFlow()
 
+    private val _playlistEditMode = MutableStateFlow(false)
+    val playlistEditMode: StateFlow<Boolean> = _playlistEditMode.asStateFlow()
+
+    private val _showAddSongsToPlaylist = MutableStateFlow(false)
+    val showAddSongsToPlaylist: StateFlow<Boolean> = _showAddSongsToPlaylist.asStateFlow()
+
     private var searchJob: Job? = null
     private var progressJob: Job? = null
 
@@ -1255,9 +1261,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun playTrack(track: Track) {
         autoContinueWithRandom = false
         val currentTab = _selectedTab.value
-        val baseQueue = when (currentTab) {
-            0 -> _tracks.value.shuffled() // Home: always random, changes each click
-            3 -> filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
+        val baseQueue = when {
+            // Home's curated rows still shuffle on every click, but a track picked from its
+            // search results should queue like Library does — in filtered/search order.
+            currentTab == 0 && _searchQuery.value.isBlank() -> _tracks.value.shuffled()
+            currentTab == 3 -> filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
             else -> filteredTracks.value.ifEmpty { tracks.value }
         }
         playFromQueue(baseQueue, track)
@@ -1295,6 +1303,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         playFromQueue(ordered, ordered.first())
     }
 
+    /** Plays a track from the currently open playlist page, queuing the rest of the playlist. */
+    fun playPlaylistTrack(track: Track) {
+        autoContinueWithRandom = true
+        playFromQueue(_currentPlaylistTracks.value, track)
+    }
+
+    /** "Play All" / "Play Random" on the playlist page — same as [playAllAlbumTracks] but for
+     * the currently open playlist's tracks. */
+    fun playAllPlaylistTracks(shuffled: Boolean) {
+        val list = _currentPlaylistTracks.value
+        if (list.isEmpty()) return
+        autoContinueWithRandom = true
+        val ordered = if (shuffled) list.shuffled() else list
+        playFromQueue(ordered, ordered.first())
+    }
+
     private fun playFromQueue(baseQueue: List<Track>, track: Track) {
         if (baseQueue.isEmpty()) return
         val index = baseQueue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
@@ -1309,33 +1333,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun playPlaylist(playlist: Playlist) {
-        val purple = client ?: return
-        autoContinueWithRandom = false
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val tracks = withContext(Dispatchers.IO) {
-                    purple.fetchPlaylistTracks(playlist.songIds)
-                }
-                if (tracks.isEmpty()) {
-                    _error.value = getString(R.string.empty_playlist)
-                    return@launch
-                }
-                musicPlayer.playQueue(tracks, 0) { t, fr -> playbackUrl(t, fr) }
-                withContext(Dispatchers.IO) { purple.incrementPlay(tracks.first().id) }
-                openFullPlayer()
-            } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
     fun openPlaylist(playlist: Playlist) {
         _currentPlaylist.value = playlist
         _currentPlaylistTracks.value = emptyList()
+        _playlistEditMode.value = false
         val purple = client ?: return
         viewModelScope.launch {
             _isLoading.value = true
@@ -1355,15 +1356,44 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun closePlaylist() {
         _currentPlaylist.value = null
         _currentPlaylistTracks.value = emptyList()
+        _playlistEditMode.value = false
+        _showAddSongsToPlaylist.value = false
     }
 
-    fun createPlaylist(name: String) {
+    fun togglePlaylistEditMode() {
+        _playlistEditMode.value = !_playlistEditMode.value
+    }
+
+    fun openAddSongsToPlaylist() {
+        _showAddSongsToPlaylist.value = true
+    }
+
+    fun hideAddSongsToPlaylist() {
+        _showAddSongsToPlaylist.value = false
+    }
+
+    /** True for the playlist's own creator or an admin — the only users the server lets
+     * rename/reorder/change visibility/delete it, mirroring api.php's own `playlist_mod` check. */
+    fun canEditPlaylist(playlist: Playlist): Boolean {
+        return _isAdmin.value || (playlist.creatorName.isNotBlank() && playlist.creatorName == prefs.savedUsername)
+    }
+
+    /** Keeps [_playlists] and, if it's the one currently open, [_currentPlaylist] in sync with a
+     * server-confirmed change without a full [loadLibrary] round trip. */
+    private fun updatePlaylistLocally(updated: Playlist) {
+        _playlists.value = _playlists.value.map { if (it.id == updated.id) updated else it }
+        if (_currentPlaylist.value?.id == updated.id) {
+            _currentPlaylist.value = updated
+        }
+    }
+
+    fun createPlaylist(name: String, isPublic: Boolean = true) {
         val purple = client ?: return
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 withContext(Dispatchers.IO) {
-                    purple.createPlaylist(name)
+                    purple.createPlaylist(name, isPublic)
                 }
                 loadLibrary()
             } catch (e: Exception) {
@@ -1374,15 +1404,87 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun renamePlaylist(playlist: Playlist, newName: String) {
+        if (newName.isBlank() || newName == playlist.name) return
+        val purple = client ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { purple.renamePlaylist(playlist.id, newName) }
+                updatePlaylistLocally(playlist.copy(name = newName))
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    fun setPlaylistVisibility(playlist: Playlist, isPublic: Boolean) {
+        if (isPublic == playlist.isPublic) return
+        val purple = client ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { purple.setPlaylistVisibility(playlist.id, isPublic) }
+                updatePlaylistLocally(playlist.copy(isPublic = isPublic))
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    /** Persists a drag-and-drop/▲▼ reorder. [newOrderIds] must already be a permutation of
+     * [playlist]'s tracks — enforced again server-side by the `reorder` mode. */
+    fun reorderPlaylist(playlist: Playlist, newOrderIds: List<Int>) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { purple.reorderPlaylist(playlist.id, newOrderIds) }
+                updatePlaylistLocally(playlist.copy(songIds = newOrderIds))
+                if (_currentPlaylist.value?.id == playlist.id) {
+                    val byId = _currentPlaylistTracks.value.associateBy { it.id }
+                    _currentPlaylistTracks.value = newOrderIds.mapNotNull { byId[it] }
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+                // The order didn't persist — reload from the server so the UI doesn't drift.
+                if (_currentPlaylist.value?.id == playlist.id) openPlaylist(playlist)
+            }
+        }
+    }
+
     fun addToPlaylist(playlist: Playlist, track: Track) {
+        val purple = client ?: return
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    purple.addToPlaylist(playlist.id, track.id)
+                }
+                if (track.id !in playlist.songIds) {
+                    updatePlaylistLocally(playlist.copy(songIds = playlist.songIds + track.id))
+                }
+                if (_currentPlaylist.value?.id == playlist.id && _currentPlaylistTracks.value.none { it.id == track.id }) {
+                    _currentPlaylistTracks.value = _currentPlaylistTracks.value + track
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+            }
+        }
+    }
+
+    /** Adds several tracks at once — backs the dedicated "Add song" picker on the playlist page. */
+    fun addTracksToPlaylist(playlist: Playlist, tracksToAdd: List<Track>) {
+        if (tracksToAdd.isEmpty()) return
         val purple = client ?: return
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 withContext(Dispatchers.IO) {
-                    purple.addToPlaylist(playlist.id, track.id)
+                    tracksToAdd.forEach { purple.addToPlaylist(playlist.id, it.id) }
                 }
-                loadLibrary()
+                val newIds = tracksToAdd.map { it.id }.filter { it !in playlist.songIds }
+                updatePlaylistLocally(playlist.copy(songIds = playlist.songIds + newIds))
+                if (_currentPlaylist.value?.id == playlist.id) {
+                    val existingIds = _currentPlaylistTracks.value.map { it.id }.toSet()
+                    _currentPlaylistTracks.value = _currentPlaylistTracks.value + tracksToAdd.filter { it.id !in existingIds }
+                }
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
@@ -1394,20 +1496,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun removeFromPlaylist(playlist: Playlist, track: Track) {
         val purple = client ?: return
         viewModelScope.launch {
-            _isLoading.value = true
             try {
                 withContext(Dispatchers.IO) {
                     purple.removeFromPlaylist(playlist.id, track.id)
                 }
-                // Refresh current playlist view if we are viewing it
+                updatePlaylistLocally(playlist.copy(songIds = playlist.songIds.filter { it != track.id }))
                 if (_currentPlaylist.value?.id == playlist.id) {
-                    openPlaylist(playlist)
+                    _currentPlaylistTracks.value = _currentPlaylistTracks.value.filterNot { it.id == track.id }
                 }
-                loadLibrary()
             } catch (e: Exception) {
                 _error.value = e.message
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -1420,6 +1518,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     purple.deletePlaylist(playlist.id)
                 }
+                if (_currentPlaylist.value?.id == playlist.id) closePlaylist()
                 loadLibrary()
             } catch (e: Exception) {
                 _error.value = e.message

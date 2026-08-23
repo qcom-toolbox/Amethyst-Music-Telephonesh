@@ -106,6 +106,19 @@
     <string name="track_added">Tithel agiuntà a la playlist</string>
     <string name="delete_playlist">Stizzar la playlist</string>
     <string name="empty_playlist">Questa playlist è vida.</string>
+    <string name="edit">Modifitgar</string>
+    <string name="done">Fatg</string>
+    <string name="public_playlist">Playlist publica</string>
+    <string name="private_playlist">Playlist privata</string>
+    <string name="make_public">Far public</string>
+    <string name="make_private">Far privat</string>
+    <string name="add_song">Agiuntar in tec</string>
+    <string name="add_songs">Agiuntar tecs</string>
+    <string name="no_songs_available_to_add">Tut ils tecs èn gia en questa playlist.</string>
+    <string name="move_up">Spustar ensi</string>
+    <string name="move_down">Spustar engiu</string>
+    <string name="remove_track">Allontanar</string>
+    <string name="reorder_track">Trair per reordinar</string>
 
     <string name="admin_mode">Activar il modus d\'administratur</string>
     <string name="admin_mode_hint">Lubescha d\'edir metadatas e da stizzar chanzuns.</string>

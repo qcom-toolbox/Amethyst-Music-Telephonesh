@@ -37,6 +37,7 @@ data class Playlist(
     val name: String,
     val songIds: List<Int>,
     val creatorName: String,
+    val isPublic: Boolean = true,
 ) {
     companion object {
         fun fromJson(obj: JSONObject): Playlist {
@@ -48,6 +49,8 @@ data class Playlist(
                 name = HtmlEntities.decode(obj.getString("name")),
                 songIds = ids,
                 creatorName = HtmlEntities.decode(obj.optString("creator").ifBlank { obj.optString("username", "") }),
+                // MySQL returns TINYINT(1) as an integer over JSON, not a JSON boolean.
+                isPublic = obj.optBoolean("is_public", obj.optInt("is_public", 1) == 1),
             )
         }
     }

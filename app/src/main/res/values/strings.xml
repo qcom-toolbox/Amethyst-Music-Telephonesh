@@ -119,6 +119,19 @@
     <string name="track_added">Track added to playlist</string>
     <string name="delete_playlist">Delete playlist</string>
     <string name="empty_playlist">This playlist is empty.</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="public_playlist">Public playlist</string>
+    <string name="private_playlist">Private playlist</string>
+    <string name="make_public">Make public</string>
+    <string name="make_private">Make private</string>
+    <string name="add_song">Add song</string>
+    <string name="add_songs">Add songs</string>
+    <string name="no_songs_available_to_add">All songs are already in this playlist.</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="remove_track">Remove</string>
+    <string name="reorder_track">Drag to reorder</string>
 
     <string name="admin_mode">Enable Admin Mode</string>
     <string name="admin_mode_hint">Allows editing track metadata and deleting songs.</string>

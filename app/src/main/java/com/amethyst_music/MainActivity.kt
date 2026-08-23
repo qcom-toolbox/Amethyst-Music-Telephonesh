@@ -34,6 +34,7 @@ import coil.request.CachePolicy
 import okhttp3.OkHttpClient
 import coil.compose.LocalImageLoader
 import com.amethyst_music.data.ServerPreferences
+import com.amethyst_music.ui.components.AddSongsToPlaylistDialog
 import com.amethyst_music.ui.components.AddToPlaylistDialog
 import com.amethyst_music.ui.screens.AlbumScreen
 import com.amethyst_music.ui.screens.ArtistScreen
@@ -42,6 +43,7 @@ import com.amethyst_music.ui.screens.EqualizerScreen
 import com.amethyst_music.ui.screens.FullPlayerScreen
 import com.amethyst_music.ui.screens.LoginScreen
 import com.amethyst_music.ui.screens.MainScreen
+import com.amethyst_music.ui.screens.PlaylistScreen
 import com.amethyst_music.ui.screens.ServerSetupScreen
 import com.amethyst_music.ui.theme.AmethystMusicTheme
 import com.amethyst_music.ui.theme.ThemeUtils
@@ -219,10 +221,7 @@ class MainActivity : AppCompatActivity() {
                                             }
                                         },
                                         onPlaylistClick = remember(vm) {
-                                            { playlist ->
-                                                notificationPermission.requestIfNeeded()
-                                                vm.playPlaylist(playlist)
-                                            }
+                                            { playlist -> vm.openPlaylist(playlist) }
                                         },
                                         onDownload = remember(vm) { { vm.downloadTrack(it) } },
                                         onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
@@ -477,7 +476,116 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
 
-                            // Declared last so it draws on top of the artist/album overlays above —
+                            val currentPlaylist by vm.currentPlaylist.collectAsState()
+                            AnimatedVisibility(
+                                visible = currentPlaylist != null,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                currentPlaylist?.let { playlist ->
+                                    val playlistTracks by vm.currentPlaylistTracks.collectAsState()
+                                    val playlistEditMode by vm.playlistEditMode.collectAsState()
+                                    val playlistDownloadedIds by vm.downloadedIds.collectAsState()
+                                    val playlistDownloadingIds by vm.downloadingIds.collectAsState()
+                                    val playlistDownloadProgress by vm.downloadProgress.collectAsState()
+
+                                    PlaylistScreen(
+                                        playlist = playlist,
+                                        tracks = playlistTracks,
+                                        currentTrack = currentTrack,
+                                        isPlaying = isPlaying,
+                                        coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                        downloadedIds = playlistDownloadedIds,
+                                        downloadingIds = playlistDownloadingIds,
+                                        downloadProgress = playlistDownloadProgress,
+                                        canEdit = vm.canEditPlaylist(playlist),
+                                        editMode = playlistEditMode,
+                                        onToggleEditMode = vm::togglePlaylistEditMode,
+                                        onBack = vm::closePlaylist,
+                                        onTrackClick = remember(vm) {
+                                            { track ->
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playPlaylistTrack(track)
+                                            }
+                                        },
+                                        onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                        onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onRemoveFromPlaylist = remember(vm, playlist) {
+                                            { track -> vm.removeFromPlaylist(playlist, track) }
+                                        },
+                                        onPlayAll = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllPlaylistTracks(shuffled = false)
+                                            }
+                                        },
+                                        onPlayRandom = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.playAllPlaylistTracks(shuffled = true)
+                                            }
+                                        },
+                                        onRename = remember(vm, playlist) {
+                                            { newName -> vm.renamePlaylist(playlist, newName) }
+                                        },
+                                        onSetVisibility = remember(vm, playlist) {
+                                            { isPublic -> vm.setPlaylistVisibility(playlist, isPublic) }
+                                        },
+                                        onReorder = remember(vm, playlist) {
+                                            { newOrder -> vm.reorderPlaylist(playlist, newOrder) }
+                                        },
+                                        onOpenAddSongs = vm::openAddSongsToPlaylist,
+                                        onMiniPlayerClick = remember(vm) { { vm.openFullPlayer() } },
+                                        onPlayPause = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.togglePlayPause()
+                                            }
+                                        },
+                                        onNext = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.nextTrack()
+                                            }
+                                        },
+                                        onPrevious = remember(vm) {
+                                            {
+                                                notificationPermission.requestIfNeeded()
+                                                vm.previousTrack()
+                                            }
+                                        },
+                                        offlineOnlyMode = offlineOnlyMode,
+                                        selectedTab = selectedTab,
+                                        onTabSelected = remember(vm) {
+                                            { tab ->
+                                                vm.closePlaylist()
+                                                vm.setSelectedTab(tab)
+                                            }
+                                        },
+                                        onClosePlaylist = remember(vm) { { vm.closePlaylist() } },
+                                    )
+
+                                    val showAddSongs by vm.showAddSongsToPlaylist.collectAsState()
+                                    if (showAddSongs) {
+                                        val allTracks by vm.tracks.collectAsState()
+                                        val playlistTrackIds = remember(playlistTracks) { playlistTracks.map { it.id }.toSet() }
+                                        AddSongsToPlaylistDialog(
+                                            availableTracks = remember(allTracks, playlistTrackIds) {
+                                                allTracks.filter { it.id !in playlistTrackIds }
+                                            },
+                                            coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                            onDismiss = vm::hideAddSongsToPlaylist,
+                                            onConfirm = { tracksToAdd ->
+                                                vm.addTracksToPlaylist(playlist, tracksToAdd)
+                                                vm.hideAddSongsToPlaylist()
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Declared last so it draws on top of the artist/album/playlist overlays above —
                             // opening it from a mini-player inside one of those screens (which stays
                             // visible, since opening the player doesn't close them) must not leave it
                             // hidden behind them.

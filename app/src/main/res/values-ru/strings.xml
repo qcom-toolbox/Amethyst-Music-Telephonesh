@@ -106,6 +106,19 @@
     <string name="track_added">Трек добавлен в плейлист</string>
     <string name="delete_playlist">Удалить плейлист</string>
     <string name="empty_playlist">Этот плейлист пуст.</string>
+    <string name="edit">Изменить</string>
+    <string name="done">Готово</string>
+    <string name="public_playlist">Публичный плейлист</string>
+    <string name="private_playlist">Приватный плейлист</string>
+    <string name="make_public">Сделать публичным</string>
+    <string name="make_private">Сделать приватным</string>
+    <string name="add_song">Добавить трек</string>
+    <string name="add_songs">Добавить треки</string>
+    <string name="no_songs_available_to_add">Все треки уже в этом плейлисте.</string>
+    <string name="move_up">Переместить вверх</string>
+    <string name="move_down">Переместить вниз</string>
+    <string name="remove_track">Удалить</string>
+    <string name="reorder_track">Перетащите для изменения порядка</string>
 
     <string name="admin_mode">Включить режим администратора</string>
     <string name="admin_mode_hint">Позволяет редактировать метаданные и удалять песни.</string>

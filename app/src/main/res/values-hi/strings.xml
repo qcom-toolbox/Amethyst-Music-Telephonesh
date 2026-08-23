@@ -106,6 +106,19 @@
     <string name="track_added">गाना प्लेलिस्ट में जोड़ा गया</string>
     <string name="delete_playlist">प्लेलिस्ट हटाएँ</string>
     <string name="empty_playlist">यह प्लेलिस्ट खाली है।</string>
+    <string name="edit">संपादित करें</string>
+    <string name="done">हो गया</string>
+    <string name="public_playlist">सार्वजनिक प्लेलिस्ट</string>
+    <string name="private_playlist">निजी प्लेलिस्ट</string>
+    <string name="make_public">सार्वजनिक करें</string>
+    <string name="make_private">निजी करें</string>
+    <string name="add_song">गाना जोड़ें</string>
+    <string name="add_songs">गाने जोड़ें</string>
+    <string name="no_songs_available_to_add">सभी गाने पहले से ही इस प्लेलिस्ट में हैं।</string>
+    <string name="move_up">ऊपर ले जाएँ</string>
+    <string name="move_down">नीचे ले जाएँ</string>
+    <string name="remove_track">हटाएँ</string>
+    <string name="reorder_track">क्रम बदलने के लिए खींचें</string>
 
     <string name="admin_mode">व्यवस्थापक मोड सक्षम करें</string>
     <string name="admin_mode_hint">ट्रैक मेटाडेटा संपादित करने और गाने हटाने की अनुमति देता है।</string>

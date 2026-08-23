@@ -106,6 +106,19 @@
     <string name="track_added">已添加到播放列表</string>
     <string name="delete_playlist">删除播放列表</string>
     <string name="empty_playlist">此播放列表为空。</string>
+    <string name="edit">编辑</string>
+    <string name="done">完成</string>
+    <string name="public_playlist">公开播放列表</string>
+    <string name="private_playlist">私人播放列表</string>
+    <string name="make_public">设为公开</string>
+    <string name="make_private">设为私密</string>
+    <string name="add_song">添加歌曲</string>
+    <string name="add_songs">添加歌曲</string>
+    <string name="no_songs_available_to_add">所有歌曲都已在此播放列表中。</string>
+    <string name="move_up">上移</string>
+    <string name="move_down">下移</string>
+    <string name="remove_track">移除</string>
+    <string name="reorder_track">拖动以重新排序</string>
 
     <string name="admin_mode">开启管理模式</string>
     <string name="admin_mode_hint">允许编辑曲目元数据和删除歌曲。</string>

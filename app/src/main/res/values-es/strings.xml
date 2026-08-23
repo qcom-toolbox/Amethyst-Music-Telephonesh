@@ -106,6 +106,19 @@
     <string name="track_added">Canción añadida a la lista</string>
     <string name="delete_playlist">Eliminar lista de reproducción</string>
     <string name="empty_playlist">Esta lista está vacía.</string>
+    <string name="edit">Editar</string>
+    <string name="done">Listo</string>
+    <string name="public_playlist">Lista pública</string>
+    <string name="private_playlist">Lista privada</string>
+    <string name="make_public">Hacer pública</string>
+    <string name="make_private">Hacer privada</string>
+    <string name="add_song">Añadir canción</string>
+    <string name="add_songs">Añadir canciones</string>
+    <string name="no_songs_available_to_add">Todas las canciones ya están en esta lista.</string>
+    <string name="move_up">Subir</string>
+    <string name="move_down">Bajar</string>
+    <string name="remove_track">Quitar</string>
+    <string name="reorder_track">Arrastrar para reordenar</string>
 
     <string name="admin_mode">Activar modo administrador</string>
     <string name="admin_mode_hint">Permite editar metadatos y eliminar canciones.</string>
