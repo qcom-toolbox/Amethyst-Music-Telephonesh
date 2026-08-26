@@ -822,8 +822,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoadingLyrics.value = true
             _lyrics.value = null
             try {
+                // lrclib matches against a single artist and doesn't want "&"/"&amp;"/"and"
+                // joiners — searching with the raw "Artist1 & Artist2" string routinely misses,
+                // so query with just the primary (first-split) artist name instead.
+                val lyricsArtist = ArtistUtils.splitArtistNames(track.artist).firstOrNull() ?: track.artist
                 val url = "https://lrclib.net/api/get".toHttpUrl().newBuilder()
-                    .addQueryParameter("artist_name", track.artist)
+                    .addQueryParameter("artist_name", lyricsArtist)
                     .addQueryParameter("track_name", track.title)
                     .build()
 
@@ -839,7 +843,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                             val body = response.body?.string()
                             if (body != null) {
                                 val json = JSONObject(body)
-                                val lrc = json.optString("syncedLyrics").ifBlank { json.optString("plainLyrics") }
+                                // org.json's optString() returns the literal string "null" (not
+                                // blank) for a key whose value is JSON null — lrclib does this
+                                // for syncedLyrics/plainLyrics on plenty of tracks (instrumentals,
+                                // or ones missing one of the two), so guard with isNull() first
+                                // or the app ends up displaying the word "null" as the lyrics.
+                                fun stringOrBlank(key: String) = if (json.isNull(key)) "" else json.optString(key)
+                                val lrc = stringOrBlank("syncedLyrics").ifBlank { stringOrBlank("plainLyrics") }
                                 val result = lrc.ifBlank { getString(R.string.no_lyrics) }
                                 if (lrc.isNotBlank()) {
                                     lyricsCache.put(track.id, lrc)
