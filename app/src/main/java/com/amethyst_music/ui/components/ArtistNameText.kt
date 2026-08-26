@@ -23,10 +23,12 @@ private const val SUFFIX_TAG = "suffix"
 fun currentAppLanguage(): String = LocalConfiguration.current.locales[0].language
 
 /**
- * Renders a track's raw artist string as one tap target per split name, joined by ", " as
- * plain (non-tappable) text — e.g. a "Drake, Travis Scott" tag becomes two independently
- * tappable names. Wherever a track's artist would otherwise render as plain text, use this
- * instead so tapping a name can open that artist's page.
+ * Renders a track's raw artist string as one tap target per split name, joined by the
+ * localized word for "and" as plain (non-tappable) text — e.g. both "Drake, Travis Scott" and
+ * "Coldplay & Rihanna" become two independently tappable names joined by "and" rather than
+ * collapsing everything to a literal comma, which would lose the "&"/"and" the track actually
+ * used. Wherever a track's artist would otherwise render as plain text, use this instead so
+ * tapping a name can open that artist's page.
  *
  * When [enabled] is false, renders the same text as plain (non-interactive) content instead
  * of just no-op'ing [onArtistClick] — ClickableText's tap detector consumes touches across
@@ -54,13 +56,13 @@ fun ArtistNameText(
     if (names.isEmpty()) return
 
     val suffixClickable = onSuffixClick != null
-    val annotated = remember(names, suffix, suffixClickable) {
+    val annotated = remember(names, lang, suffix, suffixClickable) {
         buildAnnotatedString {
             names.forEachIndexed { index, name ->
                 pushStringAnnotation(tag = ARTIST_TAG, annotation = name)
                 append(name)
                 pop()
-                if (index != names.lastIndex) append(", ")
+                if (index != names.lastIndex) append(" ${ArtistUtils.andWord(lang)} ")
             }
             suffix?.let {
                 if (suffixClickable) {

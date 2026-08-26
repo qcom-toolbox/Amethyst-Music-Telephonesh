@@ -55,7 +55,7 @@ fun CreatePlaylistDialog(
                         .clip(RoundedCornerShape(12.dp))
                         .clickable { isPublic = !isPublic }
                         .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment =     Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(stringResource(R.string.public_playlist), color = MaterialTheme.colorScheme.onSurface)

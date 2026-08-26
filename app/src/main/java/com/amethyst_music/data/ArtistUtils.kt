@@ -40,9 +40,14 @@ object ArtistUtils {
      * not just entity-decoding.
      */
     fun fixEntities(raw: String, lang: String): String {
+        return raw.replace("&#039;", "'").replace("&amp;", andWord(lang))
+    }
+
+    /** The word for "and" in [lang] (falling back to English), used both by [fixEntities] and
+     * to join split artist names back together for display. */
+    fun andWord(lang: String): String {
         val code = lang.take(2).lowercase()
-        val andWord = AND_WORDS[code] ?: "and"
-        return raw.replace("&#039;", "'").replace("&amp;", andWord)
+        return AND_WORDS[code] ?: "and"
     }
 
     fun splitArtistNames(raw: String?): List<String> {
