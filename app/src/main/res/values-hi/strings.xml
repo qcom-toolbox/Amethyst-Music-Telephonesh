@@ -18,6 +18,9 @@
     <string name="home_for_you">आपके लिए</string>
     <string name="home_popular">लोकप्रिय</string>
     <string name="home_hidden_gems">छिपे हुए रत्न</string>
+    <string name="header_history">इतिहास</string>
+    <string name="recently_played">हाल ही में सुना गया</string>
+    <string name="history_empty">आपने अभी तक कुछ भी नहीं सुना है।</string>
 
     <string name="tab_library">लाइब्रेरी</string>
     <string name="tab_playlists">प्लेलिस्ट</string>
@@ -36,6 +39,7 @@
     <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2026 Amethyst Music. सर्वाधिकार सुरक्षित।</string>
     <string name="close">बंद करें</string>
+    <string name="rgpd_link_label">गोपनीयता नीति (GDPR)</string>
 
     <string name="language">भाषा</string>
     <string name="theme_selection">ऐप थीम</string>

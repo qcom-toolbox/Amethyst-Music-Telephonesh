@@ -18,6 +18,9 @@
     <string name="home_for_you">Consigliati per te</string>
     <string name="home_popular">Successi popolari</string>
     <string name="home_hidden_gems">Gemme nascoste</string>
+    <string name="header_history">Cronologia</string>
+    <string name="recently_played">Ascoltati di recente</string>
+    <string name="history_empty">Non hai ancora ascoltato nulla.</string>
 
     <string name="tab_library">Libreria</string>
     <string name="tab_playlists">Playlist</string>
@@ -36,6 +39,7 @@
     <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2026 Amethyst Music. Tutti i diritti riservati.</string>
     <string name="close">Chiudi</string>
+    <string name="rgpd_link_label">Informativa sulla privacy (GDPR)</string>
 
     <string name="language">Lingua</string>
     <string name="theme_selection">Tema dell\'app</string>

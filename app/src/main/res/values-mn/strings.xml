@@ -18,6 +18,9 @@
     <string name="home_for_you">Танд зориулсан</string>
     <string name="home_popular">Алдартай хитүүд</string>
     <string name="home_hidden_gems">Ховор олдворууд</string>
+    <string name="header_history">Түүх</string>
+    <string name="recently_played">Саяхан сонссон</string>
+    <string name="history_empty">Та одоогоор юу ч сонсоогүй байна.</string>
 
     <string name="tab_library">Сан</string>
     <string name="tab_playlists">Плейлист</string>
@@ -36,6 +39,7 @@
     <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2026 Amethyst Music. Бүх эрх хуулиар хамгаалагдсан.</string>
     <string name="close">Хаах</string>
+    <string name="rgpd_link_label">Нууцлалын бодлого (GDPR)</string>
 
     <string name="language">Хэл</string>
     <string name="theme_selection">Апп-ын загвар</string>

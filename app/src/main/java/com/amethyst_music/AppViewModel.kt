@@ -142,6 +142,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _homeHiddenGems = MutableStateFlow<List<Track>>(emptyList())
     val homeHiddenGems: StateFlow<List<Track>> = _homeHiddenGems.asStateFlow()
 
+    // Caller's real listen history (action=history) — populated on login/loadLibrary and
+    // whenever the History page is opened, so it reflects plays made earlier in the session.
+    private val _listenHistory = MutableStateFlow<List<Track>>(emptyList())
+    val listenHistory: StateFlow<List<Track>> = _listenHistory.asStateFlow()
+
+    private val _showHistory = MutableStateFlow(false)
+    val showHistory: StateFlow<Boolean> = _showHistory.asStateFlow()
+
     private val _selectedGenres = MutableStateFlow<Set<String>>(emptySet())
     val selectedGenres: StateFlow<Set<String>> = _selectedGenres.asStateFlow()
 
@@ -269,16 +277,20 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _recentGenres = MutableStateFlow(prefs.recentGenrePlays)
     
+    /** Sets Popular/Hidden Gems locally, and a local genre-recency guess for Recommended that
+     * [fetchServerRecommendations] immediately tries to replace with the server's real
+     * taste-affinity algorithm (action=recommend). Kept as the fallback for when that call fails
+     * (offline, older server) so the row is never empty. */
     private fun refreshHomeSections() {
         val allTracks = _tracks.value
         if (allTracks.isEmpty()) return
 
         _homePopular.value = allTracks.sortedByDescending { it.playCount }.take(10)
-        
+
         // Hidden Gems: least listened songs (including 0 views) with random rotation
         // Take a pool of the top 30 lowest viewed tracks, then shuffle and take 10
         _homeHiddenGems.value = allTracks.sortedBy { it.playCount }.take(30).shuffled().take(10)
-        
+
         val recent = _recentGenres.value
         if (recent.isEmpty()) {
             _homeRecommended.value = allTracks.shuffled().take(10)
@@ -291,6 +303,62 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _homeRecommended.value = recommended
             }
         }
+    }
+
+    /** Replaces the local genre-recency guess in [_homeRecommended] with api.php's own
+     * action=recommend ranking (listen_history + playlist affinity, weighted by recency, with a
+     * popularity/randomness fallback server-side for users with no signal yet) — mirrors how
+     * index.php feeds its "Recommended for you" carousel. Silently keeps the local fallback
+     * already set by [refreshHomeSections] if the request fails. */
+    private fun fetchServerRecommendations() {
+        val purple = client ?: return
+        if (_offlineOnlyMode.value) return
+        viewModelScope.launch {
+            try {
+                val recommended = withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }
+                if (recommended.isNotEmpty()) _homeRecommended.value = recommended
+            } catch (_: Exception) {
+                // Keep the local fallback.
+            }
+        }
+    }
+
+    /** Refreshes [_listenHistory] from action=history. Requires a logged-in user — anonymous
+     * calls fail server-side, so this just leaves the history empty rather than erroring. */
+    private fun fetchListenHistory() {
+        val purple = client ?: return
+        if (_offlineOnlyMode.value) return
+        viewModelScope.launch {
+            try {
+                _listenHistory.value = withContext(Dispatchers.IO) { purple.fetchHistory(100) }
+            } catch (_: Exception) {
+                _listenHistory.value = emptyList()
+            }
+        }
+    }
+
+    fun openHistory() {
+        _showHistory.value = true
+        fetchListenHistory()
+    }
+
+    fun closeHistory() {
+        _showHistory.value = false
+    }
+
+    /** Plays a track from the History page, queuing the rest of the listened history. */
+    fun playHistoryTrack(track: Track) {
+        autoContinueWithRandom = false
+        playFromQueue(_listenHistory.value, track)
+    }
+
+    /** "Play All" / "Play Random" on the History page. */
+    fun playAllHistoryTracks(shuffled: Boolean) {
+        val list = _listenHistory.value
+        if (list.isEmpty()) return
+        autoContinueWithRandom = false
+        val ordered = if (shuffled) list.shuffled() else list
+        playFromQueue(ordered, ordered.first())
     }
 
     private val _language = MutableStateFlow(prefs.language)
@@ -1030,6 +1098,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     refreshDownloadedMetadata(trackList)
                 }
                 refreshHomeSections()
+                fetchServerRecommendations()
+                fetchListenHistory()
                 refreshOfflineState()
             } catch (e: Exception) {
                 _error.value = e.message ?: getString(R.string.error_load_failed)
@@ -1250,6 +1320,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         musicPlayer.stop()
         _tracks.value = emptyList()
         _playlists.value = emptyList()
+        _listenHistory.value = emptyList()
+        _showHistory.value = false
         _offlineOnlyMode.value = false
         _screen.value = AppScreen.Login
     }

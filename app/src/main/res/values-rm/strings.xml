@@ -18,6 +18,9 @@
     <string name="home_for_you">Recumandà per Te</string>
     <string name="home_popular">Success populars</string>
     <string name="home_hidden_gems">Perlas zuppadas</string>
+    <string name="header_history">Cronologia</string>
+    <string name="recently_played">Udì dacurt</string>
+    <string name="history_empty">Ti n\'has anc udì nagut.</string>
 
     <string name="tab_library">Biblioteca</string>
     <string name="tab_playlists">Playlists</string>
@@ -36,6 +39,7 @@
     <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2026 Amethyst Music. Tuts dretgs reservads.</string>
     <string name="close">Serrar</string>
+    <string name="rgpd_link_label">Protecziun da datas (RGPD)</string>
 
     <string name="language">Lingua</string>
     <string name="theme_selection">Tema da l\'app</string>

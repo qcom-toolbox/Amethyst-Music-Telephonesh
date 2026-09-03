@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Wifi
@@ -81,6 +82,7 @@ fun SettingsScreen(
     onRefreshCache: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onOpenBulkDownload: () -> Unit,
+    onOpenHistory: () -> Unit = {},
     defaultPlaybackSpeed: Float = 1f,
     onDefaultPlaybackSpeedChange: (Float) -> Unit = {},
     isAdmin: Boolean = false,
@@ -337,6 +339,16 @@ fun SettingsScreen(
             icon = Icons.Default.Download,
             label = stringResource(R.string.bulk_download),
             onClick = onOpenBulkDownload
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // History Section
+        SettingsSectionTitle(stringResource(R.string.header_history))
+        SettingsItem(
+            icon = Icons.Default.History,
+            label = stringResource(R.string.recently_played),
+            onClick = onOpenHistory
         )
 
         Spacer(modifier = Modifier.height(24.dp))

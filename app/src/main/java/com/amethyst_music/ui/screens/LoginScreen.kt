@@ -1,5 +1,6 @@
 package com.amethyst_music.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +20,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -42,6 +45,7 @@ fun LoginScreen(
     isLoading: Boolean,
     error: String?,
     hasOfflineLibrary: Boolean,
+    language: String = "en",
     onLogin: (String, String) -> Unit,
     onRegister: (String, String) -> Unit,
     onOpenOffline: () -> Unit,
@@ -172,6 +176,26 @@ fun LoginScreen(
             TextButton(onClick = onChangeServer, modifier = Modifier.padding(top = 16.dp)) {
                 Text(stringResource(R.string.change_server), color = AmethystTextMuted)
             }
+
+            // Mirrors index.php's own GDPR/privacy-policy link on the login page: it links
+            // straight to the RGPD.md (non-English) or PRIVACY.md (English) file in the
+            // backend's GitHub repo rather than serving the policy from the app itself.
+            val uriHandler = LocalUriHandler.current
+            // language is blank when the user never overrode the system locale in Settings
+            // (see AppViewModel.currentLangCode) — fall back to the device locale in that case.
+            val effectiveLanguage = language.ifBlank { java.util.Locale.getDefault().language }
+            val rgpdFile = if (effectiveLanguage == "en") "PRIVACY.md" else "RGPD.md"
+            Text(
+                text = stringResource(R.string.rgpd_link_label),
+                color = AmethystTextMuted,
+                fontSize = 12.sp,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .padding(top = 20.dp)
+                    .clickable {
+                        uriHandler.openUri("https://github.com/qcom-toolbox/Amethyst-Music/blob/main/$rgpdFile")
+                    },
+            )
         }
     }
 }

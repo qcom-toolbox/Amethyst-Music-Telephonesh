@@ -121,6 +121,28 @@ class PurpleClient(
         } catch (_: Exception) {}
     }
 
+    /** action=recommend: server-side taste-affinity algorithm over listen_history + playlists
+     * (falls back to popularity + randomness when the user has no signal yet). Auth is optional —
+     * an anonymous call still returns a popularity-ranked list. */
+    fun fetchRecommendations(limit: Int = 15): List<Track> {
+        val resp = postRequest("recommend", mapOf("limit" to limit.toString()))
+        val array = JSONArray(resp)
+        return (0 until array.length()).map { i -> Track.fromJson(array.getJSONObject(i)) }
+    }
+
+    /** action=history: the caller's real listen history (one row per track, most recently
+     * played first). Requires authentication — the server returns a JSON error object rather
+     * than an array when no valid credentials are set. */
+    fun fetchHistory(limit: Int = 100): List<Track> {
+        val resp = postRequest("history", mapOf("limit" to limit.toString()))
+        if (resp.trimStart().startsWith("{")) {
+            val json = JSONObject(resp)
+            throw PurpleException(json.optString("message", "Failed to load history"))
+        }
+        val array = JSONArray(resp)
+        return (0 until array.length()).map { i -> Track.fromJson(array.getJSONObject(i)) }
+    }
+
     /**
      * api.php has no dedicated genres endpoint, but index.php reads the admin-managed
      * `genres` table and renders it as `<select name="genre">` options in the upload form.
