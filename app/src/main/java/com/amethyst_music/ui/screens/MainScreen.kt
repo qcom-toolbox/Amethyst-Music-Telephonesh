@@ -542,6 +542,7 @@ fun MainScreen(
                         onRefreshCache = vm::refreshCache,
                         onOpenEqualizer = vm::openEqualizer,
                         onOpenBulkDownload = vm::openBulkDownload,
+                        onOpenHistory = vm::openHistory,
                         defaultPlaybackSpeed = defaultPlaybackSpeed,
                         onDefaultPlaybackSpeedChange = vm::setDefaultPlaybackSpeed,
                         isAdmin = isAdmin,

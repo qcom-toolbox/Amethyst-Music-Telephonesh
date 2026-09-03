@@ -18,6 +18,9 @@
     <string name="home_for_you">Рекомендуем вам</string>
     <string name="home_popular">Популярные хиты</string>
     <string name="home_hidden_gems">Редкие находки</string>
+    <string name="header_history">История</string>
+    <string name="recently_played">Недавно прослушанные</string>
+    <string name="history_empty">Вы ещё ничего не слушали.</string>
 
     <string name="tab_library">Библиотека</string>
     <string name="tab_playlists">Плейлисты</string>
@@ -36,6 +39,7 @@
     <string name="about_mysql">Backend ported to MY SQL by 高通工具箱</string>
     <string name="about_copyright">© 2026 Amethyst Music. Все права защищены.</string>
     <string name="close">Закрыть</string>
+    <string name="rgpd_link_label">Политика конфиденциальности (GDPR)</string>
 
     <string name="language">Язык</string>
     <string name="theme_selection">Тема приложения</string>

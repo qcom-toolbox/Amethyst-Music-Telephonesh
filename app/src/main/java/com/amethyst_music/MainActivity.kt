@@ -41,6 +41,7 @@ import com.amethyst_music.ui.screens.ArtistScreen
 import com.amethyst_music.ui.screens.BulkDownloadScreen
 import com.amethyst_music.ui.screens.EqualizerScreen
 import com.amethyst_music.ui.screens.FullPlayerScreen
+import com.amethyst_music.ui.screens.HistoryScreen
 import com.amethyst_music.ui.screens.LoginScreen
 import com.amethyst_music.ui.screens.MainScreen
 import com.amethyst_music.ui.screens.PlaylistScreen
@@ -137,6 +138,7 @@ class MainActivity : AppCompatActivity() {
                 val currentTrack by vm.musicPlayer.currentTrack.collectAsState()
                 val isPlaying by vm.musicPlayer.isPlaying.collectAsState()
                 val artistLinksEnabled by vm.artistLinksEnabled.collectAsState()
+                val currentLanguage by vm.language.collectAsState()
                 val onArtistClick = remember(vm, artistLinksEnabled) {
                     { name: String -> if (artistLinksEnabled) vm.openArtistPage(name) }
                 }
@@ -180,6 +182,7 @@ class MainActivity : AppCompatActivity() {
                                     isLoading = isLoading,
                                     error = error,
                                     hasOfflineLibrary = vm.hasOfflineLibrary,
+                                    language = currentLanguage,
                                     onLogin = { u, p ->
                                         vm.clearError()
                                         vm.login(u, p)
@@ -323,6 +326,50 @@ class MainActivity : AppCompatActivity() {
                                     onTogglePause = vm::toggleBulkDownloadPause,
                                     onCancelAll = vm::cancelBulkDownload,
                                     onClose = vm::closeBulkDownload,
+                                )
+                            }
+
+                            val showHistory by vm.showHistory.collectAsState()
+                            AnimatedVisibility(
+                                visible = showHistory,
+                                enter = slideInVertically(initialOffsetY = { it }),
+                                exit = slideOutVertically(targetOffsetY = { it })
+                            ) {
+                                val listenHistory by vm.listenHistory.collectAsState()
+                                val historyDownloadedIds by vm.downloadedIds.collectAsState()
+                                val historyDownloadingIds by vm.downloadingIds.collectAsState()
+                                val historyDownloadProgress by vm.downloadProgress.collectAsState()
+
+                                HistoryScreen(
+                                    tracks = listenHistory,
+                                    currentTrack = currentTrack,
+                                    isPlaying = isPlaying,
+                                    coverUrlForTrack = remember(vm) { { vm.coverUrlForTrack(it) } },
+                                    downloadedIds = historyDownloadedIds,
+                                    downloadingIds = historyDownloadingIds,
+                                    downloadProgress = historyDownloadProgress,
+                                    onBack = vm::closeHistory,
+                                    onTrackClick = remember(vm) {
+                                        { track ->
+                                            notificationPermission.requestIfNeeded()
+                                            vm.playHistoryTrack(track)
+                                        }
+                                    },
+                                    onDownload = remember(vm) { { vm.downloadTrack(it) } },
+                                    onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
+                                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                    onPlayAll = remember(vm) {
+                                        {
+                                            notificationPermission.requestIfNeeded()
+                                            vm.playAllHistoryTracks(shuffled = false)
+                                        }
+                                    },
+                                    onPlayRandom = remember(vm) {
+                                        {
+                                            notificationPermission.requestIfNeeded()
+                                            vm.playAllHistoryTracks(shuffled = true)
+                                        }
+                                    },
                                 )
                             }
 
