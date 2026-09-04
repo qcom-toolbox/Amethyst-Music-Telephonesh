@@ -277,10 +277,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _recentGenres = MutableStateFlow(prefs.recentGenrePlays)
     
-    /** Sets Popular/Hidden Gems locally, and a local genre-recency guess for Recommended that
-     * [fetchServerRecommendations] immediately tries to replace with the server's real
-     * taste-affinity algorithm (action=recommend). Kept as the fallback for when that call fails
-     * (offline, older server) so the row is never empty. */
+    /** Sets Popular/Hidden Gems locally. Recommended is handled separately by
+     * [refreshRecommended] so it's written to exactly once per load — see that function for why. */
     private fun refreshHomeSections() {
         val allTracks = _tracks.value
         if (allTracks.isEmpty()) return
@@ -290,36 +288,46 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         // Hidden Gems: least listened songs (including 0 views) with random rotation
         // Take a pool of the top 30 lowest viewed tracks, then shuffle and take 10
         _homeHiddenGems.value = allTracks.sortedBy { it.playCount }.take(30).shuffled().take(10)
+    }
 
+    /** Local genre-recency guess for Recommended — the fallback used when the server call in
+     * [refreshRecommended] fails (offline, older server) or returns nothing. */
+    private fun localRecommendedGuess(allTracks: List<Track>): List<Track> {
         val recent = _recentGenres.value
-        if (recent.isEmpty()) {
-            _homeRecommended.value = allTracks.shuffled().take(10)
+        if (recent.isEmpty()) return allTracks.shuffled().take(10)
+
+        val topGenres = recent.entries.sortedByDescending { it.value }.take(3).map { it.key }.toSet()
+        val recommended = allTracks.filter { topGenres.contains(it.genre) }.shuffled().take(10)
+        return if (recommended.size < 5) {
+            (recommended + allTracks.filter { !topGenres.contains(it.genre) }.shuffled().take(10 - recommended.size)).distinct()
         } else {
-            val topGenres = recent.entries.sortedByDescending { it.value }.take(3).map { it.key }.toSet()
-            val recommended = allTracks.filter { topGenres.contains(it.genre) }.shuffled().take(10)
-            if (recommended.size < 5) {
-                _homeRecommended.value = (recommended + allTracks.filter { !topGenres.contains(it.genre) }.shuffled().take(10 - recommended.size)).distinct()
-            } else {
-                _homeRecommended.value = recommended
-            }
+            recommended
         }
     }
 
-    /** Replaces the local genre-recency guess in [_homeRecommended] with api.php's own
-     * action=recommend ranking (listen_history + playlist affinity, weighted by recency, with a
+    /** Sets [_homeRecommended] exactly once per load: tries api.php's own action=recommend
+     * ranking (listen_history + playlist affinity, weighted by recency, with a
      * popularity/randomness fallback server-side for users with no signal yet) — mirrors how
-     * index.php feeds its "Recommended for you" carousel. Silently keeps the local fallback
-     * already set by [refreshHomeSections] if the request fails. */
-    private fun fetchServerRecommendations() {
-        val purple = client ?: return
-        if (_offlineOnlyMode.value) return
+     * index.php feeds its "Recommended for you" carousel — and only falls back to the local
+     * genre-recency guess if that request fails or the app is offline. Deliberately *not* split
+     * into "show the local guess immediately, then swap in the server result" — that flashed a
+     * visibly different (and shuffled-per-call, so different again on every refresh) row before
+     * the real one loaded. */
+    private fun refreshRecommended() {
+        val allTracks = _tracks.value
+        if (allTracks.isEmpty()) return
+        val purple = client
         viewModelScope.launch {
-            try {
-                val recommended = withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }
-                if (recommended.isNotEmpty()) _homeRecommended.value = recommended
-            } catch (_: Exception) {
-                // Keep the local fallback.
+            val recommended = if (purple != null && !_offlineOnlyMode.value) {
+                try {
+                    withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }.ifEmpty { null }
+                } catch (_: Exception) {
+                    null
+                }
+            } else {
+                null
             }
+            _homeRecommended.value = recommended ?: localRecommendedGuess(allTracks)
         }
     }
 
@@ -1098,7 +1106,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     refreshDownloadedMetadata(trackList)
                 }
                 refreshHomeSections()
-                fetchServerRecommendations()
+                refreshRecommended()
                 fetchListenHistory()
                 refreshOfflineState()
             } catch (e: Exception) {
