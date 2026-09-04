@@ -15,7 +15,7 @@ android {
         applicationId = "com.amethyst_music"
         minSdk = 23
         targetSdk = 36
-        versionCode = 11
+        versionCode = 12
         versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
