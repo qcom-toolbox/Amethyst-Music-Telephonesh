@@ -312,12 +312,21 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * genre-recency guess if that request fails or the app is offline. Deliberately *not* split
      * into "show the local guess immediately, then swap in the server result" — that flashed a
      * visibly different (and shuffled-per-call, so different again on every refresh) row before
-     * the real one loaded. */
+     * the real one loaded.
+     *
+     * loadLibrary() can be triggered more than once in quick succession (the Home pull-to-refresh
+     * and the toolbar refresh button both call it, and several other actions do too) — without
+     * cancelling the previous attempt, two overlapping calls race their network requests and
+     * whichever happens to *finish* last wins, regardless of which was *started* last. On a slow
+     * or flaky connection the older call's request can easily resolve after the newer one's,
+     * silently reverting a correct result back to the local random/genre guess — this is exactly
+     * what showed up as "random recommendation, then the real one" on real networks even though
+     * it was invisible on a fast local dev connection. Cancelling the in-flight job before
+     * starting a new one guarantees only the most recent call can ever write the result. */
     private fun refreshRecommended() {
-        val allTracks = _tracks.value
-        if (allTracks.isEmpty()) return
         val purple = client
-        viewModelScope.launch {
+        recommendedJob?.cancel()
+        recommendedJob = viewModelScope.launch {
             val recommended = if (purple != null && !_offlineOnlyMode.value) {
                 try {
                     withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }.ifEmpty { null }
@@ -327,16 +336,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 null
             }
-            _homeRecommended.value = recommended ?: localRecommendedGuess(allTracks)
+            if (recommended != null) {
+                _homeRecommended.value = recommended
+            } else {
+                // Read _tracks.value lazily rather than upfront: this now runs concurrently with
+                // the tracks fetch (see loadLibrary()), so on a cold start tracks may still be
+                // empty the instant this call is made but ready by the time the fallback is
+                // actually needed. If it's still empty here too, leave _homeRecommended as-is
+                // rather than replacing any previous good data with an empty guess.
+                val allTracks = _tracks.value
+                if (allTracks.isNotEmpty()) _homeRecommended.value = localRecommendedGuess(allTracks)
+            }
         }
     }
 
     /** Refreshes [_listenHistory] from action=history. Requires a logged-in user — anonymous
-     * calls fail server-side, so this just leaves the history empty rather than erroring. */
+     * calls fail server-side, so this just leaves the history empty rather than erroring.
+     * Cancels any in-flight fetch first — same overlapping-loadLibrary()-calls race as
+     * [refreshRecommended]. */
     private fun fetchListenHistory() {
         val purple = client ?: return
         if (_offlineOnlyMode.value) return
-        viewModelScope.launch {
+        listenHistoryJob?.cancel()
+        listenHistoryJob = viewModelScope.launch {
             try {
                 _listenHistory.value = withContext(Dispatchers.IO) { purple.fetchHistory(100) }
             } catch (_: Exception) {
@@ -493,6 +515,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private var searchJob: Job? = null
     private var progressJob: Job? = null
+    private var recommendedJob: Job? = null
+    private var listenHistoryJob: Job? = null
 
     // When a queue started from an artist/album page runs out, keep playing instead of
     // stopping by topping it up with random tracks — off for library/playlist queues, which
@@ -1082,32 +1106,37 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _isLoading.value = true
             _error.value = null
             try {
-                // 1. Fetch tracks
-                val trackList = withContext(Dispatchers.IO) {
-                    purple.fetchTracks()
-                }
-                _tracks.value = trackList
-
-                // 2. Fetch playlists in background
+                // Kick off every independent network call up front instead of waiting for
+                // tracks to fully resolve before even starting playlists/genres/recommend/
+                // history — none of those need the track list to make their own request, so
+                // the old sequencing (tracks, *then* start the rest) added each one's full
+                // round-trip on top of the tracks fetch instead of overlapping it. These launch
+                // calls don't suspend, so by the time the tracks fetch below actually hits the
+                // network, all of these are already in flight alongside it.
                 launch {
                     try {
                         val playlists = withContext(Dispatchers.IO) { purple.fetchPlaylists() }
                         _playlists.value = playlists
                     } catch (_: Exception) {}
                 }
-
                 launch {
                     try {
                         val fetchedGenres = withContext(Dispatchers.IO) { purple.fetchGenres() }
                         _genres.value = fetchedGenres
                     } catch (_: Exception) {}
                 }
+                refreshRecommended()
+                fetchListenHistory()
+
+                val trackList = withContext(Dispatchers.IO) {
+                    purple.fetchTracks()
+                }
+                _tracks.value = trackList
+
                 if (refreshOfflineMetadata) {
                     refreshDownloadedMetadata(trackList)
                 }
                 refreshHomeSections()
-                refreshRecommended()
-                fetchListenHistory()
                 refreshOfflineState()
             } catch (e: Exception) {
                 _error.value = e.message ?: getString(R.string.error_load_failed)

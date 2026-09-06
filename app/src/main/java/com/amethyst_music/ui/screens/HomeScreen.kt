@@ -1,5 +1,10 @@
 package com.amethyst_music.ui.screens
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -77,6 +82,7 @@ fun HomeScreen(
                 HomeSection(
                     title = stringResource(R.string.home_for_you),
                     tracks = recommended,
+                    isLoading = isRefreshing,
                     coverUrlForTrack = coverUrlForTrack,
                     onTrackClick = onTrackClick,
                     downloadedIds = downloadedIds,
@@ -94,6 +100,7 @@ fun HomeScreen(
                 HomeSection(
                     title = stringResource(R.string.home_popular),
                     tracks = popular,
+                    isLoading = isRefreshing,
                     coverUrlForTrack = coverUrlForTrack,
                     onTrackClick = onTrackClick,
                     downloadedIds = downloadedIds,
@@ -111,6 +118,7 @@ fun HomeScreen(
                 HomeSection(
                     title = stringResource(R.string.home_hidden_gems),
                     tracks = hiddenGems,
+                    isLoading = isRefreshing,
                     coverUrlForTrack = coverUrlForTrack,
                     onTrackClick = onTrackClick,
                     downloadedIds = downloadedIds,
@@ -143,8 +151,12 @@ fun HomeSection(
     onEditTrack: ((Track) -> Unit)?,
     onArtistClick: (String) -> Unit = {},
     artistClickEnabled: Boolean = true,
+    isLoading: Boolean = false,
 ) {
-    if (tracks.isEmpty()) return
+    // While a section is still empty because its data hasn't arrived yet, show shimmering
+    // placeholder cards instead of hiding the whole row until the network call resolves — once
+    // isLoading goes false with nothing to show, it really is empty, so hide it as before.
+    if (tracks.isEmpty() && !isLoading) return
 
     Column(modifier = Modifier.padding(vertical = 16.dp)) {
         Text(
@@ -158,23 +170,74 @@ fun HomeSection(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(tracks) { track ->
-                HomeTrackCard(
-                    track = track,
-                    cover = coverUrlForTrack(track),
-                    onClick = { onTrackClick(track) },
-                    isDownloaded = downloadedIds.contains(track.id),
-                    isDownloading = downloadingIds.contains(track.id),
-                    onDownload = { onDownload(track) },
-                    onRemoveDownload = { onRemoveDownload(track) },
-                    onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
-                    adminModeEnabled = adminModeEnabled,
-                    onEditTrack = onEditTrack?.let { { it(track) } },
-                    onArtistClick = onArtistClick,
-                    artistClickEnabled = artistClickEnabled,
-                )
+            if (tracks.isEmpty()) {
+                items(6) { HomeTrackCardPlaceholder() }
+            } else {
+                items(tracks) { track ->
+                    HomeTrackCard(
+                        track = track,
+                        cover = coverUrlForTrack(track),
+                        onClick = { onTrackClick(track) },
+                        isDownloaded = downloadedIds.contains(track.id),
+                        isDownloading = downloadingIds.contains(track.id),
+                        onDownload = { onDownload(track) },
+                        onRemoveDownload = { onRemoveDownload(track) },
+                        onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
+                        adminModeEnabled = adminModeEnabled,
+                        onEditTrack = onEditTrack?.let { { it(track) } },
+                        onArtistClick = onArtistClick,
+                        artistClickEnabled = artistClickEnabled,
+                    )
+                }
             }
         }
+    }
+}
+
+/** Pulsing skeleton standing in for [HomeTrackCard] while its section's data is still loading —
+ * same footprint (cover + title + artist lines) so the carousel doesn't jump when real cards
+ * swap in. */
+@Composable
+fun HomeTrackCardPlaceholder() {
+    val transition = rememberInfiniteTransition(label = "home_placeholder_shimmer")
+    val alpha by transition.animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(700),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "home_placeholder_alpha",
+    )
+    val shimmerColor = MaterialTheme.colorScheme.outline.copy(alpha = alpha)
+
+    Column(
+        modifier = Modifier
+            .width(140.dp)
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(132.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(shimmerColor)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .height(14.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(shimmerColor)
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(12.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(shimmerColor)
+        )
     }
 }
 
