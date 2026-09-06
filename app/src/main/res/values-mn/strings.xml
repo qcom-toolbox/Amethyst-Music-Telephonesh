@@ -26,6 +26,7 @@
     <string name="tab_playlists">Плейлист</string>
     <string name="tab_settings">Тохиргоо</string>
     <string name="search_placeholder">Хайх…</string>
+    <string name="clear_search">Хайлтыг цэвэрлэх</string>
     <string name="filter_sort">Шүүлтүүр ба эрэмбэ</string>
     <string name="genre_all">Бүх төрөл</string>
     <string name="sort_popularity">Алдартай байдал</string>
