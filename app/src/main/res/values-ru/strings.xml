@@ -26,6 +26,7 @@
     <string name="tab_playlists">Плейлисты</string>
     <string name="tab_settings">Настройки</string>
     <string name="search_placeholder">Поиск…</string>
+    <string name="clear_search">Очистить поиск</string>
     <string name="filter_sort">Фильтр и сортировка</string>
     <string name="genre_all">Все жанры</string>
     <string name="sort_popularity">Популярность</string>

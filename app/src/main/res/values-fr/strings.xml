@@ -26,6 +26,7 @@
     <string name="tab_playlists">Playlists</string>
     <string name="tab_settings">Paramètres</string>
     <string name="search_placeholder">Rechercher…</string>
+    <string name="clear_search">Effacer la recherche</string>
     <string name="filter_sort">Filtrer &amp; Trier</string>
     <string name="genre_all">Tous les genres</string>
     <string name="sort_popularity">Popularité</string>

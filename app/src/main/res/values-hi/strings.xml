@@ -26,6 +26,7 @@
     <string name="tab_playlists">प्लेलिस्ट</string>
     <string name="tab_settings">सेटिंग्स</string>
     <string name="search_placeholder">खोजें…</string>
+    <string name="clear_search">खोज साफ़ करें</string>
     <string name="filter_sort">फ़िल्टर और क्रमबद्ध करें</string>
     <string name="genre_all">सभी शैलियाँ</string>
     <string name="sort_popularity">लोकप्रियता</string>

@@ -26,6 +26,7 @@
     <string name="tab_playlists">播放列表</string>
     <string name="tab_settings">设置</string>
     <string name="search_placeholder">搜索…</string>
+    <string name="clear_search">清除搜索</string>
     <string name="filter_sort">过滤与排序</string>
     <string name="genre_all">所有流派</string>
     <string name="sort_popularity">热门程度</string>

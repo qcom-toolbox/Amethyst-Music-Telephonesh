@@ -42,6 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -348,6 +349,13 @@ fun MainScreen(
                         onValueChange = onSearchChange,
                         placeholder = { Text(stringResource(R.string.search_placeholder)) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { onSearchChange("") }) {
+                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_search))
+                                }
+                            }
+                        },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(50),
