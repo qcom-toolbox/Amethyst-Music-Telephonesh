@@ -192,4 +192,8 @@
     <string name="loading_biography">Cargando biografía…</string>
     <string name="no_description_available">No hay descripción disponible.</string>
     <string name="view_on_wikipedia">Ver en Wikipedia ↗</string>
+    <string name="ignored_genres">Géneros ignorados</string>
+    <string name="ignored_genres_hint">Las canciones de estos géneros no aparecen en el inicio, la búsqueda ni las colas generadas automáticamente. Puedes seguir reproduciéndolas desde un álbum, un artista o una lista.</string>
+    <string name="ignored_genres_none_available">Aún no se han cargado géneros.</string>
+    <string name="ignored_genres_clear">Borrar todo</string>
 </resources>

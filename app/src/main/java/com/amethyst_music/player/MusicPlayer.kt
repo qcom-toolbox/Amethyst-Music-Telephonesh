@@ -27,6 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 
@@ -153,14 +155,24 @@ class MusicPlayer(private val appContext: Context) {
     private var coverUrlProvider: ((Track, Boolean) -> String?)? = null
     private var lastClient: OkHttpClient? = null
 
-    // Supplies more tracks to keep playing once the active queue naturally runs out (e.g. a
-    // short artist/album queue), instead of just stopping. Returning an empty list preserves
-    // the old stop-at-the-end behavior.
-    private var queueExhaustedProvider: (() -> List<Track>)? = null
+    // --- Generated-queue continuation ---------------------------------------------------
+    // canGrow: whether this queue is allowed to top itself up (off for plain library/offline
+    // browsing and playlists, which are bounded and expected to actually stop at the end).
+    // boundaryIndex: 0 means no bounded prefix (the whole queue is generated, from the seed
+    // onward); otherwise the number of tracks at the front of `queue` that belong to a bounded
+    // context (an artist's or album's own tracks) before the generated continuation begins —
+    // used both to seed the first generated batch and to keep repeat-all looping just that
+    // bounded prefix instead of the whole grown queue.
+    private var canGrow = false
+    private var boundaryIndex = 0
+    private var generateMoreProvider: (suspend (seed: Track, exclude: Set<Int>, recentArtists: List<String>, batchSize: Int) -> List<Track>)? = null
 
-    fun setQueueExhaustedProvider(provider: (() -> List<Track>)?) {
-        queueExhaustedProvider = provider
-    }
+    // Serializes "generate more songs" requests: a second caller that arrives while one is
+    // already running waits for it to finish, then re-checks the remaining count (which the
+    // first call likely already fixed) instead of independently picking overlapping songs — the
+    // race that shows up when starting a brand-new generated queue and a "running low" check
+    // both fire almost simultaneously (a fresh one-song queue already looks low).
+    private val topUpMutex = Mutex()
 
     // --- Windowed queue loading -------------------------------------------------
     // Building a MediaItem per track resolves stream/cover URLs (disk I/O for the
@@ -248,6 +260,19 @@ class MusicPlayer(private val appContext: Context) {
             val newIndex = windowStart + currentPlayer.currentMediaItemIndex
             val isRepeat = reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT
 
+            // Repeat-all on a bounded context (an artist/album queue that has since grown a
+            // generated continuation past boundaryIndex): loop just the bounded content, not
+            // the whole grown queue. The moment playback crosses from the bounded content's
+            // own last track into the continuation, jump back to its start ourselves instead
+            // of letting ExoPlayer's native repeat-all loop everything.
+            if (!shuffle && !isRepeat && loopMode == 1 && boundaryIndex > 0 && newIndex == boundaryIndex) {
+                val urlFor = streamUrlProvider
+                if (urlFor != null) {
+                    playTrackAt(0, urlFor)
+                    return
+                }
+            }
+
             if (shuffle) {
                 // In shuffle mode ExoPlayer plays a flat shuffled list, so newIndex maps
                 // directly into shuffledQueue.
@@ -266,26 +291,20 @@ class MusicPlayer(private val appContext: Context) {
             }
 
             // Playback has moved — top up the loaded window in the background if we're
-            // getting close to either edge of what's currently loaded into the player.
+            // getting close to either edge of what's currently loaded into the player, and
+            // check whether the logical queue itself needs another generated batch.
             scheduleWindowMaintenance()
+            maybeTopUp()
         }
 
         override fun onPlaybackStateChanged(state: Int) {
-            if (state == Player.STATE_ENDED) {
-                // ExoPlayer playlist exhausted – handled natively by repeatMode.
-                // If repeatMode is OFF, try to keep playback going with more tracks first,
-                // and only actually stop if none are offered.
-                if (currentPlayer.repeatMode == Player.REPEAT_MODE_OFF) {
-                    val provider = streamUrlProvider
-                    val more = queueExhaustedProvider?.invoke().orEmpty()
-                    if (more.isNotEmpty() && provider != null) {
-                        appendAndContinue(more, provider)
-                    } else {
-                        currentPlayer.pause()
-                        _isPlaying.value = false
-                        stopPlaybackService()
-                    }
-                }
+            // ExoPlayer playlist exhausted with repeat off. A generated queue should normally
+            // never actually reach this — maybeTopUp() keeps it topped up well before the last
+            // track — so this is just the bounded-queue (library/playlist) stop-at-the-end case.
+            if (state == Player.STATE_ENDED && currentPlayer.repeatMode == Player.REPEAT_MODE_OFF) {
+                currentPlayer.pause()
+                _isPlaying.value = false
+                stopPlaybackService()
             }
         }
     }
@@ -484,7 +503,12 @@ class MusicPlayer(private val appContext: Context) {
         }
     }
 
+    /** Plays a bounded queue (plain library/offline browsing, or a playlist) — never grows,
+     * and repeat-all loops the whole thing via ExoPlayer's own repeat mode. */
     fun playQueue(tracks: List<Track>, startIndex: Int, streamUrl: (Track, Boolean) -> String) {
+        canGrow = false
+        boundaryIndex = 0
+        generateMoreProvider = null
         queue = tracks
         queueIndex = startIndex.coerceIn(0, (tracks.size - 1).coerceAtLeast(0))
         if (tracks.isEmpty()) return
@@ -509,24 +533,143 @@ class MusicPlayer(private val appContext: Context) {
         startPlaybackService()
     }
 
-    // Appends more tracks to whichever list is currently active and resumes playback into
-    // them — called when the queue has just played its last track and would otherwise stop.
-    private fun appendAndContinue(tracks: List<Track>, streamUrl: (Track, Boolean) -> String) {
+    /** Plays [prefix] (the seed alone for search/home/generic taps, or an artist's/album's own
+     * tracks in page order for those pages) starting at [startIndex], then keeps the queue
+     * topped up afterward with [generator]-produced batches. [prefix].size > 1 marks a bounded
+     * context (artist/album) whose own tracks come first — see [boundaryIndex]. */
+    fun playGenerated(
+        prefix: List<Track>,
+        startIndex: Int,
+        streamUrl: (Track, Boolean) -> String,
+        generator: suspend (seed: Track, exclude: Set<Int>, recentArtists: List<String>, batchSize: Int) -> List<Track>,
+    ) {
+        canGrow = true
+        boundaryIndex = if (prefix.size > 1) prefix.size else 0
+        generateMoreProvider = generator
+        queue = prefix
+        queueIndex = startIndex.coerceIn(0, (prefix.size - 1).coerceAtLeast(0))
+        if (prefix.isEmpty()) return
+
         if (shuffle) {
-            shuffledQueue = shuffledQueue + tracks
+            val start = prefix[queueIndex]
+            val rest = prefix.toMutableList().also { it.removeAt(queueIndex) }.shuffled()
+            shuffledQueue = listOf(start) + rest
+            shuffleIndex = 0
             _activeQueue.value = shuffledQueue
+            loadWindowed(shuffledQueue, 0, streamUrl, 0L, autoplay = true)
         } else {
-            queue = queue + tracks
-            _activeQueue.value = queue
+            shuffledQueue = emptyList()
+            shuffleIndex = 0
+            _activeQueue.value = prefix
+            loadWindowed(prefix, queueIndex, streamUrl, 0L, autoplay = true)
         }
 
-        val isCast = currentPlayer is CastPlayer
-        val items = tracks.map { buildMediaItem(it, streamUrl(it, isCast), isCast) }
-        currentPlayer.addMediaItems(items)
-        currentPlayer.seekToNextMediaItem()
-        currentPlayer.play()
+        _isPlaying.value = true
         startPlaybackService()
+        maybeTopUp()
+    }
+
+    // Tops up the logical queue (not the ExoPlayer MediaItem window — that's
+    // scheduleWindowMaintenance()'s job) once it's running low, so a generated queue never
+    // visibly runs short. Serialized through topUpMutex: a second call arriving while one is
+    // already in flight waits for it, then re-checks the remaining count instead of picking an
+    // overlapping batch — see the race described where a just-started queue and a "running low"
+    // check can both fire almost immediately.
+    private fun maybeTopUp() {
+        if (!canGrow) return
+        // A bounded context (album/artist) on repeat-all is a closed loop, not an open stream
+        // that needs to stay topped up.
+        if (loopMode == 1 && boundaryIndex > 0) return
+        val provider = generateMoreProvider ?: return
+
+        playerScope.launch {
+            topUpMutex.withLock {
+                if (!canGrow || generateMoreProvider !== provider) return@withLock
+                val activeIdx = if (shuffle) shuffleIndex else queueIndex
+                val activeSize = if (shuffle) shuffledQueue.size else queue.size
+                val remaining = activeSize - 1 - activeIdx
+                if (remaining >= LOW_WATERMARK) return@withLock
+                val seed = queue.lastOrNull() ?: return@withLock
+                val exclude = queue.map { it.id }.toSet()
+                val recentArtists = queue.takeLast(3).map { it.artist }
+                val batchSize = (TARGET_UPCOMING - remaining).coerceAtLeast(LOW_WATERMARK)
+                val more = withContext(Dispatchers.Default) { provider(seed, exclude, recentArtists, batchSize) }
+                if (more.isEmpty()) return@withLock
+
+                queue = queue + more
+                if (shuffle) shuffledQueue = shuffledQueue + more.shuffled()
+                _activeQueue.value = activeList()
+                scheduleWindowMaintenance()
+            }
+        }
+    }
+
+    /** Places [track] at the very end of the current queue. Starts playing it immediately if
+     * nothing is currently playing, since there's nothing yet to add to. */
+    fun addToQueue(track: Track, streamUrl: (Track, Boolean) -> String) {
+        if (_currentTrack.value == null) {
+            playQueue(listOf(track), 0, streamUrl)
+            return
+        }
+        removeFutureDuplicates(track.id)
+        queue = queue + track
+        if (shuffle) shuffledQueue = shuffledQueue + track
+        _activeQueue.value = activeList()
         scheduleWindowMaintenance()
+    }
+
+    /** Inserts [track] immediately after whatever's currently playing. Starts playing it
+     * immediately if nothing is currently playing. */
+    fun playNext(track: Track, streamUrl: (Track, Boolean) -> String) {
+        if (_currentTrack.value == null) {
+            playQueue(listOf(track), 0, streamUrl)
+            return
+        }
+        removeFutureDuplicates(track.id)
+
+        val currentId = _currentTrack.value?.id
+        val qInsertAt = (queue.indexOfFirst { it.id == currentId } + 1).coerceIn(0, queue.size)
+        queue = queue.toMutableList().apply { add(qInsertAt, track) }
+
+        val activeIdx = if (shuffle) shuffleIndex else queueIndex
+        val insertGlobalIdx = activeIdx + 1
+        if (shuffle) {
+            shuffledQueue = shuffledQueue.toMutableList().apply { add(insertGlobalIdx.coerceIn(0, size), track) }
+        }
+        _activeQueue.value = activeList()
+
+        // Splice directly into the live player if the insertion point is already loaded;
+        // otherwise the normal window maintenance top-up will pick it up.
+        val localIdx = insertGlobalIdx - windowStart
+        if (localIdx in 0..currentPlayer.mediaItemCount) {
+            val isCast = currentPlayer is CastPlayer
+            currentPlayer.addMediaItem(localIdx, buildMediaItem(track, streamUrl(track, isCast), isCast))
+        }
+        scheduleWindowMaintenance()
+    }
+
+    // Removes any occurrence of [trackId] that sits strictly after the currently playing
+    // position from queue/shuffledQueue and from the live player's loaded items — used by
+    // addToQueue/playNext so a song already further ahead doesn't end up duplicated. The
+    // currently playing song itself, and anything already played, is never touched.
+    private fun removeFutureDuplicates(trackId: Int) {
+        val currentId = _currentTrack.value?.id
+        val qCurIdx = queue.indexOfFirst { it.id == currentId }
+        queue = queue.filterIndexed { i, t -> !(t.id == trackId && i > qCurIdx) }
+
+        if (shuffle) {
+            shuffledQueue = shuffledQueue.filterIndexed { i, t -> !(t.id == trackId && i > shuffleIndex) }
+        }
+        _activeQueue.value = activeList()
+
+        val activeIdx = if (shuffle) shuffleIndex else queueIndex
+        for (local in (currentPlayer.mediaItemCount - 1) downTo 0) {
+            val globalIdx = windowStart + local
+            if (globalIdx <= activeIdx) continue
+            if (currentPlayer.getMediaItemAt(local).mediaId == trackId.toString()) {
+                currentPlayer.removeMediaItem(local)
+            }
+        }
     }
 
     fun playTrackAt(index: Int, streamUrl: (Track, Boolean) -> String) {
@@ -659,14 +802,6 @@ class MusicPlayer(private val appContext: Context) {
         currentPlayer.setPlaybackSpeed(speed)
     }
 
-    fun expandQueueForShuffle(allTracks: List<Track>) {
-        val currentT = _currentTrack.value ?: return
-        if (allTracks.isEmpty()) return
-        queue = allTracks
-        queueIndex = queue.indexOfFirst { it.id == currentT.id }.coerceAtLeast(0)
-        setShuffle(true, forceReshuffle = true)
-    }
-
     // Reorders the player's playlist around whatever is currently playing, without
     // touching that item's own MediaSource — avoids the audible cut/rebuffer that
     // setMediaItems() causes when it recreates the source for the playing track too.
@@ -703,23 +838,32 @@ class MusicPlayer(private val appContext: Context) {
 
         if (enabled) {
             if (!wasEnabled || forceReshuffle) {
-                // Generate a fresh shuffled queue; keep current track first. This only
-                // reorders Track references (cheap) — no MediaItems are built for the
-                // whole library here.
+                // Only reorder what hasn't played yet: everything up to and including the
+                // current track stays exactly where it is (in canonical `queue` order), and
+                // only the tail after it is shuffled. This only reorders Track references
+                // (cheap) — no MediaItems are built for the whole library here.
                 val currentT = _currentTrack.value
                 if (queue.isNotEmpty() && currentT != null) {
-                    val rest = queue.toMutableList().also { list ->
-                        val idx = list.indexOfFirst { it.id == currentT.id }
-                        if (idx >= 0) list.removeAt(idx)
-                    }.shuffled()
-                    shuffledQueue = listOf(currentT) + rest
-                    shuffleIndex = 0
+                    val curIdx = queue.indexOfFirst { it.id == currentT.id }.coerceAtLeast(0)
+                    val prefix = queue.subList(0, curIdx + 1)
+                    // On a bounded context (artist page / album) that has already grown a
+                    // generated continuation, shuffle each side of the boundary separately, so
+                    // shuffling the artist page randomizes that artist's own songs rather than
+                    // pulling the generated ones in among them.
+                    val tail = if (boundaryIndex > curIdx + 1 && boundaryIndex < queue.size) {
+                        queue.subList(curIdx + 1, boundaryIndex).shuffled() +
+                            queue.subList(boundaryIndex, queue.size).shuffled()
+                    } else {
+                        queue.subList(curIdx + 1, queue.size).shuffled()
+                    }
+                    shuffledQueue = prefix + tail
+                    shuffleIndex = curIdx
                     loadGeneration++
-                    windowStart = 0
+                    windowStart = curIdx
 
                     streamUrlProvider?.let { urlFor ->
                         if (isCast) {
-                            rebuildQueueOnCast(shuffledQueue, 0, urlFor)
+                            rebuildQueueOnCast(shuffledQueue, curIdx, urlFor)
                         } else {
                             // Strip the player down to just the currently playing item
                             // (no MediaSource rebuild for it, so no audible cut) and let
@@ -777,6 +921,9 @@ class MusicPlayer(private val appContext: Context) {
         _currentTrack.value = null
         _positionMs.value = 0L
         _durationMs.value = 0L
+        canGrow = false
+        boundaryIndex = 0
+        generateMoreProvider = null
         stopPlaybackService()
     }
 
@@ -809,5 +956,11 @@ class MusicPlayer(private val appContext: Context) {
 
         // How many already-played items to keep loaded behind the current position before trimming.
         private const val WINDOW_MAX_BEHIND = 200
+
+        // A generated queue tries to always keep roughly this many upcoming tracks ready...
+        private const val TARGET_UPCOMING = 150
+
+        // ...and quietly generates another batch once the remaining count drops below this.
+        private const val LOW_WATERMARK = 30
     }
 }

@@ -16,13 +16,22 @@ data class Track(
     val album: String? = null,
 ) {
     companion object {
+        /**
+         * Genre a track falls back to when the server sends it without one. It's a real value
+         * the backend's own `genres` table uses (not a sentinel), so it can show up either
+         * because the track is genuinely tagged "other" or because it isn't tagged at all —
+         * both cases behave the same everywhere in the app, including the Settings ignore list,
+         * where it's displayed via R.string.genre_other so it reads in the user's language.
+         */
+        const val UNTAGGED_GENRE = "Autre"
+
         fun fromJson(obj: JSONObject): Track = Track(
             id = obj.optInt("id"),
             filename = obj.optString("filename", ""),
             title = HtmlEntities.decode(obj.optString("title")).ifBlank { "Unknown" },
             artist = HtmlEntities.decode(obj.optString("artist")).ifBlank { "Unknown" },
             cover = obj.optString("cover").ifBlank { "default.png" },
-            genre = HtmlEntities.decode(obj.optString("genre")).ifBlank { "Autre" },
+            genre = HtmlEntities.decode(obj.optString("genre")).ifBlank { UNTAGGED_GENRE },
             playCount = obj.optInt("play_count", 0),
             duration = obj.optInt("duration", 0),
             uploaderId = obj.optInt("uploader_id", 0),

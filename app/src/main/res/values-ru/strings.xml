@@ -192,4 +192,8 @@
     <string name="loading_biography">Загрузка биографии…</string>
     <string name="no_description_available">Описание недоступно.</string>
     <string name="view_on_wikipedia">Смотреть в Википедии ↗</string>
+    <string name="ignored_genres">Игнорируемые жанры</string>
+    <string name="ignored_genres_hint">Треки этих жанров не появляются на главной, в поиске и в автоматически созданных очередях. Их по-прежнему можно включить из альбома, со страницы исполнителя или из плейлиста.</string>
+    <string name="ignored_genres_none_available">Жанры ещё не загружены.</string>
+    <string name="ignored_genres_clear">Очистить всё</string>
 </resources>

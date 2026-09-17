@@ -143,6 +143,13 @@ class PurpleClient(
         return (0 until array.length()).map { i -> Track.fromJson(array.getJSONObject(i)) }
     }
 
+    /** action=user_affinity: the caller's taste profile (genre/artist/album weights) used by
+     * the client-side queue generator. Anonymous callers get empty maps, not an error. */
+    fun fetchUserAffinity(): UserAffinity {
+        val resp = postRequest("user_affinity")
+        return UserAffinity.fromJson(JSONObject(resp))
+    }
+
     /**
      * api.php has no dedicated genres endpoint, but index.php reads the admin-managed
      * `genres` table and renders it as `<select name="genre">` options in the upload form.

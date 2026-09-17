@@ -192,4 +192,8 @@
     <string name="loading_biography">Caricamento biografia…</string>
     <string name="no_description_available">Nessuna descrizione disponibile.</string>
     <string name="view_on_wikipedia">Vedi su Wikipedia ↗</string>
+    <string name="ignored_genres">Generi ignorati</string>
+    <string name="ignored_genres_hint">I brani di questi generi non compaiono nella home, nella ricerca e nelle code generate automaticamente. Puoi comunque riprodurli da un album, un artista o una playlist.</string>
+    <string name="ignored_genres_none_available">Nessun genere caricato.</string>
+    <string name="ignored_genres_clear">Cancella tutto</string>
 </resources>

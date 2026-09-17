@@ -192,4 +192,8 @@
     <string name="loading_biography">जीवनी लोड हो रही है…</string>
     <string name="no_description_available">कोई विवरण उपलब्ध नहीं है।</string>
     <string name="view_on_wikipedia">विकिपीडिया पर देखें ↗</string>
+    <string name="ignored_genres">अनदेखी की गई शैलियाँ</string>
+    <string name="ignored_genres_hint">इन शैलियों के ट्रैक होम, खोज और अपने आप बनी कतारों में नहीं दिखेंगे। आप उन्हें अब भी किसी एल्बम, कलाकार या प्लेलिस्ट से चला सकते हैं।</string>
+    <string name="ignored_genres_none_available">अभी कोई शैली लोड नहीं हुई।</string>
+    <string name="ignored_genres_clear">सब हटाएँ</string>
 </resources>

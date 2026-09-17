@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,6 +48,8 @@ fun TrackRow(
     onRemoveDownload: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
     onRemoveFromPlaylist: (() -> Unit)? = null,
+    onAddToQueue: (() -> Unit)? = null,
+    onPlayNext: (() -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: (() -> Unit)? = null,
     onArtistClick: (String) -> Unit = {},
@@ -163,6 +167,28 @@ fun TrackRow(
                 onDismissRequest = { showMenu = false },
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
+                if (onPlayNext != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.play_next), color = AmethystText) },
+                        onClick = {
+                            onPlayNext()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
+                if (onAddToQueue != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.add_to_queue), color = AmethystText) },
+                        onClick = {
+                            onAddToQueue()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
                 if (onAddToPlaylist != null) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.add_to_playlist), color = AmethystText) },
