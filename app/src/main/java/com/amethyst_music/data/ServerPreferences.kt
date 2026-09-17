@@ -71,6 +71,20 @@ class ServerPreferences(context: Context) {
             prefs.edit().putString(KEY_LANGUAGE, value).apply()
         }
 
+    /**
+     * Genres the user has chosen to ignore in Settings. Tracks in these genres are kept out of
+     * Home, search/library listings and generated queues — they're still reachable by opening an
+     * album, artist or playlist that contains them, so this hides a genre rather than deleting it.
+     *
+     * Stored as a copy: SharedPreferences hands back its own live set from getStringSet() and
+     * documents that mutating it is undefined, so the returned set is never the stored instance.
+     */
+    var ignoredGenres: Set<String>
+        get() = prefs.getStringSet(KEY_IGNORED_GENRES, emptySet())?.toSet() ?: emptySet()
+        set(value) {
+            prefs.edit().putStringSet(KEY_IGNORED_GENRES, value.toSet()).apply()
+        }
+
     /** Map of Genre -> Play count */
     var recentGenrePlays: Map<String, Int>
         get() {
@@ -103,6 +117,7 @@ class ServerPreferences(context: Context) {
         private const val KEY_ARTIST_LINKS_ENABLED = "artist_links_enabled"
         private const val KEY_ARTIST_LINKS_IN_LISTS_ENABLED = "artist_links_in_lists_enabled"
         private const val KEY_GENRE_PLAYS = "genre_plays"
+        private const val KEY_IGNORED_GENRES = "ignored_genres"
         private const val KEY_BG_COLOR = "bg_color"
         private const val KEY_USE_HARMONY = "use_harmony"
         private const val KEY_DYNAMIC_THEME_ENABLED = "dynamic_theme_enabled"

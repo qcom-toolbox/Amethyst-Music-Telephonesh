@@ -358,6 +358,8 @@ class MainActivity : AppCompatActivity() {
                                     onDownload = remember(vm) { { vm.downloadTrack(it) } },
                                     onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
                                     onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                    onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                                    onPlayNext = remember(vm) { { vm.playNext(it) } },
                                     onPlayAll = remember(vm) {
                                         {
                                             notificationPermission.requestIfNeeded()
@@ -404,6 +406,8 @@ class MainActivity : AppCompatActivity() {
                                         onDownload = remember(vm) { { vm.downloadTrack(it) } },
                                         onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
                                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                                         onPlayAll = remember(vm) {
                                             {
                                                 notificationPermission.requestIfNeeded()
@@ -479,6 +483,8 @@ class MainActivity : AppCompatActivity() {
                                         onDownload = remember(vm) { { vm.downloadTrack(it) } },
                                         onRemoveDownload = remember(vm) { { vm.removeDownload(it) } },
                                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                                         onPlayAll = remember(vm) {
                                             {
                                                 notificationPermission.requestIfNeeded()
@@ -561,6 +567,8 @@ class MainActivity : AppCompatActivity() {
                                         onRemoveFromPlaylist = remember(vm, playlist) {
                                             { track -> vm.removeFromPlaylist(playlist, track) }
                                         },
+                                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                                         onPlayAll = remember(vm) {
                                             {
                                                 notificationPermission.requestIfNeeded()
@@ -684,6 +692,8 @@ class MainActivity : AppCompatActivity() {
                                         onPlayTrackAt = { vm.playTrackAt(it) },
                                         onDownload = { vm.downloadTrack(it) },
                                         onAddToPlaylistForTrack = { vm.showAddToPlaylist(it) },
+                                        onAddToQueueForTrack = { vm.addToQueue(it) },
+                                        onPlayNextForTrack = { vm.playNext(it) },
                                         coverUrlProvider = { vm.coverUrlForTrack(it) },
                                         onArtistClick = remember(vm, onArtistClick) {
                                             { name ->

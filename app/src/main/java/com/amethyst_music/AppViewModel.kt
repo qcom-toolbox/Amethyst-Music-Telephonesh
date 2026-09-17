@@ -18,8 +18,10 @@ import com.amethyst_music.data.ServerPreferences
 import com.amethyst_music.data.SessionPersistence
 import com.amethyst_music.data.Track
 import com.amethyst_music.data.TrackDownloader
+import com.amethyst_music.data.UserAffinity
 import com.amethyst_music.player.MusicPlayer
 import com.amethyst_music.player.PlaybackController
+import com.amethyst_music.player.QueueGenerator
 import com.amethyst_music.ui.theme.AlbumArtColorExtractor
 import com.amethyst_music.util.DownloadNotificationManager
 import com.amethyst_music.util.NetworkObserver
@@ -131,7 +133,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val playlists: StateFlow<List<Playlist>> = _playlists.asStateFlow()
 
     private val _genres = MutableStateFlow<List<String>>(emptyList())
-    val genres: StateFlow<List<String>> = _genres.asStateFlow()
+
+    /** All genres the server knows about — used by the admin metadata editor, which has to be
+     * able to tag a track with a genre the user personally ignores. */
+    val allGenres: StateFlow<List<String>> = _genres.asStateFlow()
 
     private val _homeRecommended = MutableStateFlow<List<Track>>(emptyList())
     val homeRecommendedTracks: StateFlow<List<Track>> = _homeRecommended.asStateFlow()
@@ -153,6 +158,43 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedGenres = MutableStateFlow<Set<String>>(emptySet())
     val selectedGenres: StateFlow<Set<String>> = _selectedGenres.asStateFlow()
 
+    /**
+     * Genres the user has switched off in Settings. Everything that *suggests* or *lists* music
+     * — Home's rows, the Library/Offline lists, search results and the generated-queue pool —
+     * skips these, so an ignored genre stops turning up on its own. Deliberately not applied to
+     * places the user navigated to on purpose (an album, artist or playlist page, the current
+     * queue): hiding tracks there would look like missing data rather than a filter.
+     */
+    private val _ignoredGenres = MutableStateFlow(prefs.ignoredGenres)
+    val ignoredGenres: StateFlow<Set<String>> = _ignoredGenres.asStateFlow()
+
+    private fun List<Track>.withoutIgnoredGenres(ignored: Set<String> = _ignoredGenres.value): List<Track> =
+        if (ignored.isEmpty()) this else filterNot { ignored.contains(it.genre) }
+
+    /** The genres offered by the Library's genre filter — ignored ones are left out, since a
+     * filter chip for a genre whose tracks are all hidden would only ever select nothing. */
+    val genres: StateFlow<List<String>> = combine(_genres, _ignoredGenres) { all, ignored ->
+        if (ignored.isEmpty()) all else all.filterNot { ignored.contains(it) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /**
+     * The genres offered by the Settings ignore list: the server's admin-managed list plus any
+     * genre the loaded tracks actually carry. The union matters because the two can disagree —
+     * an untagged track falls back to [Track.UNTAGGED_GENRE] and a genre dropped from the
+     * server's table leaves its old tracks behind — and a genre with no chip would be one the
+     * user can see but can't switch off.
+     */
+    val ignorableGenres: StateFlow<List<String>> = combine(
+        _genres, _tracks, _offlineTracks
+    ) { serverGenres, tracks, offline ->
+        val used = (tracks.asSequence() + offline.asSequence()).map { it.genre }
+        (serverGenres.asSequence() + used)
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sortedBy { it.lowercase() }
+            .toList()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private val _sortOrder = MutableStateFlow(SortOrder.POPULARITY)
     val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
 
@@ -160,9 +202,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val filteredTracks: StateFlow<List<Track>> = combine(
-        _tracks, _searchQuery, _selectedGenres, _sortOrder
-    ) { tracks, query, genres, sort ->
-        var filtered = tracks
+        _tracks, _searchQuery, _selectedGenres, _sortOrder, _ignoredGenres
+    ) { tracks, query, genres, sort, ignored ->
+        var filtered = tracks.withoutIgnoredGenres(ignored)
         val q = query.lowercase().trim()
         if (q.isNotEmpty()) {
             filtered = filtered.filter {
@@ -184,9 +226,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineTracks: StateFlow<List<Track>> = combine(
-        _offlineTracks, _searchQuery, _selectedGenres, _sortOrder
-    ) { tracks, query, genres, sort ->
-        var filtered = tracks
+        _offlineTracks, _searchQuery, _selectedGenres, _sortOrder, _ignoredGenres
+    ) { tracks, query, genres, sort, ignored ->
+        var filtered = tracks.withoutIgnoredGenres(ignored)
         val q = query.lowercase().trim()
         if (q.isNotEmpty()) {
             filtered = filtered.filter {
@@ -222,13 +264,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     val filteredAlbums: StateFlow<List<AlbumSummary>> = combine(
-        _tracks, _searchQuery
-    ) { tracks, query -> matchingAlbums(tracks, query) }
+        _tracks, _searchQuery, _ignoredGenres
+    ) { tracks, query, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), query) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineAlbums: StateFlow<List<AlbumSummary>> = combine(
-        _offlineTracks, _searchQuery
-    ) { tracks, query -> matchingAlbums(tracks, query) }
+        _offlineTracks, _searchQuery, _ignoredGenres
+    ) { tracks, query, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), query) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Groups tracks by individual (split) artist name matching the current search query, for
@@ -263,13 +305,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     val filteredArtists: StateFlow<List<ArtistSummary>> = combine(
-        _tracks, _searchQuery
-    ) { tracks, query -> matchingArtists(tracks, query) }
+        _tracks, _searchQuery, _ignoredGenres
+    ) { tracks, query, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), query) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineArtists: StateFlow<List<ArtistSummary>> = combine(
-        _offlineTracks, _searchQuery
-    ) { tracks, query -> matchingArtists(tracks, query) }
+        _offlineTracks, _searchQuery, _ignoredGenres
+    ) { tracks, query, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), query) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedTab = MutableStateFlow(0)
@@ -280,8 +322,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Sets Popular/Hidden Gems locally. Recommended is handled separately by
      * [refreshRecommended] so it's written to exactly once per load — see that function for why. */
     private fun refreshHomeSections() {
-        val allTracks = _tracks.value
-        if (allTracks.isEmpty()) return
+        // Bail on a cold start (nothing loaded yet) rather than writing empty rows, but do let
+        // an ignore-everything filter genuinely empty them.
+        if (_tracks.value.isEmpty()) return
+        val allTracks = _tracks.value.withoutIgnoredGenres()
 
         _homePopular.value = allTracks.sortedByDescending { it.playCount }.take(10)
 
@@ -292,8 +336,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Local genre-recency guess for Recommended — the fallback used when the server call in
      * [refreshRecommended] fails (offline, older server) or returns nothing. */
-    private fun localRecommendedGuess(allTracks: List<Track>): List<Track> {
-        val recent = _recentGenres.value
+    private fun localRecommendedGuess(tracks: List<Track>): List<Track> {
+        val allTracks = tracks.withoutIgnoredGenres()
+        if (allTracks.isEmpty()) return emptyList()
+        val recent = _recentGenres.value.filterKeys { !_ignoredGenres.value.contains(it) }
         if (recent.isEmpty()) return allTracks.shuffled().take(10)
 
         val topGenres = recent.entries.sortedByDescending { it.value }.take(3).map { it.key }.toSet()
@@ -329,7 +375,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         recommendedJob = viewModelScope.launch {
             val recommended = if (purple != null && !_offlineOnlyMode.value) {
                 try {
-                    withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }.ifEmpty { null }
+                    withContext(Dispatchers.IO) { purple.fetchRecommendations(15) }
+                        .withoutIgnoredGenres()
+                        .ifEmpty { null }
                 } catch (_: Exception) {
                     null
                 }
@@ -378,7 +426,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Plays a track from the History page, queuing the rest of the listened history. */
     fun playHistoryTrack(track: Track) {
-        autoContinueWithRandom = false
         playFromQueue(_listenHistory.value, track)
     }
 
@@ -386,7 +433,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun playAllHistoryTracks(shuffled: Boolean) {
         val list = _listenHistory.value
         if (list.isEmpty()) return
-        autoContinueWithRandom = false
         val ordered = if (shuffled) list.shuffled() else list
         playFromQueue(ordered, ordered.first())
     }
@@ -518,10 +564,30 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private var recommendedJob: Job? = null
     private var listenHistoryJob: Job? = null
 
-    // When a queue started from an artist/album page runs out, keep playing instead of
-    // stopping by topping it up with random tracks — off for library/playlist queues, which
-    // are expected to actually stop at the end. See setQueueExhaustedProvider() wiring below.
-    private var autoContinueWithRandom = false
+    // Taste profile (action=user_affinity) feeding the generated-queue engine's scoring —
+    // fetched once per session (on login / session restore) and kept in memory rather than
+    // re-fetched before every batch. Empty for an anonymous or brand-new user, which the
+    // generator treats as "no personal bonus" rather than an error.
+    @Volatile
+    private var userAffinity: UserAffinity = UserAffinity.EMPTY
+
+    private fun refreshUserAffinity() {
+        val purple = client ?: run { userAffinity = UserAffinity.EMPTY; return }
+        viewModelScope.launch(Dispatchers.IO) {
+            userAffinity = try { purple.fetchUserAffinity() } catch (_: Exception) { UserAffinity.EMPTY }
+        }
+    }
+
+    /** Client-side "DJ continuation" generator handed to [MusicPlayer.playGenerated] — pure
+     * local computation over whatever tracks the app already has loaded. */
+    private val generatorProvider: suspend (Track, Set<Int>, List<String>, Int) -> List<Track> =
+        { seed, exclude, recentArtists, batchSize ->
+            val fullPool = if (_offlineOnlyMode.value) _offlineTracks.value else _tracks.value
+            // Fall back to the unfiltered pool if ignoring genres leaves nothing to continue
+            // with — an empty batch ends playback, which is worse than honouring the setting.
+            val pool = fullPool.withoutIgnoredGenres().ifEmpty { fullPool }
+            QueueGenerator.generateBatch(seed, pool, exclude, userAffinity, recentArtists, batchSize)
+        }
 
     val hasOfflineLibrary: Boolean
         get() = offlineLibrary.hasTracksForServer(prefs.serverUrl)
@@ -675,14 +741,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             },
             coverUrl = { track, forceRemote -> coverUrlForTrack(track, forceRemote) },
         )
-        musicPlayer.setQueueExhaustedProvider {
-            if (!autoContinueWithRandom) {
-                emptyList()
-            } else {
-                val pool = if (_offlineOnlyMode.value) _offlineTracks.value else _tracks.value
-                pool.shuffled().take(20)
-            }
-        }
     }
 
     private fun initClient(url: String) {
@@ -722,6 +780,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     _adminModeEnabled.value = prefs.adminModeEnabled
                     _offlineOnlyMode.value = false
                     loadLibrary()
+                    refreshUserAffinity()
                     _screen.value = AppScreen.Main
                 }
             } catch (_: Exception) {
@@ -838,6 +897,35 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setArtistLinksInListsEnabled(enabled: Boolean) {
         prefs.artistLinksInListsEnabled = enabled
         _artistLinksInListsEnabled.value = enabled
+    }
+
+    /** Switches one genre on/off in the ignore list (see [ignoredGenres]). The Library and
+     * search lists re-filter themselves, but Home's rows are snapshots taken at load time, so
+     * they're rebuilt here — otherwise a just-ignored genre would sit on Home until the next
+     * refresh, and un-ignoring one wouldn't bring its tracks back at all. */
+    fun setGenreIgnored(genre: String, ignored: Boolean) {
+        val updated = _ignoredGenres.value.toMutableSet().apply {
+            if (ignored) add(genre) else remove(genre)
+        }
+        if (updated == _ignoredGenres.value) return
+        prefs.ignoredGenres = updated
+        _ignoredGenres.value = updated
+        // A genre that's now ignored must not stay active in the Library's genre filter — its
+        // chip is gone from the dropdown, so the user would have no way to clear it.
+        if (ignored) {
+            _selectedGenres.value = _selectedGenres.value - genre
+        }
+        refreshHomeSections()
+        refreshRecommended()
+    }
+
+    /** Clears the whole ignore list in one tap. */
+    fun clearIgnoredGenres() {
+        if (_ignoredGenres.value.isEmpty()) return
+        prefs.ignoredGenres = emptySet()
+        _ignoredGenres.value = emptySet()
+        refreshHomeSections()
+        refreshRecommended()
     }
 
     /** Sets the default playback speed applied at the start of every future session. */
@@ -1040,6 +1128,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 persistLogin(username.trim(), password)
                 _offlineOnlyMode.value = false
                 loadLibrary()
+                refreshUserAffinity()
                 _screen.value = AppScreen.Main
             } catch (e: PurpleException) {
                 _error.value = e.message
@@ -1161,7 +1250,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         if (_isBulkDownloading.value) return
-        val toDownload = _tracks.value.filter { !isDownloaded(it.id) && !isDownloading(it.id) }
+        // "Download all" means the library the user actually browses, so ignored genres are
+        // left on the server rather than filling the device with music they've hidden.
+        val toDownload = _tracks.value
+            .withoutIgnoredGenres()
+            .filter { !isDownloaded(it.id) && !isDownloading(it.id) }
         if (toDownload.isEmpty()) return
         runBulkDownload(toDownload, purple)
     }
@@ -1360,6 +1453,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _listenHistory.value = emptyList()
         _showHistory.value = false
         _offlineOnlyMode.value = false
+        userAffinity = UserAffinity.EMPTY
         _screen.value = AppScreen.Login
     }
 
@@ -1377,39 +1471,46 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         loadLibrary()
     }
 
+    /** Plain library/offline browsing (no search text) queues exactly the currently visible
+     * list, rotated so the tapped song is first — nothing generated or appended. Everything
+     * else (a home carousel tap, or any search results) gets the generated treatment, seeded
+     * on just the tapped song. */
     fun playTrack(track: Track) {
-        autoContinueWithRandom = false
         val currentTab = _selectedTab.value
-        val baseQueue = when {
-            // Home's curated rows still shuffle on every click, but a track picked from its
-            // search results should queue like Library does — in filtered/search order.
-            currentTab == 0 && _searchQuery.value.isBlank() -> _tracks.value.shuffled()
-            currentTab == 3 -> filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
-            else -> filteredTracks.value.ifEmpty { tracks.value }
+        val searching = _searchQuery.value.isNotBlank()
+        val plainBrowsing = (currentTab == 1 || currentTab == 3) && !searching
+        if (plainBrowsing) {
+            val list = if (currentTab == 3) {
+                filteredOfflineTracks.value.ifEmpty { offlineTracks.value }
+            } else {
+                filteredTracks.value.ifEmpty { tracks.value }
+            }
+            if (list.isEmpty()) return
+            val idx = list.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+            playFromQueue(list.subList(idx, list.size) + list.subList(0, idx), track)
+        } else {
+            playGeneratedFrom(listOf(track), track)
         }
-        playFromQueue(baseQueue, track)
     }
 
-    /** Plays a track from the currently open artist page, queuing the rest of that artist's tracks. */
+    /** Plays a track from the currently open artist page: that artist's own tracks first (in
+     * page order), then a generated continuation once they're exhausted, seeded on the last one. */
     fun playArtistTrack(track: Track) {
-        autoContinueWithRandom = true
-        playFromQueue(artistTracks.value, track)
+        playGeneratedFrom(artistTracks.value, track)
     }
 
-    /** Plays a track from the currently open album page, queuing the rest of that album's tracks. */
+    /** Plays a track from the currently open album page — same as [playArtistTrack] but for the
+     * currently open album's own tracks. */
     fun playAlbumTrack(track: Track) {
-        autoContinueWithRandom = true
-        playFromQueue(albumTracks.value, track)
+        playGeneratedFrom(albumTracks.value, track)
     }
 
-    /** "Play All" / "Play Random" on the artist page — starts from the first (or a random)
-     * track and, once this short queue runs out, keeps going with random library tracks. */
+    /** "Play All" / "Play Random" on the artist page. */
     fun playAllArtistTracks(shuffled: Boolean) {
         val list = artistTracks.value
         if (list.isEmpty()) return
-        autoContinueWithRandom = true
         val ordered = if (shuffled) list.shuffled() else list
-        playFromQueue(ordered, ordered.first())
+        playGeneratedFrom(ordered, ordered.first())
     }
 
     /** "Play All" / "Play Random" on the album page — same as [playAllArtistTracks] but for
@@ -1417,31 +1518,26 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun playAllAlbumTracks(shuffled: Boolean) {
         val list = albumTracks.value
         if (list.isEmpty()) return
-        autoContinueWithRandom = true
         val ordered = if (shuffled) list.shuffled() else list
-        playFromQueue(ordered, ordered.first())
+        playGeneratedFrom(ordered, ordered.first())
     }
 
-    /** Plays a track from the currently open playlist page, queuing the rest of the playlist. */
+    /** Plays a track from the currently open playlist page, queuing exactly that playlist's
+     * songs in playlist order — bounded, nothing is ever appended after the last one. */
     fun playPlaylistTrack(track: Track) {
-        autoContinueWithRandom = true
         playFromQueue(_currentPlaylistTracks.value, track)
     }
 
-    /** "Play All" / "Play Random" on the playlist page — same as [playAllAlbumTracks] but for
+    /** "Play All" / "Play Random" on the playlist page — same as [playPlaylistTrack] but for
      * the currently open playlist's tracks. */
     fun playAllPlaylistTracks(shuffled: Boolean) {
         val list = _currentPlaylistTracks.value
         if (list.isEmpty()) return
-        autoContinueWithRandom = true
         val ordered = if (shuffled) list.shuffled() else list
         playFromQueue(ordered, ordered.first())
     }
 
-    private fun playFromQueue(baseQueue: List<Track>, track: Track) {
-        if (baseQueue.isEmpty()) return
-        val index = baseQueue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
-        musicPlayer.playQueue(baseQueue, index) { t, fr -> playbackUrl(t, fr) }
+    private fun recordPlay(track: Track) {
         prefs.recordGenrePlay(track.genre)
         _recentGenres.value = prefs.recentGenrePlays
 
@@ -1450,6 +1546,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 viewModelScope.launch(Dispatchers.IO) { purple.incrementPlay(track.id) }
             }
         }
+    }
+
+    /** Bounded queue: plain library/offline browsing and playlists — never grows. */
+    private fun playFromQueue(baseQueue: List<Track>, track: Track) {
+        if (baseQueue.isEmpty()) return
+        val index = baseQueue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        musicPlayer.playQueue(baseQueue, index) { t, fr -> playbackUrl(t, fr) }
+        recordPlay(track)
+    }
+
+    /** Generated queue: [prefix] is the bounded content to play before the generated
+     * continuation kicks in — just [track] itself for search/home taps, or an artist's/album's
+     * own tracks (with [track] somewhere inside it) for those pages. */
+    private fun playGeneratedFrom(prefix: List<Track>, track: Track) {
+        if (prefix.isEmpty()) return
+        val index = prefix.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        musicPlayer.playGenerated(prefix, index, { t, fr -> playbackUrl(t, fr) }, generatorProvider)
+        recordPlay(track)
     }
 
     fun openPlaylist(playlist: Playlist) {
@@ -1693,6 +1807,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         musicPlayer.playTrackAt(index) { t, fr -> playbackUrl(t, fr) }
     }
 
+    /** Local-only queue edit — places [track] at the very end of the current queue (or starts
+     * playing it immediately if nothing is playing yet). */
+    fun addToQueue(track: Track) {
+        musicPlayer.addToQueue(track) { t, fr -> playbackUrl(t, fr) }
+    }
+
+    /** Local-only queue edit — inserts [track] immediately after whatever's currently playing
+     * (or starts playing it immediately if nothing is playing yet). */
+    fun playNext(track: Track) {
+        musicPlayer.playNext(track) { t, fr -> playbackUrl(t, fr) }
+    }
+
     // The ordered list currently loaded into the player (shuffled or not)
     val activeQueue get() = musicPlayer.activeQueueFlow
 
@@ -1720,21 +1846,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Sets the playback speed for the current session only. */
     fun setPlaybackSpeed(speed: Float) = musicPlayer.setPlaybackSpeed(speed)
 
+    /** Shuffle only ever reorders the queue that's actually playing — an artist page, album or
+     * playlist shuffles its own songs, not the whole library. */
     fun toggleShuffle() {
-        val currentlyShuffled = musicPlayer.shuffle
-        if (!currentlyShuffled) {
-            // Turning shuffle ON: expand the queue to ALL server tracks,
-            // keeping the current track playing from its current position.
-            val allTracks = if (_offlineOnlyMode.value) {
-                offlineTracks.value
-            } else {
-                _tracks.value
-            }
-            if (allTracks.isNotEmpty() && musicPlayer.currentTrack.value != null) {
-                musicPlayer.expandQueueForShuffle(allTracks)
-                return
-            }
-        }
         musicPlayer.toggleShuffle()
     }
 

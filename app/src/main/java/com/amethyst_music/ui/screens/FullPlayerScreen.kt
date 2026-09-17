@@ -84,6 +84,8 @@ fun FullPlayerScreen(
     onPlayTrackAt: (Int) -> Unit,
     onDownload: (Track) -> Unit,
     onAddToPlaylistForTrack: (Track) -> Unit,
+    onAddToQueueForTrack: (Track) -> Unit = {},
+    onPlayNextForTrack: (Track) -> Unit = {},
     coverUrlProvider: (Track) -> String?,
     onArtistClick: (String) -> Unit = {},
     artistClickEnabled: Boolean = true,
@@ -642,6 +644,8 @@ fun FullPlayerScreen(
                             onDownload = { onDownload(qTrack) },
                             onRemoveDownload = { },
                             onAddToPlaylist = { onAddToPlaylistForTrack(qTrack) },
+                            onAddToQueue = { onAddToQueueForTrack(qTrack) },
+                            onPlayNext = { onPlayNextForTrack(qTrack) },
                             onArtistClick = onArtistClick,
                             artistClickEnabled = artistClickEnabled,
                         )

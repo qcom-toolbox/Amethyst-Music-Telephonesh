@@ -192,4 +192,8 @@
     <string name="loading_biography">Biografie wird geladen…</string>
     <string name="no_description_available">Keine Beschreibung verfügbar.</string>
     <string name="view_on_wikipedia">Auf Wikipedia ansehen ↗</string>
+    <string name="ignored_genres">Ignorierte Genres</string>
+    <string name="ignored_genres_hint">Titel dieser Genres erscheinen nicht mehr auf der Startseite, in der Suche und in automatisch erstellten Warteschlangen. Über ein Album, einen Künstler oder eine Playlist lassen sie sich weiterhin abspielen.</string>
+    <string name="ignored_genres_none_available">Noch keine Genres geladen.</string>
+    <string name="ignored_genres_clear">Alle entfernen</string>
 </resources>

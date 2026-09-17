@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Equalizer
@@ -31,6 +34,9 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -59,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amethyst_music.R
+import com.amethyst_music.data.Track
 import com.amethyst_music.ui.theme.*
 
 data class ThemePreset(
@@ -68,7 +75,7 @@ data class ThemePreset(
     val isDynamic: Boolean = false,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     currentLanguage: String,
@@ -92,13 +99,17 @@ fun SettingsScreen(
     onArtistLinksEnabledChange: (Boolean) -> Unit = {},
     artistLinksInListsEnabled: Boolean = true,
     onArtistLinksInListsEnabledChange: (Boolean) -> Unit = {},
+    ignorableGenres: List<String> = emptyList(),
+    ignoredGenres: Set<String> = emptySet(),
+    onGenreIgnoredChange: (String, Boolean) -> Unit = { _, _ -> },
+    onClearIgnoredGenres: () -> Unit = {},
     isOnline: Boolean = true,
     isCheckingConnection: Boolean = false,
     onCheckConnection: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val versionDisplay = remember {
-        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.1"
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "1.2"
     }
 
     val languages = listOf(
@@ -411,6 +422,71 @@ fun SettingsScreen(
                     uncheckedTrackColor = MaterialTheme.colorScheme.outline,
                 )
             )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Ignored Genres Section
+        SettingsSectionTitle(stringResource(R.string.ignored_genres))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.ignored_genres_hint),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 12.sp
+            )
+            if (ignorableGenres.isEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.ignored_genres_none_available),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp
+                )
+            } else {
+                Spacer(modifier = Modifier.height(12.dp))
+                // The backend's fallback genre is a French literal ("Autre") that doubles as
+                // "untagged", so it's shown under the translated Other label rather than raw.
+                val untaggedLabel = stringResource(R.string.genre_other)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ignorableGenres.forEach { genre ->
+                        val isIgnored = ignoredGenres.contains(genre)
+                        val label = if (genre == Track.UNTAGGED_GENRE) untaggedLabel else genre
+                        FilterChip(
+                            selected = isIgnored,
+                            onClick = { onGenreIgnoredChange(genre, !isIgnored) },
+                            label = { Text(label, fontSize = 13.sp) },
+                            leadingIcon = if (isIgnored) {
+                                { Icon(Icons.Default.Block, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                            } else null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = isIgnored,
+                                borderColor = MaterialTheme.colorScheme.outline,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                            ),
+                        )
+                    }
+                }
+                if (ignoredGenres.isNotEmpty()) {
+                    TextButton(onClick = onClearIgnoredGenres) {
+                        Text(
+                            text = stringResource(R.string.ignored_genres_clear),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))

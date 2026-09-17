@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
@@ -62,6 +64,8 @@ fun HomeScreen(
     onDownload: (Track) -> Unit = {},
     onRemoveDownload: (Track) -> Unit = {},
     onAddToPlaylist: ((Track) -> Unit)? = null,
+    onAddToQueue: ((Track) -> Unit)? = null,
+    onPlayNext: ((Track) -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: ((Track) -> Unit)? = null,
     isRefreshing: Boolean = false,
@@ -90,6 +94,8 @@ fun HomeScreen(
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
+                    onAddToQueue = onAddToQueue,
+                    onPlayNext = onPlayNext,
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = onEditTrack,
                     onArtistClick = onArtistClick,
@@ -108,6 +114,8 @@ fun HomeScreen(
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
+                    onAddToQueue = onAddToQueue,
+                    onPlayNext = onPlayNext,
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = onEditTrack,
                     onArtistClick = onArtistClick,
@@ -126,6 +134,8 @@ fun HomeScreen(
                     onDownload = onDownload,
                     onRemoveDownload = onRemoveDownload,
                     onAddToPlaylist = onAddToPlaylist,
+                    onAddToQueue = onAddToQueue,
+                    onPlayNext = onPlayNext,
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = onEditTrack,
                     onArtistClick = onArtistClick,
@@ -147,6 +157,8 @@ fun HomeSection(
     onDownload: (Track) -> Unit,
     onRemoveDownload: (Track) -> Unit,
     onAddToPlaylist: ((Track) -> Unit)?,
+    onAddToQueue: ((Track) -> Unit)? = null,
+    onPlayNext: ((Track) -> Unit)? = null,
     adminModeEnabled: Boolean,
     onEditTrack: ((Track) -> Unit)?,
     onArtistClick: (String) -> Unit = {},
@@ -183,6 +195,8 @@ fun HomeSection(
                         onDownload = { onDownload(track) },
                         onRemoveDownload = { onRemoveDownload(track) },
                         onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
+                        onAddToQueue = onAddToQueue?.let { { it(track) } },
+                        onPlayNext = onPlayNext?.let { { it(track) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = onEditTrack?.let { { it(track) } },
                         onArtistClick = onArtistClick,
@@ -252,6 +266,8 @@ fun HomeTrackCard(
     onDownload: () -> Unit,
     onRemoveDownload: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    onAddToQueue: (() -> Unit)? = null,
+    onPlayNext: (() -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: (() -> Unit)? = null,
     onArtistClick: (String) -> Unit = {},
@@ -305,6 +321,28 @@ fun HomeTrackCard(
                 onDismissRequest = { showMenu = false },
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
+                if (onPlayNext != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.play_next), color = AmethystText) },
+                        onClick = {
+                            onPlayNext()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.PlaylistPlay, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
+                if (onAddToQueue != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.add_to_queue), color = AmethystText) },
+                        onClick = {
+                            onAddToQueue()
+                            showMenu = false
+                        },
+                        leadingIcon = { Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, tint = AmethystText) }
+                    )
+                }
+
                 if (onAddToPlaylist != null) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.add_to_playlist), color = AmethystText) },

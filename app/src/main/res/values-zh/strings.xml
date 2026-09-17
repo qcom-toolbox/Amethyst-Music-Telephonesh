@@ -192,4 +192,8 @@
     <string name="loading_biography">正在加载简介…</string>
     <string name="no_description_available">暂无简介。</string>
     <string name="view_on_wikipedia">在维基百科上查看 ↗</string>
+    <string name="ignored_genres">忽略的流派</string>
+    <string name="ignored_genres_hint">这些流派的曲目不会出现在首页、搜索结果和自动生成的播放队列中。你仍可从专辑、艺人或播放列表中播放它们。</string>
+    <string name="ignored_genres_none_available">尚未加载流派。</string>
+    <string name="ignored_genres_clear">全部清除</string>
 </resources>

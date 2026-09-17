@@ -192,4 +192,8 @@
     <string name="loading_biography">Намтар ачаалж байна…</string>
     <string name="no_description_available">Тайлбар алга байна.</string>
     <string name="view_on_wikipedia">Википедиа дээр үзэх ↗</string>
+    <string name="ignored_genres">Үл тоох төрлүүд</string>
+    <string name="ignored_genres_hint">Эдгээр төрлийн дуунууд нүүр хуудас, хайлт болон автоматаар үүсгэсэн дараалалд гарахгүй. Цомог, дуучин эсвэл жагсаалтаас нь та тэдгээрийг сонсож болно.</string>
+    <string name="ignored_genres_none_available">Одоохондоо төрөл ачаалагдаагүй байна.</string>
+    <string name="ignored_genres_clear">Бүгдийг арилгах</string>
 </resources>

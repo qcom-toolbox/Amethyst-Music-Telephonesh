@@ -192,4 +192,8 @@
     <string name="loading_biography">Chargiar la biografia…</string>
     <string name="no_description_available">Nagina descripziun disponibla.</string>
     <string name="view_on_wikipedia">Vesair sin Wikipedia ↗</string>
+    <string name="ignored_genres">Genres ignorads</string>
+    <string name="ignored_genres_hint">Chanzuns da quests genres na cumparan betg en la pagina da partenza, en la tschertga ni en las colonnas generadas automaticamain. Ti pos anc adina las far ir dad in album, in artist u ina glista.</string>
+    <string name="ignored_genres_none_available">Anc nagins genres chargiads.</string>
+    <string name="ignored_genres_clear">Stizzar tut</string>
 </resources>

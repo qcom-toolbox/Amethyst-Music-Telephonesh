@@ -193,4 +193,8 @@
     <string name="loading_biography">Chargement de la biographie…</string>
     <string name="no_description_available">Aucune description disponible.</string>
     <string name="view_on_wikipedia">Voir sur Wikipédia ↗</string>
+    <string name="ignored_genres">Genres ignorés</string>
+    <string name="ignored_genres_hint">Les morceaux de ces genres n\'apparaissent plus dans l\'accueil, la recherche ni les files générées automatiquement. Vous pouvez toujours les lire depuis un album, un artiste ou une playlist.</string>
+    <string name="ignored_genres_none_available">Aucun genre chargé pour l\'instant.</string>
+    <string name="ignored_genres_clear">Tout effacer</string>
 </resources>

@@ -119,6 +119,8 @@
     <string name="create_playlist">Create playlist</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="play_next">Play next</string>
+    <string name="add_to_queue">Add to queue</string>
     <string name="playlist_name">Playlist name</string>
     <string name="playlist_created">Playlist created</string>
     <string name="track_added">Track added to playlist</string>
@@ -192,4 +194,8 @@
     <string name="loading_biography">Loading biography…</string>
     <string name="no_description_available">No description available.</string>
     <string name="view_on_wikipedia">View on Wikipedia ↗</string>
+    <string name="ignored_genres">Ignored Genres</string>
+    <string name="ignored_genres_hint">Tracks in these genres are kept out of Home, search and auto-generated queues. You can still play them from an album, artist or playlist.</string>
+    <string name="ignored_genres_none_available">No genres loaded yet.</string>
+    <string name="ignored_genres_clear">Clear all</string>
 </resources>

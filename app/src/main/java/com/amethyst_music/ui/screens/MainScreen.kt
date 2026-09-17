@@ -195,6 +195,9 @@ fun MainScreen(
     val downloadProgress by vm.downloadProgress.collectAsState()
     val currentLanguage by vm.language.collectAsState()
     val genres by vm.genres.collectAsState()
+    // The upload/edit dialogs tag tracks server-side, so they list every genre — including
+    // ones this user ignores locally.
+    val allGenres by vm.allGenres.collectAsState()
     val isAdmin by vm.isAdmin.collectAsState()
     val adminModeEnabled by vm.adminModeEnabled.collectAsState()
     val artistLinksEnabled by vm.artistLinksEnabled.collectAsState()
@@ -214,7 +217,7 @@ fun MainScreen(
 
     if (showUploadDialog) {
         UploadDialog(
-            genres = genres,
+            genres = allGenres,
             onDismiss = { showUploadDialog = false },
             onUpload = { t, a, g, al, m, mn, c, cn ->
                 onUploadTrack(t, a, g, al, m, mn, c, cn)
@@ -236,7 +239,7 @@ fun MainScreen(
     trackToEdit?.let { track ->
         EditTrackDialog(
             track = track,
-            genres = genres,
+            genres = allGenres,
             onDismiss = { trackToEdit = null },
             onSave = { id, title, artist, genre, album, cover, coverName ->
                 vm.editTrack(id, title, artist, genre, album, cover, coverName)
@@ -408,6 +411,8 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it },
                         isRefreshing = isLoading,
@@ -433,6 +438,8 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it },
                         onArtistClick = remember(onArtistClick, focusManager) {
@@ -468,6 +475,8 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it },
                         onArtistClick = remember(onArtistClick, focusManager) {
@@ -514,6 +523,8 @@ fun MainScreen(
                         onDownload = onDownload,
                         onRemoveDownload = onRemoveDownload,
                         onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                        onPlayNext = remember(vm) { { vm.playNext(it) } },
                         adminModeEnabled = adminModeEnabled,
                         onEditTrack = { trackToEdit = it },
                         isRefreshing = isCheckingConnection,
@@ -538,6 +549,8 @@ fun MainScreen(
                 4 -> {
                     val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
                     val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
+                    val ignoredGenres by vm.ignoredGenres.collectAsState()
+                    val ignorableGenres by vm.ignorableGenres.collectAsState()
                     SettingsScreen(
                         currentLanguage = currentLanguage,
                         onLanguageChange = vm::setLanguage,
@@ -560,6 +573,10 @@ fun MainScreen(
                         onArtistLinksEnabledChange = vm::setArtistLinksEnabled,
                         artistLinksInListsEnabled = artistLinksInListsEnabled,
                         onArtistLinksInListsEnabledChange = vm::setArtistLinksInListsEnabled,
+                        ignorableGenres = ignorableGenres,
+                        ignoredGenres = ignoredGenres,
+                        onGenreIgnoredChange = vm::setGenreIgnored,
+                        onClearIgnoredGenres = vm::clearIgnoredGenres,
                         isOnline = isOnline,
                         isCheckingConnection = isCheckingConnection,
                         onCheckConnection = remember(vm) { { vm.recheckConnection() } },
@@ -769,6 +786,8 @@ private fun TrackList(
     onRemoveDownload: (Track) -> Unit,
     onAddToPlaylist: ((Track) -> Unit)? = null,
     onRemoveFromPlaylist: ((Track) -> Unit)? = null,
+    onAddToQueue: ((Track) -> Unit)? = null,
+    onPlayNext: ((Track) -> Unit)? = null,
     adminModeEnabled: Boolean = false,
     onEditTrack: ((Track) -> Unit)? = null,
     isRefreshing: Boolean = false,
@@ -851,6 +870,8 @@ private fun TrackList(
                     onRemoveDownload = { onRemoveDownload(track) },
                     onAddToPlaylist = onAddToPlaylist?.let { { it(track) } },
                     onRemoveFromPlaylist = onRemoveFromPlaylist?.let { { it(track) } },
+                    onAddToQueue = onAddToQueue?.let { { it(track) } },
+                    onPlayNext = onPlayNext?.let { { it(track) } },
                     adminModeEnabled = adminModeEnabled,
                     onEditTrack = onEditTrack?.let { { it(track) } },
                     onArtistClick = onArtistClick,
