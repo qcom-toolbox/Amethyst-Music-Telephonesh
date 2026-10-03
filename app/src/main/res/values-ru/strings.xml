@@ -27,6 +27,10 @@
     <string name="tab_settings">Настройки</string>
     <string name="search_placeholder">Поиск…</string>
     <string name="clear_search">Очистить поиск</string>
+    <string name="search">Поиск</string>
+    <string name="close_search">Закрыть поиск</string>
+    <string name="search_scope_all">Все</string>
+    <string name="search_no_results">Ничего не найдено по запросу «%1$s»</string>
     <string name="filter_sort">Фильтр и сортировка</string>
     <string name="genre_all">Все жанры</string>
     <string name="sort_popularity">Популярность</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Автоматический вход…</string>
     <string name="logging_in">Вход…</string>
     <string name="logout">Выйти</string>
+    <string name="account">Аккаунт</string>
     <string name="refresh">Обновить</string>
     <string name="upload">Загрузить</string>
     <string name="exit_offline">Выйти из офлайна</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Это действие необратимо. Удалить навсегда?</string>
     <string name="delete_confirm_3">ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ: Вы абсолютно уверены?</string>
     <string name="delete_confirm_4">ВЫ УВЕРЕНЫ НА 100%? ЭТО ДЕЙСТВИЕ НЕОБРАТИМО!</string>
+    <string name="delete_confirm_5">ЭТО ВАШ ОКОНЧАТЕЛЬНЫЙ ОТВЕТ? После нажатия «Удалить» трек исчезнет навсегда.</string>
     <string name="save_changes">Сохранить изменения</string>
     <string name="metadata_updated">Метаданные успешно обновлены</string>
     <string name="version">Версия</string>

@@ -27,6 +27,10 @@
     <string name="tab_settings">Parameters</string>
     <string name="search_placeholder">Tschertgar…</string>
     <string name="clear_search">Stizzar la tschertga</string>
+    <string name="search">Tschertgar</string>
+    <string name="close_search">Serrar la tschertga</string>
+    <string name="search_scope_all">Tut</string>
+    <string name="search_no_results">Nagins resultats per «%1$s»</string>
     <string name="filter_sort">Filtrar &amp; zavrar</string>
     <string name="genre_all">Tuts ils genres</string>
     <string name="sort_popularity">Popularitad</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Annunzia automatica…</string>
     <string name="logging_in">S\'annunziar…</string>
     <string name="logout">Sortir</string>
+    <string name="account">Conto</string>
     <string name="refresh">Refraschar</string>
     <string name="upload">Chargiar si</string>
     <string name="exit_offline">Sortir dad offline</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Quest\'acziun è irreversibla. Stizzar definitivmain?</string>
     <string name="delete_confirm_3">ULTIMA ADVERTENZA: Absolutamain segir?</string>
     <string name="delete_confirm_4">EST ABSOLUTAMAIN SEGIR AL 100%? QUESTA ACZIUN N\'È BETG REVERSIBLA!</string>
+    <string name="delete_confirm_5">TIA RESPOSTA DEFINITIVA? Sche ti smatgas Stizzar, è quest tithel davent per adina.</string>
     <string name="save_changes">Memorisar las midadas</string>
     <string name="metadata_updated">Metadatas actualisadas cun success</string>
     <string name="version">Versiun</string>

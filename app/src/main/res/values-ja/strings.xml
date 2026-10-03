@@ -27,6 +27,10 @@
     <string name="tab_settings">設定</string>
     <string name="search_placeholder">検索…</string>
     <string name="clear_search">検索をクリア</string>
+    <string name="search">検索</string>
+    <string name="close_search">検索を閉じる</string>
+    <string name="search_scope_all">すべて</string>
+    <string name="search_no_results">「%1$s」に一致する結果はありません</string>
     <string name="filter_sort">フィルターと並べ替え</string>
     <string name="genre_all">すべてのジャンル</string>
     <string name="sort_popularity">人気順</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">自動ログイン中…</string>
     <string name="logging_in">ログイン中…</string>
     <string name="logout">ログアウト</string>
+    <string name="account">アカウント</string>
     <string name="refresh">更新</string>
     <string name="upload">アップロード</string>
     <string name="exit_offline">オフラインモードを終了</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">この操作は取り消せません。永久に削除しますか？</string>
     <string name="delete_confirm_3">最終警告：本当によろしいですか？</string>
     <string name="delete_confirm_4">100% 確実ですか？この操作は取り消せません！</string>
+    <string name="delete_confirm_5">これが最終回答ですか？削除をタップすると、この曲は完全に消えます。</string>
     <string name="save_changes">変更を保存</string>
     <string name="metadata_updated">メタデータを更新しました</string>
     <string name="version">バージョン</string>

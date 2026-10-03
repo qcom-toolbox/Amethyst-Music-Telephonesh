@@ -40,6 +40,12 @@ import coil.compose.LocalImageLoader
 import com.amethyst_music.R
 import com.amethyst_music.data.Playlist
 import com.amethyst_music.ui.theme.AmethystText
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import com.amethyst_music.ui.theme.AmethystTextMuted
 
 /**
  * Grid card for a playlist: a 4-cover mosaic (or a single cover for smaller playlists) instead
@@ -185,4 +191,60 @@ private fun MosaicTile(
         error = placeholder,
         imageLoader = LocalImageLoader.current,
     )
+}
+
+/** Search-result row for a playlist match — same layout as [AlbumRow]/[ArtistRow] so all the
+ * result sections read as one list. Opens the playlist rather than playing it. */
+@Composable
+fun PlaylistRow(
+    playlist: Playlist,
+    cover: String?,
+    onClick: () -> Unit,
+) {
+    val placeholder = rememberVectorPainter(Icons.AutoMirrored.Filled.PlaylistPlay)
+    val trackCount = stringResource(R.string.tracks_count, playlist.songIds.size)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AsyncImage(
+            model = cover,
+            contentDescription = playlist.name,
+            modifier = Modifier
+                .size(50.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.outline),
+            contentScale = ContentScale.Crop,
+            placeholder = placeholder,
+            error = placeholder,
+            imageLoader = LocalImageLoader.current,
+        )
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = playlist.name,
+                fontWeight = FontWeight.Bold,
+                color = AmethystText,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (playlist.creatorName.isBlank()) trackCount else "$trackCount · ${playlist.creatorName}",
+                color = AmethystTextMuted,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = AmethystTextMuted,
+        )
+    }
 }

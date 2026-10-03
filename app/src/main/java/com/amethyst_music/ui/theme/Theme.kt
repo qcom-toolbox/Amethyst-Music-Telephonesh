@@ -35,11 +35,13 @@ fun AmethystMusicTheme(
     val border = if (useHarmony) ThemeUtils.deriveBorder(backgroundColor) else (if (isLight) AmethystBorderLight else AmethystBorder)
     val textMuted = if (useHarmony) ThemeUtils.deriveTextMuted(backgroundColor) else (if (isLight) AmethystTextMutedDark else AmethystTextMuted)
     val textColor = if (isLight) AmethystTextDark else AmethystText
+    // Readable against the accent rather than always white — see ThemeUtils.readableOn.
+    val onAccent = ThemeUtils.readableOn(accent)
 
     val colorScheme = if (isLight) {
         lightColorScheme(
             primary = accent,
-            onPrimary = Color.White,
+            onPrimary = onAccent,
             secondary = accent,
             onSecondary = backgroundColor,
             tertiary = accent,
@@ -55,7 +57,7 @@ fun AmethystMusicTheme(
     } else {
         darkColorScheme(
             primary = accent,
-            onPrimary = Color.White,
+            onPrimary = onAccent,
             secondary = accent,
             onSecondary = backgroundColor,
             tertiary = accent,

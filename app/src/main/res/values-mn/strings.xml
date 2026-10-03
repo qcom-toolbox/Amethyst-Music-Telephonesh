@@ -27,6 +27,10 @@
     <string name="tab_settings">Тохиргоо</string>
     <string name="search_placeholder">Хайх…</string>
     <string name="clear_search">Хайлтыг цэвэрлэх</string>
+    <string name="search">Хайх</string>
+    <string name="close_search">Хайлтыг хаах</string>
+    <string name="search_scope_all">Бүгд</string>
+    <string name="search_no_results">“%1$s”-д тохирох үр дүн олдсонгүй</string>
     <string name="filter_sort">Шүүлтүүр ба эрэмбэ</string>
     <string name="genre_all">Бүх төрөл</string>
     <string name="sort_popularity">Алдартай байдал</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Автоматаар нэвтэрч байна…</string>
     <string name="logging_in">Нэвтэрч байна…</string>
     <string name="logout">Гарах</string>
+    <string name="account">Бүртгэл</string>
     <string name="refresh">Шинэчлэх</string>
     <string name="upload">Нийтлэх</string>
     <string name="exit_offline">Офлайн горимоос гарах</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Энэ үйлдэл буцаагдахгүй. Бүрмөсөн устгах уу?</string>
     <string name="delete_confirm_3">СҮҮЛЧИЙН САНАМЖ: Танд үнэхээр итгэлтэй байна уу?</string>
     <string name="delete_confirm_4">ТАНД 100% ИТГЭЛТЭЙ БАЙНА УУ? ЭНЭ ҮЙЛДЛИЙГ БУЦААХ БОЛОМЖГҮЙ!</string>
+    <string name="delete_confirm_5">ЭНЭ ТАНЫ ЭЦСИЙН ШИЙДВЭР ҮҮ? Устгах дээр дармагц энэ дуу бүрмөсөн алга болно.</string>
     <string name="save_changes">Өөрчлөлтийг хадгалах</string>
     <string name="metadata_updated">Мэдээлэл амжилттай шинэчлэгдлээ</string>
     <string name="version">Хувилбар</string>

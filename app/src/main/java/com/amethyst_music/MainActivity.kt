@@ -20,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -329,9 +330,17 @@ class MainActivity : AppCompatActivity() {
                                 )
                             }
 
+                            // History/Artist/Album/Playlist can be stacked (e.g. an artist page opened
+                            // from the full player over an album page), so they're layered by when
+                            // they were opened rather than by declaration order below. 1..4 keeps
+                            // them above the tabs and the zIndex-0 overlays declared earlier.
+                            val pageStackOrder by vm.pageStackOrder.collectAsState()
+                            val pageZIndex: (OverlayPage) -> Float = { 1f + pageStackOrder.indexOf(it) }
+
                             val showHistory by vm.showHistory.collectAsState()
                             AnimatedVisibility(
                                 visible = showHistory,
+                                modifier = Modifier.zIndex(pageZIndex(OverlayPage.History)),
                                 enter = slideInVertically(initialOffsetY = { it }),
                                 exit = slideOutVertically(targetOffsetY = { it })
                             ) {
@@ -378,6 +387,7 @@ class MainActivity : AppCompatActivity() {
                             val selectedArtist by vm.selectedArtist.collectAsState()
                             AnimatedVisibility(
                                 visible = selectedArtist != null,
+                                modifier = Modifier.zIndex(pageZIndex(OverlayPage.Artist)),
                                 enter = slideInVertically(initialOffsetY = { it }),
                                 exit = slideOutVertically(targetOffsetY = { it })
                             ) {
@@ -443,7 +453,7 @@ class MainActivity : AppCompatActivity() {
                                         selectedTab = selectedTab,
                                         onTabSelected = remember(vm) {
                                             { tab ->
-                                                vm.closeArtistPage()
+                                                vm.closeAllPages()
                                                 vm.setSelectedTab(tab)
                                             }
                                         },
@@ -455,6 +465,7 @@ class MainActivity : AppCompatActivity() {
                             val selectedAlbum by vm.selectedAlbum.collectAsState()
                             AnimatedVisibility(
                                 visible = selectedAlbum != null,
+                                modifier = Modifier.zIndex(pageZIndex(OverlayPage.Album)),
                                 enter = slideInVertically(initialOffsetY = { it }),
                                 exit = slideOutVertically(targetOffsetY = { it })
                             ) {
@@ -520,7 +531,7 @@ class MainActivity : AppCompatActivity() {
                                         selectedTab = selectedTab,
                                         onTabSelected = remember(vm) {
                                             { tab ->
-                                                vm.closeAlbumPage()
+                                                vm.closeAllPages()
                                                 vm.setSelectedTab(tab)
                                             }
                                         },
@@ -532,6 +543,7 @@ class MainActivity : AppCompatActivity() {
                             val currentPlaylist by vm.currentPlaylist.collectAsState()
                             AnimatedVisibility(
                                 visible = currentPlaylist != null,
+                                modifier = Modifier.zIndex(pageZIndex(OverlayPage.Playlist)),
                                 enter = slideInVertically(initialOffsetY = { it }),
                                 exit = slideOutVertically(targetOffsetY = { it })
                             ) {
@@ -614,7 +626,7 @@ class MainActivity : AppCompatActivity() {
                                         selectedTab = selectedTab,
                                         onTabSelected = remember(vm) {
                                             { tab ->
-                                                vm.closePlaylist()
+                                                vm.closeAllPages()
                                                 vm.setSelectedTab(tab)
                                             }
                                         },
@@ -640,12 +652,14 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
 
-                            // Declared last so it draws on top of the artist/album/playlist overlays above —
-                            // opening it from a mini-player inside one of those screens (which stays
-                            // visible, since opening the player doesn't close them) must not leave it
-                            // hidden behind them.
+                            // Must draw on top of the artist/album/playlist overlays above — opening it
+                            // from a mini-player inside one of those screens (which stays visible,
+                            // since opening the player doesn't close them) must not leave it hidden
+                            // behind them. Those pages now carry zIndex 1..4, so declaration order
+                            // alone no longer guarantees that; 10 keeps it clear of all of them.
                             AnimatedVisibility(
                                 visible = showFullPlayer && currentTrack != null,
+                                modifier = Modifier.zIndex(10f),
                                 enter = slideInVertically(initialOffsetY = { it }),
                                 exit = slideOutVertically(targetOffsetY = { it })
                             ) {

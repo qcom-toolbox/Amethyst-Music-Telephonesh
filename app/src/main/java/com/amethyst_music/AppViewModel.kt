@@ -14,6 +14,7 @@ import com.amethyst_music.data.PersistentCookieJar
 import com.amethyst_music.data.Playlist
 import com.amethyst_music.data.PurpleClient
 import com.amethyst_music.data.PurpleException
+import com.amethyst_music.data.SearchText
 import com.amethyst_music.data.ServerPreferences
 import com.amethyst_music.data.SessionPersistence
 import com.amethyst_music.data.Track
@@ -56,6 +57,15 @@ enum class AppScreen {
     Main,
 }
 
+/** The full-screen pages that slide up over the tabs and can be open several at once — e.g. an
+ * album page, then an artist page opened from the full player on top of it. */
+enum class OverlayPage {
+    History,
+    Artist,
+    Album,
+    Playlist,
+}
+
 private data class DownloadNotifState(
     val active: Boolean,
     val total: Int,
@@ -70,6 +80,18 @@ enum class SortOrder {
     DATE_UPLOAD_DESC,
     DATE_UPLOAD_ASC
 }
+
+/** Which kind of result the search shows — the filter chips under the search bar. */
+enum class SearchScope {
+    ALL,
+    /** Songs matched on their title only. */
+    SONGS,
+    ARTISTS,
+    ALBUMS,
+    PLAYLISTS,
+}
+
+private data class SearchRequest(val query: String, val scope: SearchScope)
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = ServerPreferences(application)
@@ -201,18 +223,42 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    val filteredTracks: StateFlow<List<Track>> = combine(
-        _tracks, _searchQuery, _selectedGenres, _sortOrder, _ignoredGenres
-    ) { tracks, query, genres, sort, ignored ->
-        var filtered = tracks.withoutIgnoredGenres(ignored)
-        val q = query.lowercase().trim()
-        if (q.isNotEmpty()) {
-            filtered = filtered.filter {
-                it.title.contains(q, ignoreCase = true) ||
-                it.artist.contains(q, ignoreCase = true) ||
-                it.genre.contains(q, ignoreCase = true)
+    private val _searchScope = MutableStateFlow(SearchScope.ALL)
+    val searchScope: StateFlow<SearchScope> = _searchScope.asStateFlow()
+
+    // Query + scope travel together, both to keep the filter combines under kotlinx's five-flow
+    // typed limit and because every search result list needs both.
+    private val searchRequest = combine(_searchQuery, _searchScope) { q, scope ->
+        SearchRequest(SearchText.prepareQuery(q), scope)
+    }
+
+    // Offline has no playlists to search, so the Playlists chip isn't offered there — and if it
+    // was picked on another tab, Offline falls back to showing everything rather than nothing.
+    private val offlineSearchRequest = searchRequest.map {
+        if (it.scope == SearchScope.PLAYLISTS) it.copy(scope = SearchScope.ALL) else it
+    }
+
+    /** Applies the search to a track list. Songs only show up under All (matched on title,
+     * artist or genre) and Songs (title only); the other scopes are about artist/album/playlist
+     * results, so they yield no songs while a search is active. */
+    private fun List<Track>.matchingSearch(request: SearchRequest): List<Track> {
+        val q = request.query
+        if (q.isEmpty()) return this
+        return when (request.scope) {
+            SearchScope.ALL -> filter {
+                SearchText.matches(it.title, q) ||
+                    SearchText.matches(it.artist, q) ||
+                    SearchText.matches(it.genre, q)
             }
+            SearchScope.SONGS -> filter { SearchText.matches(it.title, q) }
+            SearchScope.ARTISTS, SearchScope.ALBUMS, SearchScope.PLAYLISTS -> emptyList()
         }
+    }
+
+    val filteredTracks: StateFlow<List<Track>> = combine(
+        _tracks, searchRequest, _selectedGenres, _sortOrder, _ignoredGenres
+    ) { tracks, request, genres, sort, ignored ->
+        var filtered = tracks.withoutIgnoredGenres(ignored).matchingSearch(request)
         if (genres.isNotEmpty()) {
             filtered = filtered.filter { genres.contains(it.genre) }
         }
@@ -226,17 +272,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineTracks: StateFlow<List<Track>> = combine(
-        _offlineTracks, _searchQuery, _selectedGenres, _sortOrder, _ignoredGenres
-    ) { tracks, query, genres, sort, ignored ->
-        var filtered = tracks.withoutIgnoredGenres(ignored)
-        val q = query.lowercase().trim()
-        if (q.isNotEmpty()) {
-            filtered = filtered.filter {
-                it.title.contains(q, ignoreCase = true) ||
-                it.artist.contains(q, ignoreCase = true) ||
-                it.genre.contains(q, ignoreCase = true)
-            }
-        }
+        _offlineTracks, offlineSearchRequest, _selectedGenres, _sortOrder, _ignoredGenres
+    ) { tracks, request, genres, sort, ignored ->
+        var filtered = tracks.withoutIgnoredGenres(ignored).matchingSearch(request)
         if (genres.isNotEmpty()) {
             filtered = filtered.filter { genres.contains(it.genre) }
         }
@@ -252,25 +290,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /** Groups tracks that share [Track.album] and match the current search query, for the
      * "album" result card shown above search results — mirrors how artist matches surface via
      * per-row tappable names, but albums have no per-track precedent so they get their own row. */
-    private fun matchingAlbums(tracks: List<Track>, query: String): List<AlbumSummary> {
-        val q = query.trim()
-        if (q.isEmpty()) return emptyList()
+    private fun matchingAlbums(tracks: List<Track>, request: SearchRequest): List<AlbumSummary> {
+        val q = request.query
+        if (q.isEmpty() || request.scope !in setOf(SearchScope.ALL, SearchScope.ALBUMS)) return emptyList()
         return tracks
             .filter { !it.album.isNullOrBlank() }
             .groupBy { it.album!! }
-            .filterKeys { it.contains(q, ignoreCase = true) }
+            .filterKeys { SearchText.matches(it, q) }
             .map { (name, ts) -> AlbumSummary(name, ts.size, ts.maxBy { it.id }) }
             .sortedBy { it.name.lowercase() }
     }
 
     val filteredAlbums: StateFlow<List<AlbumSummary>> = combine(
-        _tracks, _searchQuery, _ignoredGenres
-    ) { tracks, query, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), query) }
+        _tracks, searchRequest, _ignoredGenres
+    ) { tracks, request, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), request) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineAlbums: StateFlow<List<AlbumSummary>> = combine(
-        _offlineTracks, _searchQuery, _ignoredGenres
-    ) { tracks, query, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), query) }
+        _offlineTracks, offlineSearchRequest, _ignoredGenres
+    ) { tracks, request, ignored -> matchingAlbums(tracks.withoutIgnoredGenres(ignored), request) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Groups tracks by individual (split) artist name matching the current search query, for
@@ -281,9 +319,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * case-insensitive comparison [ArtistUtils.trackBelongsToArtist] already uses when opening
      * an artist page. The casing used by the most tracks wins as the display name, so one
      * inconsistently-tagged track doesn't override how the artist is usually styled. */
-    private fun matchingArtists(tracks: List<Track>, query: String): List<ArtistSummary> {
-        val q = query.trim()
-        if (q.isEmpty()) return emptyList()
+    private fun matchingArtists(tracks: List<Track>, request: SearchRequest): List<ArtistSummary> {
+        val q = request.query
+        if (q.isEmpty() || request.scope !in setOf(SearchScope.ALL, SearchScope.ARTISTS)) return emptyList()
         val lang = currentLangCode()
         val tracksByKey = LinkedHashMap<String, MutableList<Track>>()
         val nameCountsByKey = HashMap<String, MutableMap<String, Int>>()
@@ -296,7 +334,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         return tracksByKey
-            .filterKeys { it.contains(q, ignoreCase = true) }
+            .filterKeys { SearchText.matches(it, q) }
             .map { (key, ts) ->
                 val displayName = nameCountsByKey.getValue(key).maxBy { it.value }.key
                 ArtistSummary(displayName, ts.size, ts.maxBy { it.id })
@@ -305,14 +343,25 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     val filteredArtists: StateFlow<List<ArtistSummary>> = combine(
-        _tracks, _searchQuery, _ignoredGenres
-    ) { tracks, query, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), query) }
+        _tracks, searchRequest, _ignoredGenres
+    ) { tracks, request, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), request) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val filteredOfflineArtists: StateFlow<List<ArtistSummary>> = combine(
-        _offlineTracks, _searchQuery, _ignoredGenres
-    ) { tracks, query, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), query) }
+        _offlineTracks, offlineSearchRequest, _ignoredGenres
+    ) { tracks, request, ignored -> matchingArtists(tracks.withoutIgnoredGenres(ignored), request) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Playlists whose name or creator matches the search, for the "Playlists" result section —
+     * like albums/artists, only populated while searching (and only under All or Playlists). */
+    val filteredPlaylists: StateFlow<List<Playlist>> = combine(_playlists, searchRequest) { playlists, request ->
+        val q = request.query
+        if (q.isEmpty() || request.scope !in setOf(SearchScope.ALL, SearchScope.PLAYLISTS)) {
+            emptyList()
+        } else {
+            playlists.filter { SearchText.matches(it.name, q) || SearchText.matches(it.creatorName, q) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedTab = MutableStateFlow(0)
     val selectedTab: StateFlow<Int> = _selectedTab.asStateFlow()
@@ -417,6 +466,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openHistory() {
         _showHistory.value = true
+        bringToFront(OverlayPage.History)
         fetchListenHistory()
     }
 
@@ -521,6 +571,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _showBulkDownload = MutableStateFlow(false)
     val showBulkDownload: StateFlow<Boolean> = _showBulkDownload.asStateFlow()
+
+    // When each overlay page was last opened. These pages are siblings in one Box, so without
+    // this they'd paint in declaration order — an artist page opened from the full player while
+    // an album page was up would land *behind* the album, since the album is declared later.
+    // Stamps are kept after a page closes so it keeps its place while its exit animation runs.
+    private var pageOpenCounter = 0L
+    private val pageOpenedAt = MutableStateFlow<Map<OverlayPage, Long>>(emptyMap())
+
+    /** Overlay pages ordered bottom → top by when they were last opened. Unopened pages tie at
+     * 0 and keep [OverlayPage]'s declaration order, which matches the old fixed layering. */
+    val pageStackOrder: StateFlow<List<OverlayPage>> = pageOpenedAt
+        .map { stamps -> OverlayPage.entries.sortedBy { stamps[it] ?: 0L } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, OverlayPage.entries.toList())
 
     private val _selectedArtist = MutableStateFlow<String?>(null)
     val selectedArtist: StateFlow<String?> = _selectedArtist.asStateFlow()
@@ -837,6 +900,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
+        // The filter chips only show while searching, so a cleared search starts the next one
+        // back on All instead of silently keeping a filter the user can no longer see.
+        if (query.isBlank()) _searchScope.value = SearchScope.ALL
+    }
+
+    fun setSearchScope(scope: SearchScope) {
+        _searchScope.value = scope
     }
 
     fun toggleGenre(genre: String) {
@@ -965,8 +1035,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _showBulkDownload.value = false
     }
 
+    private fun bringToFront(page: OverlayPage) {
+        pageOpenedAt.update { it + (page to ++pageOpenCounter) }
+    }
+
+    /** Closes every overlay page at once — for the bottom tab bar, where tapping a tab should
+     * land on that tab rather than on whichever page was stacked underneath the current one. */
+    fun closeAllPages() {
+        closeHistory()
+        closeArtistPage()
+        closeAlbumPage()
+        closePlaylist()
+    }
+
     fun openArtistPage(name: String) {
         _selectedArtist.value = name
+        bringToFront(OverlayPage.Artist)
     }
 
     fun closeArtistPage() {
@@ -975,6 +1059,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openAlbumPage(name: String) {
         _selectedAlbum.value = name
+        bringToFront(OverlayPage.Album)
     }
 
     fun closeAlbumPage() {
@@ -1568,6 +1653,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun openPlaylist(playlist: Playlist) {
         _currentPlaylist.value = playlist
+        bringToFront(OverlayPage.Playlist)
         _currentPlaylistTracks.value = emptyList()
         _playlistEditMode.value = false
         val purple = client ?: return
