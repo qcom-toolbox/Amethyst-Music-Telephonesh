@@ -27,6 +27,10 @@
     <string name="tab_settings">Einstellungen</string>
     <string name="search_placeholder">Suchen…</string>
     <string name="clear_search">Suche löschen</string>
+    <string name="search">Suchen</string>
+    <string name="close_search">Suche schließen</string>
+    <string name="search_scope_all">Alle</string>
+    <string name="search_no_results">Keine Ergebnisse für „%1$s“</string>
     <string name="filter_sort">Filtern &amp; Sortieren</string>
     <string name="genre_all">Alle Genres</string>
     <string name="sort_popularity">Beliebtheit</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Automatische Anmeldung…</string>
     <string name="logging_in">Anmeldung…</string>
     <string name="logout">Abmelden</string>
+    <string name="account">Konto</string>
     <string name="refresh">Aktualisieren</string>
     <string name="upload">Hochladen</string>
     <string name="exit_offline">Offline verlassen</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Diese Aktion ist unwiderruflich. Endgültig löschen?</string>
     <string name="delete_confirm_3">LETZTE WARNUNG: Ganz sicher?</string>
     <string name="delete_confirm_4">BIST DU DIR ZU 100 % SICHER? DIES KANN NICHT RÜCKGÄNGIG GEMACHT WERDEN!</string>
+    <string name="delete_confirm_5">LETZTES WORT? Sobald du auf Löschen tippst, ist dieser Titel für immer weg.</string>
     <string name="save_changes">Änderungen speichern</string>
     <string name="metadata_updated">Metadaten erfolgreich aktualisiert</string>
     <string name="version">Version</string>

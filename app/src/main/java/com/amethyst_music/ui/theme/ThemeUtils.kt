@@ -60,6 +60,19 @@ object ThemeUtils {
         return Color(ColorUtils.HSLToColor(hsl))
     }
 
+    /**
+     * Text/icon color for content drawn on top of [background] — used for onPrimary. White is
+     * kept whenever it still reaches 3:1 (WCAG's minimum for icons and large text), so the
+     * stock purple accent looks exactly as before; it only flips to dark when the accent is too
+     * light for white. That happens a lot: [deriveAccent] lifts lightness to 0.6–0.85 on dark
+     * bases, which album-art colors in the Dynamic theme usually are, and AMOLED's accent is
+     * pure white — white-on-accent there measured as low as 1.1:1.
+     */
+    fun readableOn(background: Color): Color {
+        val whiteContrast = ColorUtils.calculateContrast(Color.White.toArgb(), background.copy(alpha = 1f).toArgb())
+        return if (whiteContrast >= 3.0) Color.White else AmethystTextDark
+    }
+
     /** A brighter variant of [base], used as the top of a background gradient (e.g. full-screen player). */
     fun deriveGradientTop(base: Color): Color {
         val hsl = FloatArray(3)

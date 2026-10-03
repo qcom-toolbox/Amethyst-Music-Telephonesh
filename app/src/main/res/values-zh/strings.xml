@@ -27,6 +27,10 @@
     <string name="tab_settings">设置</string>
     <string name="search_placeholder">搜索…</string>
     <string name="clear_search">清除搜索</string>
+    <string name="search">搜索</string>
+    <string name="close_search">关闭搜索</string>
+    <string name="search_scope_all">全部</string>
+    <string name="search_no_results">没有找到与“%1$s”相关的结果</string>
     <string name="filter_sort">过滤与排序</string>
     <string name="genre_all">所有流派</string>
     <string name="sort_popularity">热门程度</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">自动登录…</string>
     <string name="logging_in">登录中…</string>
     <string name="logout">登出</string>
+    <string name="account">账户</string>
     <string name="refresh">刷新</string>
     <string name="upload">上传</string>
     <string name="exit_offline">退出离线模式</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">此操作不可逆。永久删除？</string>
     <string name="delete_confirm_3">最后警告：完全确定？</string>
     <string name="delete_confirm_4">你真的 100% 确定吗？此操作无法撤销！</string>
+    <string name="delete_confirm_5">这是你的最终决定吗？点击删除后，这首曲目将永远消失。</string>
     <string name="save_changes">保存更改</string>
     <string name="metadata_updated">元数据更新成功</string>
     <string name="version">版本</string>

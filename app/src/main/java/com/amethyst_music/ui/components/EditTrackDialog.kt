@@ -21,6 +21,9 @@ import com.amethyst_music.data.Track
 import com.amethyst_music.ui.theme.AmethystText
 import com.amethyst_music.ui.theme.AmethystTextMuted
 
+/** How many escalating prompts the admin has to get through before a track is deleted. */
+private const val DELETE_CONFIRM_STEPS = 5
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTrackDialog(
@@ -37,7 +40,7 @@ fun EditTrackDialog(
     var coverUri by remember { mutableStateOf<Uri?>(null) }
     var coverName by remember { mutableStateOf("") }
     
-    var showDeleteConfirm by remember { mutableStateOf(0) } // 0: none, 1: first, 2: second, 3: third, 4: last
+    var showDeleteConfirm by remember { mutableStateOf(0) } // 0: none, 1..DELETE_CONFIRM_STEPS: which prompt is up
 
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
@@ -56,7 +59,8 @@ fun EditTrackDialog(
             1 -> stringResource(R.string.delete_confirm_1) to MaterialTheme.colorScheme.onSurface
             2 -> stringResource(R.string.delete_confirm_2) to MaterialTheme.colorScheme.primary
             3 -> stringResource(R.string.delete_confirm_3) to androidx.compose.ui.graphics.Color.Red
-            else -> stringResource(R.string.delete_confirm_4) to androidx.compose.ui.graphics.Color.Red
+            4 -> stringResource(R.string.delete_confirm_4) to androidx.compose.ui.graphics.Color.Red
+            else -> stringResource(R.string.delete_confirm_5) to androidx.compose.ui.graphics.Color.Red
         }
 
         AlertDialog(
@@ -67,7 +71,7 @@ fun EditTrackDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        if (showDeleteConfirm < 4) {
+                        if (showDeleteConfirm < DELETE_CONFIRM_STEPS) {
                             showDeleteConfirm++
                         } else {
                             onDelete(track.id)

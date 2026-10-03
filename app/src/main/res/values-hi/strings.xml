@@ -27,6 +27,10 @@
     <string name="tab_settings">सेटिंग्स</string>
     <string name="search_placeholder">खोजें…</string>
     <string name="clear_search">खोज साफ़ करें</string>
+    <string name="search">खोजें</string>
+    <string name="close_search">खोज बंद करें</string>
+    <string name="search_scope_all">सभी</string>
+    <string name="search_no_results">“%1$s” के लिए कोई परिणाम नहीं</string>
     <string name="filter_sort">फ़िल्टर और क्रमबद्ध करें</string>
     <string name="genre_all">सभी शैलियाँ</string>
     <string name="sort_popularity">लोकप्रियता</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">स्वचालित लॉगिन…</string>
     <string name="logging_in">लॉगिन हो रहा है…</string>
     <string name="logout">लॉगआउट</string>
+    <string name="account">खाता</string>
     <string name="refresh">रिफ्रेश</string>
     <string name="upload">अपलोड</string>
     <string name="exit_offline">ऑफलाइन से बाहर निकलें</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">यह क्रिया अपरिवर्तनीय है। स्थायी रूप से हटाएँ?</string>
     <string name="delete_confirm_3">अंतिम चेतावनी: बिल्कुल पक्का?</string>
     <string name="delete_confirm_4">क्या आप 100% सुनिश्चित हैं? इसे बदला नहीं जा सकता!</string>
+    <string name="delete_confirm_5">क्या यह आपका अंतिम फ़ैसला है? हटाएँ दबाते ही यह ट्रैक हमेशा के लिए चला जाएगा।</string>
     <string name="save_changes">बदलाव सहेजें</string>
     <string name="metadata_updated">मेटाडेटा सफलतापूर्वक अपडेट किया गया</string>
     <string name="version">संस्करण</string>

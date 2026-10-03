@@ -27,6 +27,10 @@
     <string name="tab_settings">Ajustes</string>
     <string name="search_placeholder">Buscar…</string>
     <string name="clear_search">Borrar búsqueda</string>
+    <string name="search">Buscar</string>
+    <string name="close_search">Cerrar búsqueda</string>
+    <string name="search_scope_all">Todo</string>
+    <string name="search_no_results">Sin resultados para «%1$s»</string>
     <string name="filter_sort">Filtrar y ordenar</string>
     <string name="genre_all">Todos los géneros</string>
     <string name="sort_popularity">Popularidad</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Inicio de sesión automático…</string>
     <string name="logging_in">Iniciando sesión…</string>
     <string name="logout">Cerrar sesión</string>
+    <string name="account">Cuenta</string>
     <string name="refresh">Actualizar</string>
     <string name="upload">Subir</string>
     <string name="exit_offline">Salir de modo sin conexión</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Esta acción es irreversible. ¿Eliminar permanentemente?</string>
     <string name="delete_confirm_3">ÚLTIMO AVISO: ¿Estás totalmente seguro?</string>
     <string name="delete_confirm_4">¿ESTÁS 100 % SEGURO? ¡ESTO NO SE PUEDE DESHACER!</string>
+    <string name="delete_confirm_5">¿ES TU RESPUESTA FINAL? Al pulsar Eliminar, esta canción desaparecerá para siempre.</string>
     <string name="save_changes">Guardar cambios</string>
     <string name="metadata_updated">Metadatos actualizados con éxito</string>
     <string name="version">Versión</string>

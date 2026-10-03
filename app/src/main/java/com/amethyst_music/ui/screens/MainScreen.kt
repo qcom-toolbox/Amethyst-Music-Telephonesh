@@ -12,6 +12,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +32,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
@@ -38,7 +42,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.CheckCircle
@@ -48,10 +51,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.DropdownMenu
@@ -91,6 +92,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilterChipDefaults
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.amethyst_music.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -105,6 +120,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.LocalImageLoader
 import com.amethyst_music.AppViewModel
+import com.amethyst_music.SearchScope
 import com.amethyst_music.SortOrder
 import com.amethyst_music.data.AlbumSummary
 import com.amethyst_music.data.ArtistSummary
@@ -118,6 +134,7 @@ import com.amethyst_music.ui.components.MiniPlayerBar
 import androidx.compose.material.icons.filled.Edit
 import com.amethyst_music.ui.components.EditTrackDialog
 import com.amethyst_music.ui.components.PlaylistCard
+import com.amethyst_music.ui.components.PlaylistRow
 import com.amethyst_music.ui.components.TrackRow
 import com.amethyst_music.ui.components.PlayingVisualizer
 import com.amethyst_music.ui.theme.AmethystBorder
@@ -165,6 +182,25 @@ fun MainScreen(
     val showOfflineConfirmation by vm.showOfflineConfirmation.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
+
+    // The search bar is folded away until the header's search button opens it. It also stays
+    // out while a search is active (the query is shared by every tab, so switching tabs mid-search
+    // keeps the bar and its results), and folds back once it's empty and loses focus.
+    // Home is the exception: its bar is always shown, as it always was, and it has no button.
+    var searchOpen by rememberSaveable { mutableStateOf(false) }
+    val searchAlwaysShown = selectedTab == 0
+    // "Active" = there's a search to close (text typed, or opened via the button). Kept separate
+    // from visibility so Back on Home's always-shown, empty bar still leaves the app as before.
+    val searchActive = searchOpen || searchQuery.isNotEmpty()
+    val searchVisible = searchAlwaysShown || searchActive
+    val searchFocusRequester = remember { FocusRequester() }
+    var searchFieldFocused by remember { mutableStateOf(false) }
+    val closeSearch = {
+        focusManager.clearFocus()
+        onSearchChange("")
+        searchOpen = false
+    }
+    BackHandler(enabled = searchActive) { closeSearch() }
 
     if (showOfflineConfirmation) {
         AlertDialog(
@@ -252,9 +288,57 @@ fun MainScreen(
         )
     }
 
+    // Genre filter / sort button + its menu. On Home it sits beside the always-shown search bar;
+    // on Library it's in the header instead, because Library's search bar folds away and the
+    // filter shapes the list even when nothing is being searched.
+    @Composable
+    fun filterButton() {
+        Box {
+            IconButton(onClick = { showFilterMenu = true }) {
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = stringResource(R.string.filter_sort),
+                    tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilterSortMenu(
+                expanded = showFilterMenu,
+                onDismissRequest = { showFilterMenu = false },
+                genres = genres,
+                selectedGenres = selectedGenres,
+                onGenreToggle = vm::toggleGenre,
+                onClearFilters = vm::clearGenreFilters,
+                currentSort = sortOrder,
+                onSortSelect = vm::setSortOrder
+            )
+        }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        // "New playlist" on the Playlists tab. Living in the Scaffold's FAB slot means it always
+        // sits just above the bottom bar — above the mini player while one is showing, above the
+        // tab bar otherwise — and follows as the mini player animates in or out. Colors come from
+        // the theme, so with the Dynamic theme it cross-fades along with the album art, and
+        // onPrimary is picked for contrast against the accent (see ThemeUtils.readableOn).
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = selectedTab == 2 && !offlineOnlyMode,
+                enter = scaleIn() + fadeIn(),
+                exit = scaleOut() + fadeOut(),
+            ) {
+                FloatingActionButton(
+                    onClick = { showPlaylistCreateDialog = true },
+                    shape = CircleShape,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_playlist))
+                }
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Start,
         bottomBar = {
             AppBottomBar(
                 currentTrack = currentTrack,
@@ -266,7 +350,13 @@ fun MainScreen(
                 onPreviousTrack = onPreviousTrack,
                 offlineOnlyMode = offlineOnlyMode,
                 selectedTab = selectedTab,
-                onTabSelected = onTabSelected,
+                onTabSelected = { tab ->
+                    // Re-tapping the tab you're already on closes the search: clears the shared
+                    // query, folds the bar away and drops the keyboard. Only this bar does it —
+                    // the copy on album/artist/playlist pages spends its first tap closing the page.
+                    if (tab == selectedTab) closeSearch()
+                    onTabSelected(tab)
+                },
                 onClosePlaylist = { vm.closePlaylist() },
             )
         },
@@ -306,6 +396,15 @@ fun MainScreen(
                             Text(stringResource(R.string.go_online), fontSize = 12.sp)
                         }
                     }
+                    if (!searchAlwaysShown) {
+                        IconButton(onClick = { if (searchActive) closeSearch() else searchOpen = true }) {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = stringResource(if (searchActive) R.string.close_search else R.string.search),
+                                tint = if (searchActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 } else {
                     if (!isOnline) {
                         Button(
@@ -323,71 +422,174 @@ fun MainScreen(
                             Text(stringResource(R.string.tab_offline), fontSize = 12.sp)
                         }
                     }
-                    if (selectedTab == 2) {
-                        IconButton(onClick = { showPlaylistCreateDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.create_playlist), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    IconButton(onClick = { showUploadDialog = true }) {
-                        Icon(Icons.Default.Upload, contentDescription = stringResource(R.string.upload), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    IconButton(onClick = onRefresh) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.refresh), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.logout), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-
-            if (selectedTab == 0 || selectedTab == 1 || selectedTab == 3) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = onSearchChange,
-                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { onSearchChange("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_search))
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(50),
-                        colors = amethystFieldColors(),
-                    )
-                    if (selectedTab == 0 || selectedTab == 1) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Box {
-                            IconButton(onClick = { showFilterMenu = true }) {
-                                Icon(
-                                    Icons.Default.FilterList,
-                                    contentDescription = stringResource(R.string.filter_sort),
-                                    tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            FilterSortMenu(
-                                expanded = showFilterMenu,
-                                onDismissRequest = { showFilterMenu = false },
-                                genres = genres,
-                                selectedGenres = selectedGenres,
-                                onGenreToggle = vm::toggleGenre,
-                                onClearFilters = vm::clearGenreFilters,
-                                currentSort = sortOrder,
-                                onSortSelect = vm::setSortOrder
+                    // Library's filter lives in the header (see filterButton); Home's is beside its search bar.
+                    if (selectedTab == 1) filterButton()
+                    if (!searchAlwaysShown) {
+                        IconButton(onClick = { if (searchActive) closeSearch() else searchOpen = true }) {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = stringResource(if (searchActive) R.string.close_search else R.string.search),
+                                tint = if (searchActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            AnimatedVisibility(
+                visible = searchVisible,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Column {
+                    // Content only enters composition when the bar unfolds, and it can only be
+                    // folded while searchOpen is false — so searchOpen being true here means the
+                    // user just tapped the search button: focus the field and bring up the keyboard.
+                    LaunchedEffect(Unit) {
+                        if (searchOpen) searchFocusRequester.requestFocus()
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = onSearchChange,
+                            placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            trailingIcon = {
+                                // Clears the text first; on an already-empty bar it folds it away.
+                                // Home's bar never folds, so there it only appears while there's text.
+                                if (searchQuery.isNotEmpty() || !searchAlwaysShown) {
+                                    IconButton(onClick = { if (searchQuery.isNotEmpty()) onSearchChange("") else closeSearch() }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(if (searchQuery.isNotEmpty()) R.string.clear_search else R.string.close_search),
+                                        )
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            // The keyboard's search key just puts the keyboard away and keeps the
+                            // results; on an empty bar the focus loss below folds it up too. (Tapping
+                            // elsewhere on screen doesn't take focus from a text field in Compose, so
+                            // this, ✕, Back and the header button are the ways out.)
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(searchFocusRequester)
+                                .onFocusChanged { state ->
+                                    // Unused = empty and no longer focused (tapped elsewhere, or the
+                                    // keyboard's done) → fold the bar back up.
+                                    if (searchFieldFocused && !state.isFocused && searchQuery.isEmpty()) {
+                                        searchOpen = false
+                                    }
+                                    searchFieldFocused = state.isFocused
+                                },
+                            shape = RoundedCornerShape(50),
+                            colors = amethystFieldColors(),
+                        )
+                        if (selectedTab == 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            filterButton()
+                        }
+                    }
+                    if (searchQuery.isNotBlank()) {
+                        val searchScope by vm.searchScope.collectAsState()
+                        val offlineTab = selectedTab == 3 || (selectedTab == 4 && offlineOnlyMode)
+                        SearchScopeChips(
+                            // Offline has nothing to show for Playlists and treats it as All (see
+                            // AppViewModel.offlineSearchRequest), so the chips reflect that too.
+                            selected = if (offlineTab && searchScope == SearchScope.PLAYLISTS) SearchScope.ALL else searchScope,
+                            includePlaylists = !offlineTab,
+                            onSelect = vm::setSearchScope,
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
+            val filteredAlbums by vm.filteredAlbums.collectAsState()
+            val filteredArtists by vm.filteredArtists.collectAsState()
+            val filteredPlaylists by vm.filteredPlaylists.collectAsState()
+            val filteredOfflineAlbums by vm.filteredOfflineAlbums.collectAsState()
+            val filteredOfflineArtists by vm.filteredOfflineArtists.collectAsState()
+            // Settings searches songs too — the downloaded ones in offline-only mode, where the
+            // online library isn't available.
+            val settingsSearchesOffline = offlineOnlyMode
+            val hasMusicResults = if (settingsSearchesOffline) {
+                offlineTracks.isNotEmpty() || filteredOfflineAlbums.isNotEmpty() || filteredOfflineArtists.isNotEmpty()
+            } else {
+                tracks.isNotEmpty() || filteredAlbums.isNotEmpty() ||
+                    filteredArtists.isNotEmpty() || filteredPlaylists.isNotEmpty()
+            }
+
+            // Home (while searching), Library, Playlists (while searching) and Settings (while
+            // searching) all show the same search results — songs plus the artist/album/playlist
+            // sections — so the list is built once here. [offline] swaps in the downloaded-only
+            // results (no playlists). [header] puts extra rows above the results (Settings'
+            // matching sections); [showEmptyState] lets the caller own the "nothing found"
+            // message when it has results of its own.
+            @Composable
+            fun searchResults(
+                offline: Boolean = false,
+                header: (LazyListScope.() -> Unit)? = null,
+                showEmptyState: Boolean = true,
+                isRefreshing: Boolean = isLoading,
+                refresh: () -> Unit = onRefresh,
+            ) {
+                val allTracks by vm.tracks.collectAsState()
+                val tracksById = remember(allTracks) { allTracks.associateBy { it.id } }
+                TrackList(
+                    tracks = if (offline) offlineTracks else tracks,
+                    currentTrack = currentTrack,
+                    isPlaying = isPlaying,
+                    downloadedIds = downloadedIds,
+                    downloadingIds = downloadingIds,
+                    downloadProgress = downloadProgress,
+                    coverUrlForTrack = coverUrlForTrack,
+                    showDownloadActions = true,
+                    onTrackClick = onTrackClick,
+                    onDownload = onDownload,
+                    onRemoveDownload = onRemoveDownload,
+                    onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
+                    onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
+                    onPlayNext = remember(vm) { { vm.playNext(it) } },
+                    adminModeEnabled = adminModeEnabled,
+                    onEditTrack = { trackToEdit = it },
+                    onArtistClick = remember(onArtistClick, focusManager) {
+                        { name ->
+                            focusManager.clearFocus()
+                            onArtistClick(name)
+                        }
+                    },
+                    artistClickEnabled = listArtistClickEnabled,
+                    albums = if (offline) filteredOfflineAlbums else filteredAlbums,
+                    onAlbumClick = remember(vm, focusManager) {
+                        { name ->
+                            focusManager.clearFocus()
+                            vm.openAlbumPage(name)
+                        }
+                    },
+                    artists = if (offline) filteredOfflineArtists else filteredArtists,
+                    playlists = if (offline) emptyList() else filteredPlaylists,
+                    playlistCover = { playlist ->
+                        playlist.songIds.firstNotNullOfOrNull { tracksById[it] }?.let(coverUrlForTrack)
+                    },
+                    onPlaylistClick = remember(vm, focusManager) {
+                        { playlist ->
+                            focusManager.clearFocus()
+                            vm.openPlaylist(playlist)
+                        }
+                    },
+                    header = header,
+                    showEmptyState = showEmptyState,
+                    isRefreshing = isRefreshing,
+                    onRefresh = refresh,
+                )
             }
 
             if (isLoading) {
@@ -421,95 +623,28 @@ fun MainScreen(
                         artistClickEnabled = artistClickEnabled,
                     )
                 } else {
-                    // Typing in Home's search box swaps the curated rows for the same
-                    // Songs/Albums/Artists search results Library shows for the same query.
-                    val filteredAlbums by vm.filteredAlbums.collectAsState()
-                    val filteredArtists by vm.filteredArtists.collectAsState()
-                    TrackList(
-                        tracks = tracks,
-                        currentTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        downloadedIds = downloadedIds,
-                        downloadingIds = downloadingIds,
-                        downloadProgress = downloadProgress,
-                        coverUrlForTrack = coverUrlForTrack,
-                        showDownloadActions = true,
-                        onTrackClick = onTrackClick,
-                        onDownload = onDownload,
-                        onRemoveDownload = onRemoveDownload,
-                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
-                        onPlayNext = remember(vm) { { vm.playNext(it) } },
-                        adminModeEnabled = adminModeEnabled,
-                        onEditTrack = { trackToEdit = it },
-                        onArtistClick = remember(onArtistClick, focusManager) {
-                            { name ->
-                                focusManager.clearFocus()
-                                onArtistClick(name)
-                            }
-                        },
-                        artistClickEnabled = listArtistClickEnabled,
-                        albums = filteredAlbums,
-                        onAlbumClick = remember(vm, focusManager) {
-                            { name ->
-                                focusManager.clearFocus()
-                                vm.openAlbumPage(name)
-                            }
-                        },
-                        artists = filteredArtists,
-                    )
+                    // Typing in Home's search box swaps the curated rows for search results.
+                    searchResults()
                 }
-                1 -> {
-                    val filteredAlbums by vm.filteredAlbums.collectAsState()
-                    val filteredArtists by vm.filteredArtists.collectAsState()
-                    TrackList(
-                        tracks = tracks,
-                        currentTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        downloadedIds = downloadedIds,
-                        downloadingIds = downloadingIds,
-                        downloadProgress = downloadProgress,
-                        coverUrlForTrack = coverUrlForTrack,
-                        showDownloadActions = true,
-                        onTrackClick = onTrackClick,
-                        onDownload = onDownload,
-                        onRemoveDownload = onRemoveDownload,
-                        onAddToPlaylist = remember(vm) { { vm.showAddToPlaylist(it) } },
-                        onAddToQueue = remember(vm) { { vm.addToQueue(it) } },
-                        onPlayNext = remember(vm) { { vm.playNext(it) } },
-                        adminModeEnabled = adminModeEnabled,
-                        onEditTrack = { trackToEdit = it },
-                        onArtistClick = remember(onArtistClick, focusManager) {
-                            { name ->
-                                focusManager.clearFocus()
-                                onArtistClick(name)
-                            }
-                        },
-                        artistClickEnabled = listArtistClickEnabled,
-                        albums = filteredAlbums,
-                        onAlbumClick = remember(vm, focusManager) {
-                            { name ->
-                                focusManager.clearFocus()
-                                vm.openAlbumPage(name)
-                            }
-                        },
-                        artists = filteredArtists,
-                    )
-                }
-                2 -> {
+                1 -> searchResults()
+                2 -> if (searchQuery.isBlank()) {
                     val allTracks by vm.tracks.collectAsState()
-                    PlaylistGrid(
-                        playlists = playlists,
-                        allTracks = allTracks,
-                        coverUrlForTrack = coverUrlForTrack,
-                        canDeletePlaylist = remember(vm) { { vm.canEditPlaylist(it) } },
-                        onPlaylistClick = remember(vm) { { vm.openPlaylist(it) } },
-                        onDeletePlaylist = remember(vm) { { vm.deletePlaylist(it) } }
-                    )
+                    PullToRefreshBox(isRefreshing = isLoading, onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
+                        PlaylistGrid(
+                            playlists = playlists,
+                            allTracks = allTracks,
+                            coverUrlForTrack = coverUrlForTrack,
+                            canDeletePlaylist = remember(vm) { { vm.canEditPlaylist(it) } },
+                            onPlaylistClick = remember(vm) { { vm.openPlaylist(it) } },
+                            onDeletePlaylist = remember(vm) { { vm.deletePlaylist(it) } }
+                        )
+                    }
+                } else {
+                    // The shared query searches everything here too; matching playlists get
+                    // their own section in the results.
+                    searchResults()
                 }
                 3 -> {
-                    val filteredOfflineAlbums by vm.filteredOfflineAlbums.collectAsState()
-                    val filteredOfflineArtists by vm.filteredOfflineArtists.collectAsState()
                     TrackList(
                         tracks = offlineTracks,
                         currentTrack = currentTrack,
@@ -551,7 +686,8 @@ fun MainScreen(
                     val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
                     val ignoredGenres by vm.ignoredGenres.collectAsState()
                     val ignorableGenres by vm.ignorableGenres.collectAsState()
-                    SettingsScreen(
+                    @Composable
+                    fun settings(embedded: Boolean = false) = SettingsScreen(
                         currentLanguage = currentLanguage,
                         onLanguageChange = vm::setLanguage,
                         currentBackgroundColor = backgroundColor,
@@ -580,7 +716,42 @@ fun MainScreen(
                         isOnline = isOnline,
                         isCheckingConnection = isCheckingConnection,
                         onCheckConnection = remember(vm) { { vm.recheckConnection() } },
+                        searchQuery = searchQuery,
+                        embedded = embedded,
+                        hasOtherResults = hasMusicResults,
+                        // Moved here from the header. Both were online-only there, and stay so.
+                        onUpload = if (offlineOnlyMode) null else ({ showUploadDialog = true }),
+                        onLogout = if (offlineOnlyMode) null else onLogout,
                     )
+                    // Pulling down on Settings checks the internet connection (same as its
+                    // "Check connection" row) rather than reloading the library.
+                    val checkConnection = remember(vm) { { vm.recheckConnection() } }
+                    if (searchQuery.isBlank()) {
+                        PullToRefreshBox(
+                            isRefreshing = isCheckingConnection,
+                            onRefresh = checkConnection,
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            settings()
+                        }
+                    } else {
+                        // Searching from Settings finds songs as well as settings: matching
+                        // settings sections sit at the top of the usual search results. They're
+                        // part of "All" only — picking Songs/Artists/… narrows to just that kind.
+                        val searchScope by vm.searchScope.collectAsState()
+                        val includeSettings = searchScope == SearchScope.ALL
+                        searchResults(
+                            offline = settingsSearchesOffline,
+                            header = if (includeSettings) {
+                                { item(key = "settings_matches") { settings(embedded = true) } }
+                            } else null,
+                            // With settings included, SettingsScreen shows the single "no results"
+                            // message (it knows whether either side found anything).
+                            showEmptyState = !includeSettings,
+                            isRefreshing = isCheckingConnection,
+                            refresh = checkConnection,
+                        )
+                    }
                 }
             }
         }
@@ -686,6 +857,48 @@ fun AppBottomBar(
                 icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                 label = { Text(stringResource(R.string.tab_settings)) },
                 colors = navColors(),
+            )
+        }
+    }
+}
+
+/** The search-type filter shown under the search bar while searching: All, or just one kind
+ * of result. [includePlaylists] is false on the Offline tab, which has no playlists to search. */
+@Composable
+private fun SearchScopeChips(
+    selected: SearchScope,
+    includePlaylists: Boolean,
+    onSelect: (SearchScope) -> Unit,
+) {
+    val scopes = buildList {
+        add(SearchScope.ALL to R.string.search_scope_all)
+        add(SearchScope.SONGS to R.string.search_songs_header)
+        add(SearchScope.ARTISTS to R.string.search_artists_header)
+        add(SearchScope.ALBUMS to R.string.search_albums_header)
+        if (includePlaylists) add(SearchScope.PLAYLISTS to R.string.tab_playlists)
+    }
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(scopes, key = { it.first.name }) { (scope, label) ->
+            val isSelected = scope == selected
+            FilterChip(
+                selected = isSelected,
+                onClick = { onSelect(scope) },
+                label = { Text(stringResource(label), fontSize = 13.sp) },
+                colors = FilterChipDefaults.filterChipColors(
+                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline,
+                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                ),
             )
         }
     }
@@ -797,11 +1010,16 @@ private fun TrackList(
     albums: List<AlbumSummary> = emptyList(),
     onAlbumClick: (String) -> Unit = {},
     artists: List<ArtistSummary> = emptyList(),
+    playlists: List<Playlist> = emptyList(),
+    playlistCover: (Playlist) -> String? = { null },
+    onPlaylistClick: (Playlist) -> Unit = {},
+    header: (LazyListScope.() -> Unit)? = null,
+    showEmptyState: Boolean = true,
 ) {
     // Section headers only make sense once there's more than one kind of result to tell apart —
-    // i.e. while actively searching. Plain browsing (no query) never populates artists/albums,
-    // so the "Songs" header stays hidden and the list looks exactly as it did before.
-    val hasResultSections = artists.isNotEmpty() || albums.isNotEmpty()
+    // i.e. while actively searching. Plain browsing (no query) never populates artists/albums/
+    // playlists, so the "Songs" header stays hidden and the list looks exactly as it did before.
+    val hasResultSections = artists.isNotEmpty() || albums.isNotEmpty() || playlists.isNotEmpty()
 
     val listContent = @Composable {
         LazyColumn(
@@ -811,6 +1029,8 @@ private fun TrackList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
         ) {
+            header?.invoke(this)
+
             if (artists.isNotEmpty()) {
                 item {
                     SectionHeader(stringResource(R.string.search_artists_header))
@@ -837,7 +1057,20 @@ private fun TrackList(
                 }
             }
 
-            if (tracks.isEmpty() && !hasResultSections) {
+            if (playlists.isNotEmpty()) {
+                item {
+                    SectionHeader(stringResource(R.string.tab_playlists))
+                }
+                items(playlists, key = { "playlist_${it.id}" }, contentType = { "playlist_item" }) { playlist ->
+                    PlaylistRow(
+                        playlist = playlist,
+                        cover = playlistCover(playlist),
+                        onClick = { onPlaylistClick(playlist) },
+                    )
+                }
+            }
+
+            if (showEmptyState && tracks.isEmpty() && !hasResultSections) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.no_tracks_found), color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -906,7 +1139,11 @@ private fun PlaylistGrid(
     onDeletePlaylist: (Playlist) -> Unit,
 ) {
     if (playlists.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Scrollable (though it never moves) so pull-to-refresh still has something to pull.
+        Box(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(stringResource(R.string.no_playlists), color = AmethystTextMuted)
         }
         return

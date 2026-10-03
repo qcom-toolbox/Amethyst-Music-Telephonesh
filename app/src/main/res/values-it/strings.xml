@@ -27,6 +27,10 @@
     <string name="tab_settings">Impostazioni</string>
     <string name="search_placeholder">Cerca…</string>
     <string name="clear_search">Cancella ricerca</string>
+    <string name="search">Cerca</string>
+    <string name="close_search">Chiudi ricerca</string>
+    <string name="search_scope_all">Tutto</string>
+    <string name="search_no_results">Nessun risultato per “%1$s”</string>
     <string name="filter_sort">Filtra e ordina</string>
     <string name="genre_all">Tutti i generi</string>
     <string name="sort_popularity">Popolarità</string>
@@ -69,6 +73,7 @@
     <string name="auto_login">Accesso automatico…</string>
     <string name="logging_in">Accesso in corso…</string>
     <string name="logout">Esci</string>
+    <string name="account">Account</string>
     <string name="refresh">Aggiorna</string>
     <string name="upload">Carica</string>
     <string name="exit_offline">Esci da offline</string>
@@ -133,6 +138,7 @@
     <string name="delete_confirm_2">Questa azione è irreversibile. Elimina permanentemente?</string>
     <string name="delete_confirm_3">ULTIMO AVVISO: Sei assolutamente sicuro?</string>
     <string name="delete_confirm_4">SEI SICURO AL 100%? L\'AZIONE È IRREVERSIBILE!</string>
+    <string name="delete_confirm_5">È LA TUA RISPOSTA DEFINITIVA? Toccando Elimina, questo brano sparirà per sempre.</string>
     <string name="save_changes">Salva modifiche</string>
     <string name="metadata_updated">Metadati aggiornati con successo</string>
     <string name="version">Versione</string>

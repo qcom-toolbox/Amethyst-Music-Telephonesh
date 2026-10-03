@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import coil.compose.LocalImageLoader
 import com.amethyst_music.R
 import com.amethyst_music.data.Playlist
+import com.amethyst_music.data.SearchText
 import com.amethyst_music.data.Track
 import com.amethyst_music.ui.theme.AmethystText
 import com.amethyst_music.ui.theme.AmethystTextMuted
@@ -93,9 +94,9 @@ fun AddSongsToPlaylistDialog(
     var query by remember { mutableStateOf("") }
     val selected = remember { mutableStateOf(setOf<Int>()) }
     val filtered = remember(availableTracks, query) {
-        val q = query.trim().lowercase()
+        val q = SearchText.prepareQuery(query)
         if (q.isEmpty()) availableTracks
-        else availableTracks.filter { it.title.lowercase().contains(q) || it.artist.lowercase().contains(q) }
+        else availableTracks.filter { SearchText.matches(it.title, q) || SearchText.matches(it.artist, q) }
     }
     val placeholder = rememberVectorPainter(Icons.Default.MusicNote)
 
