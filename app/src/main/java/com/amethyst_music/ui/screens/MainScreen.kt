@@ -288,6 +288,32 @@ fun MainScreen(
         )
     }
 
+    // Genre filter / sort button + its menu. On Home it sits beside the always-shown search bar;
+    // on Library it's in the header instead, because Library's search bar folds away and the
+    // filter shapes the list even when nothing is being searched.
+    @Composable
+    fun filterButton() {
+        Box {
+            IconButton(onClick = { showFilterMenu = true }) {
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = stringResource(R.string.filter_sort),
+                    tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            FilterSortMenu(
+                expanded = showFilterMenu,
+                onDismissRequest = { showFilterMenu = false },
+                genres = genres,
+                selectedGenres = selectedGenres,
+                onGenreToggle = vm::toggleGenre,
+                onClearFilters = vm::clearGenreFilters,
+                currentSort = sortOrder,
+                onSortSelect = vm::setSortOrder
+            )
+        }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -396,30 +422,8 @@ fun MainScreen(
                             Text(stringResource(R.string.tab_offline), fontSize = 12.sp)
                         }
                     }
-                    // Genre filter / sort lives up here rather than beside the search field: it
-                    // shapes Library even when nothing is being searched, so it can't fold away
-                    // with the search bar.
-                    if (selectedTab == 0 || selectedTab == 1) {
-                        Box {
-                            IconButton(onClick = { showFilterMenu = true }) {
-                                Icon(
-                                    Icons.Default.FilterList,
-                                    contentDescription = stringResource(R.string.filter_sort),
-                                    tint = if (selectedGenres.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            FilterSortMenu(
-                                expanded = showFilterMenu,
-                                onDismissRequest = { showFilterMenu = false },
-                                genres = genres,
-                                selectedGenres = selectedGenres,
-                                onGenreToggle = vm::toggleGenre,
-                                onClearFilters = vm::clearGenreFilters,
-                                currentSort = sortOrder,
-                                onSortSelect = vm::setSortOrder
-                            )
-                        }
-                    }
+                    // Library's filter lives in the header (see filterButton); Home's is beside its search bar.
+                    if (selectedTab == 1) filterButton()
                     if (!searchAlwaysShown) {
                         IconButton(onClick = { if (searchActive) closeSearch() else searchOpen = true }) {
                             Icon(
@@ -444,45 +448,55 @@ fun MainScreen(
                     LaunchedEffect(Unit) {
                         if (searchOpen) searchFocusRequester.requestFocus()
                     }
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = onSearchChange,
-                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
-                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                        trailingIcon = {
-                            // Clears the text first; on an already-empty bar it folds it away.
-                            // Home's bar never folds, so there it only appears while there's text.
-                            if (searchQuery.isNotEmpty() || !searchAlwaysShown) {
-                                IconButton(onClick = { if (searchQuery.isNotEmpty()) onSearchChange("") else closeSearch() }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(if (searchQuery.isNotEmpty()) R.string.clear_search else R.string.close_search),
-                                    )
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        // The keyboard's search key just puts the keyboard away and keeps the
-                        // results; on an empty bar the focus loss below folds it up too. (Tapping
-                        // elsewhere on screen doesn't take focus from a text field in Compose, so
-                        // this, ✕, Back and the header button are the ways out.)
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .focusRequester(searchFocusRequester)
-                            .onFocusChanged { state ->
-                                // Unused = empty and no longer focused (tapped elsewhere, or the
-                                // keyboard's done) → fold the bar back up.
-                                if (searchFieldFocused && !state.isFocused && searchQuery.isEmpty()) {
-                                    searchOpen = false
+                            .padding(horizontal = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = onSearchChange,
+                            placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            trailingIcon = {
+                                // Clears the text first; on an already-empty bar it folds it away.
+                                // Home's bar never folds, so there it only appears while there's text.
+                                if (searchQuery.isNotEmpty() || !searchAlwaysShown) {
+                                    IconButton(onClick = { if (searchQuery.isNotEmpty()) onSearchChange("") else closeSearch() }) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = stringResource(if (searchQuery.isNotEmpty()) R.string.clear_search else R.string.close_search),
+                                        )
+                                    }
                                 }
-                                searchFieldFocused = state.isFocused
                             },
-                        shape = RoundedCornerShape(50),
-                        colors = amethystFieldColors(),
-                    )
+                            singleLine = true,
+                            // The keyboard's search key just puts the keyboard away and keeps the
+                            // results; on an empty bar the focus loss below folds it up too. (Tapping
+                            // elsewhere on screen doesn't take focus from a text field in Compose, so
+                            // this, ✕, Back and the header button are the ways out.)
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(searchFocusRequester)
+                                .onFocusChanged { state ->
+                                    // Unused = empty and no longer focused (tapped elsewhere, or the
+                                    // keyboard's done) → fold the bar back up.
+                                    if (searchFieldFocused && !state.isFocused && searchQuery.isEmpty()) {
+                                        searchOpen = false
+                                    }
+                                    searchFieldFocused = state.isFocused
+                                },
+                            shape = RoundedCornerShape(50),
+                            colors = amethystFieldColors(),
+                        )
+                        if (selectedTab == 0) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            filterButton()
+                        }
+                    }
                     if (searchQuery.isNotBlank()) {
                         val searchScope by vm.searchScope.collectAsState()
                         val offlineTab = selectedTab == 3 || (selectedTab == 4 && offlineOnlyMode)
