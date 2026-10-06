@@ -50,6 +50,8 @@
     <string name="theme_selection">App-Design</string>
     <string name="dynamic_theme_full_player_only">Dynamischer Hintergrund im Vollbild-Player</string>
     <string name="dynamic_theme_full_player_only_hint">Funktioniert mit jedem Design</string>
+    <string name="dynamic_theme_fallback">Standard-Design ohne Wiedergabe</string>
+    <string name="dynamic_theme_fallback_hint">Wird vom dynamischen Design verwendet, bis ein Titel mit Cover läuft</string>
     <string name="language_english">Englisch</string>
     <string name="language_french">Französisch</string>
     <string name="language_german">Deutsch</string>

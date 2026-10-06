@@ -50,6 +50,8 @@
     <string name="theme_selection">ऐप थीम</string>
     <string name="dynamic_theme_full_player_only">फ़ुल-स्क्रीन प्लेयर में डायनामिक बैकग्राउंड</string>
     <string name="dynamic_theme_full_player_only_hint">किसी भी थीम के साथ काम करता है</string>
+    <string name="dynamic_theme_fallback">कुछ न चलने पर डिफ़ॉल्ट थीम</string>
+    <string name="dynamic_theme_fallback_hint">एल्बम आर्ट वाला गाना शुरू होने तक डायनामिक थीम इसका उपयोग करती है</string>
     <string name="language_english">अंग्रेज़ी</string>
     <string name="language_french">फ़्रेंच</string>
     <string name="language_german">जर्मन</string>

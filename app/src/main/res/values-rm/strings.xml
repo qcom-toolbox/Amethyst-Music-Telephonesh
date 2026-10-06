@@ -50,6 +50,8 @@
     <string name="theme_selection">Tema da l\'app</string>
     <string name="dynamic_theme_full_player_only">Fund dinamic en il player a maletg entir</string>
     <string name="dynamic_theme_full_player_only_hint">Funcziuna cun mintga tema</string>
+    <string name="dynamic_theme_fallback">Tema da standard sch\'i na vegn sunà nagut</string>
+    <string name="dynamic_theme_fallback_hint">Duvrà dal tema dinamic fin ch\'ina chanzun cun cuverta cumenza</string>
     <string name="language_english">Englais</string>
     <string name="language_french">Franzos</string>
     <string name="language_german">Tudestg</string>

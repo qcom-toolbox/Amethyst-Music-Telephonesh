@@ -50,6 +50,8 @@
     <string name="theme_selection">アプリのテーマ</string>
     <string name="dynamic_theme_full_player_only">フルスクリーンプレーヤーのダイナミック背景</string>
     <string name="dynamic_theme_full_player_only_hint">どのテーマでも使用できます</string>
+    <string name="dynamic_theme_fallback">再生していないときのデフォルトテーマ</string>
+    <string name="dynamic_theme_fallback_hint">ジャケット付きの曲が再生されるまでダイナミックテーマで使用されます</string>
     <string name="language_english">英語</string>
     <string name="language_french">フランス語</string>
     <string name="language_german">ドイツ語</string>

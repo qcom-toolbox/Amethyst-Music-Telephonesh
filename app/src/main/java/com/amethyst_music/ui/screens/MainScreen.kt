@@ -684,6 +684,8 @@ fun MainScreen(
                 4 -> {
                     val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
                     val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
+                    val dynamicFallbackColor by vm.dynamicFallbackColor.collectAsState()
+                    val dynamicFallbackHarmony by vm.dynamicFallbackHarmony.collectAsState()
                     val ignoredGenres by vm.ignoredGenres.collectAsState()
                     val ignorableGenres by vm.ignorableGenres.collectAsState()
                     @Composable
@@ -696,6 +698,9 @@ fun MainScreen(
                         onThemeChange = onThemeChange,
                         currentDynamicThemeFullPlayerOnly = dynamicThemeFullPlayerOnly,
                         onDynamicThemeFullPlayerOnlyChange = vm::setDynamicThemeFullPlayerOnly,
+                        currentDynamicFallbackColor = dynamicFallbackColor,
+                        currentDynamicFallbackHarmony = dynamicFallbackHarmony,
+                        onDynamicFallbackThemeChange = vm::setDynamicFallbackTheme,
                         onRefreshCache = vm::refreshCache,
                         onOpenEqualizer = vm::openEqualizer,
                         onOpenBulkDownload = vm::openBulkDownload,
@@ -1027,7 +1032,7 @@ private fun TrackList(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(bottom = 80.dp), // pour le mini-player
+            contentPadding = PaddingValues(bottom = 80.dp), // room for the mini-player
         ) {
             header?.invoke(this)
 

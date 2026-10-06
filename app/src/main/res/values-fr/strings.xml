@@ -50,6 +50,8 @@
     <string name="theme_selection">Thème de l\'application</string>
     <string name="dynamic_theme_full_player_only">Arrière-plan dynamique en plein écran</string>
     <string name="dynamic_theme_full_player_only_hint">Fonctionne avec n\'importe quel thème</string>
+    <string name="dynamic_theme_fallback">Thème par défaut sans lecture</string>
+    <string name="dynamic_theme_fallback_hint">Utilisé par le thème dynamique tant qu\'aucun morceau avec pochette n\'est lu</string>
     <string name="language_english">Anglais</string>
     <string name="language_french">Français</string>
     <string name="language_german">Allemand</string>

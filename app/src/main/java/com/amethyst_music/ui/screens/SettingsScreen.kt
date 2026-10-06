@@ -89,6 +89,9 @@ fun SettingsScreen(
     onThemeChange: (Long, Boolean, Boolean) -> Unit,
     currentDynamicThemeFullPlayerOnly: Boolean = false,
     onDynamicThemeFullPlayerOnlyChange: (Boolean) -> Unit = {},
+    currentDynamicFallbackColor: Long = 0xFF0F0C1D,
+    currentDynamicFallbackHarmony: Boolean = true,
+    onDynamicFallbackThemeChange: (Long, Boolean) -> Unit = { _, _ -> },
     onRefreshCache: () -> Unit,
     onOpenEqualizer: () -> Unit,
     onOpenBulkDownload: () -> Unit,
@@ -340,38 +343,48 @@ fun SettingsScreen(
                     val isSelected = preset.backgroundColor == currentBackgroundColor &&
                         preset.useHarmony == currentUseHarmony &&
                         preset.isDynamic == currentDynamicThemeEnabled
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { onThemeChange(preset.backgroundColor, preset.useHarmony, preset.isDynamic) }
+                    ThemePresetSwatch(
+                        preset = preset,
+                        isSelected = isSelected,
+                        onClick = { onThemeChange(preset.backgroundColor, preset.useHarmony, preset.isDynamic) },
+                    )
+                }
+            }
+
+            // Default theme the "Dynamic" theme uses while nothing is playing (no album art to
+            // pull a color from).
+            if (currentDynamicThemeEnabled) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.dynamic_theme_fallback),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = stringResource(R.string.dynamic_theme_fallback_hint),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(Color(preset.backgroundColor))
-                                .border(
-                                    width = 2.dp,
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                                    shape = CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
+                        items(themes.filterNot { it.isDynamic }) { preset ->
+                            ThemePresetSwatch(
+                                preset = preset,
+                                isSelected = preset.backgroundColor == currentDynamicFallbackColor &&
+                                    preset.useHarmony == currentDynamicFallbackHarmony,
+                                onClick = { onDynamicFallbackThemeChange(preset.backgroundColor, preset.useHarmony) },
+                            )
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = preset.name,
-                            fontSize = 10.sp,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
                     }
                 }
             }
@@ -779,5 +792,46 @@ fun SettingsItem(
         Icon(imageVector = icon, contentDescription = null, tint = contentColor ?: MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.width(16.dp))
         Text(text = label, color = contentColor ?: MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun ThemePresetSwatch(
+    preset: ThemePreset,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(preset.backgroundColor))
+                .border(
+                    width = 2.dp,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = preset.name,
+            fontSize = 10.sp,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
     }
 }

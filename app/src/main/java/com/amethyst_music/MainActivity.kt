@@ -72,16 +72,24 @@ class MainActivity : AppCompatActivity() {
             val dynamicThemeEnabled by vm.dynamicThemeEnabled.collectAsState()
             val dynamicThemeFullPlayerOnly by vm.dynamicThemeFullPlayerOnly.collectAsState()
             val dynamicAlbumColor by vm.dynamicAlbumColor.collectAsState()
+            val dynamicFallbackColor by vm.dynamicFallbackColor.collectAsState()
+            val dynamicFallbackHarmony by vm.dynamicFallbackHarmony.collectAsState()
 
             // The color actually rendered app-wide: the extracted album art color when the
-            // "Dynamic" theme is selected, otherwise the persisted preset color. The
+            // "Dynamic" theme is selected (or its chosen fallback preset while nothing is
+            // playing), otherwise the persisted preset color. The
             // full-screen-player-only toggle is purely additive (it can turn on album-art
             // coloring in the player even when a different theme is active) and must never
             // suppress the app-wide "Dynamic" theme.
-            val effectiveBackgroundColor = if (dynamicThemeEnabled && dynamicAlbumColor != null) {
-                dynamicAlbumColor!!
+            val effectiveBackgroundColor = when {
+                !dynamicThemeEnabled -> backgroundColor
+                dynamicAlbumColor != null -> dynamicAlbumColor!!
+                else -> dynamicFallbackColor
+            }
+            val effectiveUseHarmony = if (dynamicThemeEnabled && dynamicAlbumColor == null) {
+                dynamicFallbackHarmony
             } else {
-                backgroundColor
+                useHarmony
             }
 
             androidx.compose.runtime.LaunchedEffect(effectiveBackgroundColor) {
@@ -107,7 +115,7 @@ class MainActivity : AppCompatActivity() {
 
             AmethystMusicTheme(
                 backgroundColor = animatedBackgroundColor,
-                useHarmony = useHarmony
+                useHarmony = effectiveUseHarmony
             ) {
                 val lifecycleOwner = LocalLifecycleOwner.current
                 DisposableEffect(lifecycleOwner) {
@@ -154,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                         .respectCacheHeaders(false)
                         .memoryCache {
                             MemoryCache.Builder(context)
-                                .maxSizePercent(0.25) // 25% de la mémoire disponible
+                                .maxSizePercent(0.25) // 25% of available memory
                                 .build()
                         }
                         .build()
