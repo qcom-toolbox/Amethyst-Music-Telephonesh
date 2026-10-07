@@ -73,6 +73,14 @@ object ThemeUtils {
         return if (whiteContrast >= 3.0) Color.White else AmethystTextDark
     }
 
+    /** [color] with the same hue and saturation but HSL lightness set to [lightness]. */
+    fun withLightness(color: Color, lightness: Float): Color {
+        val hsl = FloatArray(3)
+        ColorUtils.colorToHSL(color.toArgb(), hsl)
+        hsl[2] = lightness
+        return Color(ColorUtils.HSLToColor(hsl))
+    }
+
     /** A brighter variant of [base], used as the top of a background gradient (e.g. full-screen player). */
     fun deriveGradientTop(base: Color): Color {
         val hsl = FloatArray(3)
