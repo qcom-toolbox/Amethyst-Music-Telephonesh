@@ -50,6 +50,8 @@
     <string name="theme_selection">Tema dell\'app</string>
     <string name="dynamic_theme_full_player_only">Sfondo dinamico a schermo intero</string>
     <string name="dynamic_theme_full_player_only_hint">Funziona con qualsiasi tema</string>
+    <string name="dynamic_theme_fallback">Tema predefinito senza riproduzione</string>
+    <string name="dynamic_theme_fallback_hint">Usato dal tema dinamico finché non parte un brano con copertina</string>
     <string name="language_english">Inglese</string>
     <string name="language_french">Francese</string>
     <string name="language_german">Tedesco</string>

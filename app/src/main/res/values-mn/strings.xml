@@ -50,6 +50,8 @@
     <string name="theme_selection">Апп-ын загвар</string>
     <string name="dynamic_theme_full_player_only">Бүтэн дэлгэцийн тоглуулагч дахь динамик дэвсгэр</string>
     <string name="dynamic_theme_full_player_only_hint">Ямар ч загвартай ажилладаг</string>
+    <string name="dynamic_theme_fallback">Юу ч тоглуулаагүй үеийн үндсэн загвар</string>
+    <string name="dynamic_theme_fallback_hint">Цомгийн зурагтай дуу эхлэх хүртэл динамик загвар үүнийг ашиглана</string>
     <string name="language_english">Англи</string>
     <string name="language_french">Франц</string>
     <string name="language_german">Герман</string>

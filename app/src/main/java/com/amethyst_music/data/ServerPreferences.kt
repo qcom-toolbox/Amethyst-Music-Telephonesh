@@ -59,6 +59,16 @@ class ServerPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY, false)
         set(value) = prefs.edit().putBoolean(KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY, value).apply()
 
+    /** Base color the "Dynamic" theme falls back to when there's no album art color (nothing playing). */
+    var dynamicFallbackColor: Long
+        get() = prefs.getLong(KEY_DYNAMIC_FALLBACK_COLOR, 0xFF0F0C1D)
+        set(value) = prefs.edit().putLong(KEY_DYNAMIC_FALLBACK_COLOR, value).apply()
+
+    /** Harmony setting paired with [dynamicFallbackColor]. */
+    var dynamicFallbackHarmony: Boolean
+        get() = prefs.getBoolean(KEY_DYNAMIC_FALLBACK_HARMONY, true)
+        set(value) = prefs.edit().putBoolean(KEY_DYNAMIC_FALLBACK_HARMONY, value).apply()
+
     /** Default playback speed applied at the start of every session. */
     var defaultPlaybackSpeed: Float
         get() = prefs.getFloat(KEY_DEFAULT_PLAYBACK_SPEED, 1f)
@@ -122,6 +132,8 @@ class ServerPreferences(context: Context) {
         private const val KEY_USE_HARMONY = "use_harmony"
         private const val KEY_DYNAMIC_THEME_ENABLED = "dynamic_theme_enabled"
         private const val KEY_DYNAMIC_THEME_FULL_PLAYER_ONLY = "dynamic_theme_full_player_only"
+        private const val KEY_DYNAMIC_FALLBACK_COLOR = "dynamic_fallback_color"
+        private const val KEY_DYNAMIC_FALLBACK_HARMONY = "dynamic_fallback_harmony"
         private const val KEY_DEFAULT_PLAYBACK_SPEED = "default_playback_speed"
 
         fun normalizeServerUrl(raw: String): String {

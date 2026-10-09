@@ -502,6 +502,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _dynamicThemeFullPlayerOnly = MutableStateFlow(prefs.dynamicThemeFullPlayerOnly)
     val dynamicThemeFullPlayerOnly: StateFlow<Boolean> = _dynamicThemeFullPlayerOnly.asStateFlow()
 
+    private val _dynamicFallbackColor = MutableStateFlow(prefs.dynamicFallbackColor)
+    val dynamicFallbackColor: StateFlow<Long> = _dynamicFallbackColor.asStateFlow()
+
+    private val _dynamicFallbackHarmony = MutableStateFlow(prefs.dynamicFallbackHarmony)
+    val dynamicFallbackHarmony: StateFlow<Boolean> = _dynamicFallbackHarmony.asStateFlow()
+
     // Color extracted from the current track's album art via Palette, for the "Dynamic" theme.
     private val _dynamicAlbumColor = MutableStateFlow<Long?>(null)
     val dynamicAlbumColor: StateFlow<Long?> = _dynamicAlbumColor.asStateFlow()
@@ -952,6 +958,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setDynamicThemeFullPlayerOnly(enabled: Boolean) {
         prefs.dynamicThemeFullPlayerOnly = enabled
         _dynamicThemeFullPlayerOnly.value = enabled
+    }
+
+    fun setDynamicFallbackTheme(color: Long, harmony: Boolean) {
+        prefs.dynamicFallbackColor = color
+        prefs.dynamicFallbackHarmony = harmony
+        _dynamicFallbackColor.value = color
+        _dynamicFallbackHarmony.value = harmony
     }
 
     fun setAdminModeEnabled(enabled: Boolean) {
